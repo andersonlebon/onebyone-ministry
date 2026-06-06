@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" role="img" aria-label="Abstract volunteer team">
+  <rect width="960" height="600" fill="#FFFFFF" />
+  <rect x="80" y="80" width="800" height="440" rx="60" fill="#EFE7DB" />
+  <circle cx="260" cy="245" r="70" fill="#EAC79A" />
+  <circle cx="480" cy="215" r="82" fill="#6E9277" />
+  <circle cx="700" cy="245" r="70" fill="#5A4749" />
+  <path d="M160 455c45-105 155-125 235-45 50-92 180-92 230 0 80-80 190-60 235 45" fill="none" stroke="#474747" stroke-width="36" stroke-linecap="round" opacity="0.5" />
+</svg>
