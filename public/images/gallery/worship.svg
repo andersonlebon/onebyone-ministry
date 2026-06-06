@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600" role="img" aria-label="Abstract worship highlight">
+  <rect width="960" height="600" fill="#5A4749" />
+  <path d="M0 430C170 350 260 380 380 300s260-160 580-80v380H0Z" fill="#6E9277" opacity="0.75" />
+  <circle cx="710" cy="170" r="110" fill="#EAC79A" opacity="0.95" />
+  <path d="M310 430V190l210 120-210 120Z" fill="#EFE7DB" />
+  <rect x="140" y="470" width="680" height="26" rx="13" fill="#EFE7DB" opacity="0.55" />
+</svg>
