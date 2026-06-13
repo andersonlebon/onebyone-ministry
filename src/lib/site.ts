@@ -4,10 +4,10 @@ export const siteConfig = {
   tagline: "Restoring hope, building faith, and serving people one life at a time.",
   description:
     "One By One Ministries is a ministry website sharing mission, projects, stories, galleries, and opportunities to get involved.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://onebyoneministries.org",
-  email: "hello@onebyoneministries.org",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://onebyoneministries.com",
+  email: "contact@onebyoneministries.com",
   phone: "+1 (000) 000-0000",
-  location: "Serving communities with compassion and faith",
+  location: "United States & Democratic Republic of Congo",
   socialLinks: [
     { label: "Facebook", href: "https://facebook.com" },
     { label: "Instagram", href: "https://instagram.com" },
@@ -17,8 +17,10 @@ export const siteConfig = {
     { label: "Home", href: "/" },
     { label: "About", href: "/about" },
     { label: "Projects", href: "/projects" },
-    { label: "Gallery", href: "/gallery" },
-    { label: "Get Involved", href: "/get-involved" },
+    { label: "Photos", href: "/photos" },
+    { label: "Videos", href: "/videos" },
+    { label: "Stories", href: "/stories" },
+    { label: "Donate", href: "/donate" },
     { label: "Contact", href: "/contact" }
   ]
 } as const;

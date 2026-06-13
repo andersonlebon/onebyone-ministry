@@ -1,53 +1,173 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-@theme {
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --background: #EFE7DB;
+  --foreground: #474747;
+  --card: #ffffff;
+  --card-foreground: #474747;
+  --popover: #ffffff;
+  --popover-foreground: #474747;
+  --primary: #6E9277;
+  --primary-foreground: #ffffff;
+  --secondary: #EAC79A;
+  --secondary-foreground: #474747;
+  --muted: #e3d9ce;
+  --muted-foreground: #7a7068;
+  --accent: #5A4749;
+  --accent-foreground: #ffffff;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(110, 146, 119, 0.22);
+  --input: transparent;
+  --input-background: #f5f0ea;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #6E9277;
+  --chart-1: #6E9277;
+  --chart-2: #EAC79A;
+  --chart-3: #5A4749;
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.5rem;
+  --sidebar: #EFE7DB;
+  --sidebar-foreground: #474747;
+  --sidebar-primary: #6E9277;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e3d9ce;
+  --sidebar-accent-foreground: #474747;
+  --sidebar-border: rgba(110, 146, 119, 0.22);
+  --sidebar-ring: #6E9277;
+}
+
+.dark {
+  --background: #1a2620;
+  --foreground: #EDE7DA;
+  --card: #22302a;
+  --card-foreground: #EDE7DA;
+  --popover: #22302a;
+  --popover-foreground: #EDE7DA;
+  --primary: #7aaa88;
+  --primary-foreground: #1a2620;
+  --secondary: #d4b07a;
+  --secondary-foreground: #1a2620;
+  --muted: #2a3a2e;
+  --muted-foreground: #8fa895;
+  --accent: #6e5557;
+  --accent-foreground: #EDE7DA;
+  --destructive: #e05370;
+  --destructive-foreground: #ffffff;
+  --border: rgba(122, 170, 136, 0.18);
+  --input: rgba(122, 170, 136, 0.1);
+  --input-background: #2a3a2e;
+  --switch-background: #3a4e3e;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #7aaa88;
+  --chart-1: #7aaa88;
+  --chart-2: #d4b07a;
+  --chart-3: #6e5557;
+  --chart-4: #9bc4a8;
+  --chart-5: #e8c98a;
+  --sidebar: #1a2620;
+  --sidebar-foreground: #EDE7DA;
+  --sidebar-primary: #7aaa88;
+  --sidebar-primary-foreground: #1a2620;
+  --sidebar-accent: #2a3a2e;
+  --sidebar-accent-foreground: #EDE7DA;
+  --sidebar-border: rgba(122, 170, 136, 0.15);
+  --sidebar-ring: #7aaa88;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Brand aliases (kept from original setup for convenience) */
   --color-sage: #6e9277;
   --color-gold: #eac79a;
   --color-charcoal: #474747;
   --color-cream: #efe7db;
   --color-plum: #5a4749;
-  --color-ink: #2c2a29;
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-francois-one), Impact, sans-serif;
-  --shadow-soft: 0 24px 80px rgb(90 71 73 / 0.16);
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Francois One', Impact, sans-serif;
+  --font-serif: 'Cormorant Garamond', ui-serif, Georgia, serif;
 }
 
-:root {
-  color-scheme: light;
-  background: #fbf7ef;
-  color: #2c2a29;
-}
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
 
-* {
-  box-sizing: border-box;
-}
+  body {
+    @apply bg-background text-foreground;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
+  html {
+    font-size: var(--font-size);
+    scroll-behavior: smooth;
+  }
 
-body {
-  min-height: 100vh;
-  margin: 0;
-  background:
-    radial-gradient(circle at top left, rgb(234 199 154 / 0.32), transparent 34rem),
-    linear-gradient(180deg, #fbf7ef 0%, #ffffff 48%, #efe7db 100%);
-  color: #2c2a29;
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-}
+  body {
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+  }
 
-::selection {
-  background: #eac79a;
-  color: #2c2a29;
-}
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Francois One', sans-serif;
+  }
 
-:focus-visible {
-  outline: 3px solid #6e9277;
-  outline-offset: 3px;
-}
+  h1 { font-size: var(--text-2xl); font-weight: var(--font-weight-medium); line-height: 1.2; }
+  h2 { font-size: var(--text-xl); font-weight: var(--font-weight-medium); line-height: 1.3; }
+  h3 { font-size: var(--text-lg); font-weight: var(--font-weight-medium); line-height: 1.4; }
+  h4 { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  label { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  button { font-size: var(--text-base); font-weight: var(--font-weight-medium); line-height: 1.5; }
+  input { font-size: var(--text-base); font-weight: var(--font-weight-normal); line-height: 1.5; }
 
-.prose-site p {
-  margin-top: 1rem;
-  color: rgb(71 71 71 / 0.9);
-  line-height: 1.8;
+  ::selection {
+    background: #eac79a;
+    color: #2c2a29;
+  }
 }

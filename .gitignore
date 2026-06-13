@@ -21,6 +21,7 @@
 # misc
 .DS_Store
 *.pem
+figma-make/
 
 # debug
 npm-debug.log*

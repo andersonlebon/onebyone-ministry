@@ -1,19 +1,9 @@
 import type { Metadata } from "next";
-import { Francois_One, Inter } from "next/font/google";
 
-import { Footer } from "@/components/site/footer";
-import { Header } from "@/components/site/header";
+import { Providers } from "@/site/providers";
 import { organizationJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const francoisOne = Francois_One({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-francois-one",
-  display: "swap"
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -34,18 +24,28 @@ export const metadata: Metadata = {
   }
 };
 
+// Applies the persisted theme before hydration to avoid a flash of the wrong theme.
+const themeScript = `(function(){try{var t=localStorage.getItem('obom_theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${francoisOne.variable}`}>
-      <body className="font-sans antialiased">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Francois+One&family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="antialiased">
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           type="application/ld+json"
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
         />
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
