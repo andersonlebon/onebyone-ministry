@@ -5,6 +5,7 @@ import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Play, Youtube } from "lucide-react";
 import { featuredVideo, ministryVideos, websiteUseImages } from "@/content/media";
+import { WaveDivider } from "../components/shared/SvgDecorators";
 
 const FEATURED = {
   id: featuredVideo.id,
@@ -12,6 +13,7 @@ const FEATURED = {
   desc: featuredVideo.desc,
   duration: featuredVideo.duration,
   category: featuredVideo.category,
+  thumb: featuredVideo.thumb,
 };
 
 const VIDEOS = ministryVideos.map((v) => ({
@@ -50,22 +52,26 @@ export default function VideosPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative h-64 sm:h-72 flex items-center justify-center overflow-hidden bg-[#2a2a2a]">
+      <section className="relative h-72 sm:h-80 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
         <img
           src={websiteUseImages.outreach}
           alt="Ministry videos"
-          className="absolute inset-0 w-full h-full object-cover opacity-35"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ opacity: c.isDark ? 0.24 : 0.35 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/60" />
+        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.80))" : "linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.60))" }} />
         <div className="relative z-10 text-center px-5">
           <p className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3">Watch & Be Moved</p>
           <h1 className="text-4xl lg:text-5xl text-white">Video Library</h1>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+          <WaveDivider topColor="transparent" bottomColor={c.white} />
         </div>
       </section>
 
       {/* Featured Video */}
       <section className="py-16 lg:py-20" style={{ backgroundColor: c.white }}>
-        <div className="max-w-7xl mx-auto px-5 lg:px-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-8">
             <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: "#6E9277" }}>Featured</p>
             <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>Mission Documentary</h2>
@@ -91,7 +97,7 @@ export default function VideosPage() {
                 ) : (
                   <>
                     <img
-                      src="https://images.unsplash.com/photo-1717572316112-3e3839554744?w=900&h=506&fit=crop&auto=format"
+                      src={FEATURED.thumb}
                       alt={FEATURED.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -127,11 +133,12 @@ export default function VideosPage() {
             </motion.div>
           </div>
         </div>
+        <WaveDivider topColor={c.white} bottomColor={c.cream} />
       </section>
 
       {/* Video Library */}
       <section className="py-16 lg:py-20" style={{ backgroundColor: c.cream }}>
-        <div className="max-w-7xl mx-auto px-5 lg:px-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-8">
             <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: "#6E9277" }}>All Videos</p>
             <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>Browse the Collection</h2>
@@ -155,7 +162,7 @@ export default function VideosPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filtered.map((video, i) => (
               <motion.div
                 key={`${video.id}-${i}`}
@@ -205,11 +212,12 @@ export default function VideosPage() {
             ))}
           </div>
         </div>
+        <WaveDivider topColor={c.cream} bottomColor={c.white} />
       </section>
 
       {/* YouTube CTA */}
-      <section className="py-12 text-center" style={{ backgroundColor: c.white }}>
-        <div className="max-w-xl mx-auto px-5">
+      <section className="py-16 lg:py-20 text-center" style={{ backgroundColor: c.white }}>
+        <div className="max-w-xl mx-auto px-5 sm:px-8">
           <Youtube size={32} className="mx-auto mb-4" style={{ color: "#ff0000" }} />
           <h3 className="text-xl mb-2" style={{ color: c.text }}>Subscribe on YouTube</h3>
           <p className="text-sm mb-5" style={{ color: c.muted }}>

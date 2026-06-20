@@ -10,6 +10,7 @@ import {
   CreditCard, Smartphone, Building2, Copy, ExternalLink,
 } from "lucide-react";
 import { WaveDivider, AnimatedBlob, DotPattern, Sparkles } from "../components/shared/SvgDecorators";
+import { localImages } from "@/content/media";
 
 const IMPACT_ITEMS = [
   { amount: 25, label: "Feeds a family for one week", icon: Heart },
@@ -21,8 +22,8 @@ const IMPACT_ITEMS = [
 ];
 
 const TESTIMONIALS = [
-  { quote: "Because of OBOM's support, my daughter has completed three years of school. I never thought I would see this day.", name: "Marie K.", location: "Kinshasa Province, DRC", img: "https://images.unsplash.com/photo-1632215861513-130b66fe97f4?w=80&h=80&fit=crop&auto=format" },
-  { quote: "The entrepreneurship training changed everything for my family. I now have a business that provides for my six children.", name: "Solange M.", location: "Kasai Province, DRC", img: "https://images.unsplash.com/photo-1547496613-4e19af6736dc?w=80&h=80&fit=crop&auto=format" },
+  { quote: "Because of OBOM's support, my daughter has completed three years of school. I never thought I would see this day.", name: "Marie K.", location: "Kinshasa Province, DRC", img: localImages.testimonialOne },
+  { quote: "The entrepreneurship training changed everything for my family. I now have a business that provides for my six children.", name: "Solange M.", location: "Kasai Province, DRC", img: localImages.testimonialTwo },
 ];
 
 const PAYMENT_TABS = [
@@ -165,13 +166,10 @@ function MobilePayPanel({ amount }: { amount: string }) {
   const c = useColors();
   return (
     <div className="space-y-4">
-      <p className="text-sm" style={{ color: c.muted }}>Choose your preferred mobile payment method:</p>
+      <p className="text-sm" style={{ color: c.muted }}>Mobile giving is available for approved donors and partners.</p>
       {[
         { name: "Apple Pay", color: "#000000", textColor: "#ffffff", icon: "🍎" },
         { name: "Google Pay", color: "#ffffff", textColor: "#000000", border: `1px solid ${c.borderLight}`, icon: "G" },
-        { name: "Cash App", color: "#00D64F", textColor: "#ffffff", icon: "$" },
-        { name: "Venmo", color: "#3D95CE", textColor: "#ffffff", icon: "V" },
-        { name: "Zelle", color: "#6B2FAB", textColor: "#ffffff", icon: "Z" },
       ].map((method) => (
         <motion.button
           key={method.name}
@@ -185,9 +183,8 @@ function MobilePayPanel({ amount }: { amount: string }) {
         </motion.button>
       ))}
       <div className="rounded-xl p-4 text-xs mt-2" style={{ border: `1px solid ${c.borderLight}`, color: c.muted }}>
-        <p className="font-semibold mb-1" style={{ color: c.text }}>Cash App / Venmo / Zelle</p>
-        <p>Send to: <strong>@OneByOneMinistries</strong> or <strong>info@onebyone.org</strong></p>
-        <p className="mt-1 text-[#6E9277]">Please include "DONATION" in the memo.</p>
+        <p className="font-semibold mb-1" style={{ color: c.text }}>Mobile transfer details</p>
+        <p>For Cash App, Venmo, or Zelle details, please contact the finance team through the contact page.</p>
       </div>
     </div>
   );
@@ -195,38 +192,22 @@ function MobilePayPanel({ amount }: { amount: string }) {
 
 function BankPanel({ amount }: { amount: string }) {
   const c = useColors();
-  const [copied, setCopied] = useState<string | null>(null);
-  const copy = (text: string, key: string) => {
-    navigator.clipboard.writeText(text).catch(() => {});
-    setCopied(key);
-    setTimeout(() => setCopied(null), 2000);
-  };
-  const fields = [
-    { label: "Bank Name", value: "First Community Bank" },
-    { label: "Account Name", value: "One By One Ministries Inc." },
-    { label: "Routing Number", value: "021000021" },
-    { label: "Account Number", value: "4887712930" },
-    { label: "Swift / BIC", value: "BOFAUS3N" },
-  ];
   return (
     <div className="space-y-3">
       <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: c.cream }}>
         <p className="text-xs mb-1" style={{ color: c.muted }}>Donation Amount</p>
         <p className="text-2xl" style={{ color: c.text, fontFamily: "'Francois One', sans-serif" }}>${amount || "0"}</p>
       </div>
-      <p className="text-xs mb-3" style={{ color: c.muted }}>Use the details below for a direct bank transfer (ACH or wire):</p>
-      {fields.map((f) => (
-        <div key={f.label} className="flex items-center justify-between rounded-lg px-4 py-3" style={{ border: `1px solid ${c.borderLight}`, backgroundColor: c.white }}>
-          <div>
-            <p className="text-xs" style={{ color: c.muted }}>{f.label}</p>
-            <p className="text-sm font-semibold" style={{ color: c.text }}>{f.value}</p>
-          </div>
-          <button onClick={() => copy(f.value, f.label)} className="hover:text-[#6E9277] transition-colors" style={{ color: c.muted }}>
-            {copied === f.label ? <CheckCircle2 size={15} style={{ color: "#6E9277" }} /> : <Copy size={15} />}
-          </button>
-        </div>
-      ))}
-      <p className="text-xs mt-2 text-center" style={{ color: c.muted }}>Please email <span style={{ color: "#6E9277" }}>finance@onebyone.org</span> after your transfer so we can send your tax receipt.</p>
+      <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}`, backgroundColor: c.white }}>
+        <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Bank Transfer</h4>
+        <p className="text-sm leading-relaxed" style={{ color: c.muted }}>
+          ACH and wire instructions are available by request. Please contact the finance team and include your
+          intended donation amount so we can provide the correct instructions and receipt process.
+        </p>
+        <Link href="/contact" className="inline-block mt-4 text-xs font-semibold" style={{ color: "#6E9277" }}>
+          Request bank transfer instructions →
+        </Link>
+      </div>
     </div>
   );
 }
@@ -237,40 +218,33 @@ function OtherPanel() {
     <div className="space-y-4">
       <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}` }}>
         <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Cryptocurrency</h4>
-        <div className="space-y-3">
-          {[
-            { coin: "Bitcoin (BTC)", address: "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
-            { coin: "Ethereum (ETH)", address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F" },
-          ].map((coin) => (
-            <div key={coin.coin}>
-              <p className="text-xs font-semibold mb-1" style={{ color: "#6E9277" }}>{coin.coin}</p>
-              <p className="text-xs font-mono break-all p-2 rounded" style={{ color: c.muted, backgroundColor: c.cream }}>{coin.address}</p>
-            </div>
-          ))}
-        </div>
+        <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
+          Crypto giving is available by request. Contact our team before sending any funds so we can verify the
+          correct wallet and tax receipt information.
+        </p>
       </div>
       <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}` }}>
         <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Check by Mail</h4>
         <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-          Make checks payable to: <strong>One By One Ministries Inc.</strong><br />
-          Mail to: 123 Mission Drive, Atlanta, GA 30301<br />
-          <span style={{ color: "#6E9277" }}>Include your email for a tax receipt.</span>
+          Check donation instructions are available from our finance team to ensure accurate receipts and mailing
+          details.
         </p>
       </div>
       <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}` }}>
         <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Donor-Advised Fund (DAF)</h4>
         <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-          Search for "One By One Ministries Inc." in your DAF portal.<br />
-          EIN: <strong>82-1234567</strong><br />
-          Questions? Email <span style={{ color: "#6E9277" }}>finance@onebyone.org</span>
+          DAF instructions are available by request so we can confirm the right legal name and receipt process.
         </p>
       </div>
       <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}` }}>
         <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Stock / Securities</h4>
         <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-          To donate appreciated stock, contact us at <span style={{ color: "#6E9277" }}>finance@onebyone.org</span> for DTC transfer details. Donating stock may provide significant tax advantages.
+          Stock and securities gifts require coordination with the finance team before transfer.
         </p>
       </div>
+      <Link href="/contact" className="inline-block text-xs font-semibold" style={{ color: "#6E9277" }}>
+        Request alternative giving instructions →
+      </Link>
     </div>
   );
 }
@@ -288,17 +262,17 @@ export default function DonatePage() {
     <div className="overflow-x-hidden pt-20">
 
       {/* Hero */}
-      <section className="relative py-28 flex items-center justify-center overflow-hidden bg-[#1a2a1f]">
+      <section className="relative py-28 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
         <motion.img
-          src="https://images.unsplash.com/photo-1554566205-d2a9e64cc5e9?w=1400&h=700&fit=crop&auto=format"
+          src={localImages.donateHero}
           alt="Hands together"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.3 }}
+          style={{ opacity: c.isDark ? 0.22 : 0.3 }}
           initial={{ scale: 1.06 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.5 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
+        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.70), rgba(0,0,0,0.30), rgba(0,0,0,0.85))" : "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.20), rgba(0,0,0,0.70))" }} />
         <DotPattern color="rgba(234,199,154,0.1)" size={20} />
         <Sparkles count={12} color="#EAC79A" className="inset-0" />
         <AnimatedBlob color="#6E9277" opacity={0.1} size={500} className="-top-40 left-0" />
@@ -314,18 +288,20 @@ export default function DonatePage() {
             "Whoever is generous to the poor lends to the Lord, and He will repay him for his deed." — Proverbs 19:17
           </motion.p>
         </div>
-        <WaveDivider topColor="transparent" bottomColor={c.white} />
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+          <WaveDivider topColor="transparent" bottomColor={c.white} />
+        </div>
       </section>
 
       {/* Impact Breakdown */}
-      <section className="relative py-20 overflow-hidden" style={{ backgroundColor: c.white }}>
+      <section className="relative py-20 lg:py-28 overflow-hidden" style={{ backgroundColor: c.white }}>
         <AnimatedBlob color="#6E9277" opacity={0.04} size={500} className="-top-20 right-0" />
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
           <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-12">
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>What Your Gift Does</p>
             <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Every Dollar Goes to the Field</h2>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
             {IMPACT_ITEMS.map((item, i) => {
               const Icon = item.icon;
               return (
@@ -357,11 +333,11 @@ export default function DonatePage() {
       </section>
 
       {/* Donation Form + Sidebar */}
-      <section className="relative py-20 overflow-hidden" style={{ backgroundColor: c.cream }}>
+      <section className="relative py-20 lg:py-28 overflow-hidden" style={{ backgroundColor: c.cream }}>
         <DotPattern color="rgba(110,146,119,0.07)" size={24} />
         <AnimatedBlob color="#EAC79A" opacity={0.07} size={500} className="-bottom-20 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-5 gap-10 items-start relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-5 gap-10 lg:gap-14 items-start relative z-10">
 
           {/* Form */}
           <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="lg:col-span-3 rounded-2xl p-8 shadow-sm" style={{ backgroundColor: c.white }}>
@@ -452,7 +428,7 @@ export default function DonatePage() {
                   </div>
                 </div>
               ))}
-              <p className="text-xs mt-4" style={{ color: c.muted }}>501(c)(3) registered · EIN: 82-1234567 · All donations tax-deductible</p>
+              <p className="text-xs mt-4" style={{ color: c.muted }}>Registered nonprofit · Donation receipts provided by the finance team</p>
             </div>
 
             {/* Testimonials */}
@@ -486,12 +462,12 @@ export default function DonatePage() {
       </section>
 
       {/* Other Ways */}
-      <section className="py-16" style={{ backgroundColor: c.white }}>
-        <div className="max-w-4xl mx-auto px-5 lg:px-8 text-center">
+      <section className="py-16 lg:py-24" style={{ backgroundColor: c.white }}>
+        <div className="max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 text-center">
           <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <h3 className="text-2xl mb-3" style={{ color: c.text }}>Other Ways to Give</h3>
             <p className="text-sm mb-8" style={{ color: c.muted }}>Beyond financial donations, support the mission through prayer, volunteering, or in-kind gifts.</p>
-            <div className="grid sm:grid-cols-3 gap-5">
+            <div className="grid sm:grid-cols-3 gap-5 lg:gap-6">
               {[
                 { title: "Prayer Partnership", desc: "Join our prayer team and receive weekly field requests.", cta: "Contact Us" },
                 { title: "Volunteer", desc: "Travel to Congo or serve remotely with your skills.", cta: "Learn More" },

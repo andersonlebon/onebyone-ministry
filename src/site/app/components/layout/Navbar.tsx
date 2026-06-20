@@ -58,10 +58,10 @@ export default function Navbar() {
         <Link href="/" className="flex-shrink-0">
           <motion.img
             key={transparent ? "white" : "dark"}
-            src={transparent ? brandAssets.logoWhite : (isDark ? brandAssets.logoWhite : brandAssets.logoDark)}
+            src={transparent || isDark ? brandAssets.logoWhite : brandAssets.logoDark}
             alt="One By One Ministries"
             className="w-auto object-contain"
-            style={{ height: "clamp(44px, 6vw, 60px)" }}
+            style={{ height: "clamp(34px, 4.2vw, 44px)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}

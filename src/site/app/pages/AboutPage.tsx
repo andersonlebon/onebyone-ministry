@@ -6,6 +6,7 @@ import { useColors } from "../../lib/themeStore";
 import { Heart, Globe, BookOpen, Users, Lightbulb, ArrowRight } from "lucide-react";
 import { WaveDivider, AnimatedBlob, DotPattern, CrossPattern, DiagonalStripes, Sparkles } from "../components/shared/SvgDecorators";
 import FoundersTree from "../components/shared/FoundersTree";
+import { aboutStoryImages, localImages, websiteUseImages } from "@/content/media";
 
 const fadeSlide: Variants = {
   hidden: { opacity: 0, y: 28 },
@@ -21,9 +22,9 @@ const VALUES = [
 ];
 
 const LEADERS = [
-  { name: "Rev. Emmanuel Tshilobo", role: "Executive Director & Co-Founder", bio: "Born in the DRC, Emmanuel has served in ministry for 20+ years. He holds a Master of Divinity and has a heart for reconciling the church with its community calling.", img: "https://images.unsplash.com/photo-1547496613-4e19af6736dc?w=400&h=400&fit=crop&auto=format" },
-  { name: "Grace Tshilobo", role: "Director of Programs & Co-Founder", bio: "Originally from Atlanta, Grace brings expertise in women's development, entrepreneurship education, and cross-cultural program design.", img: "https://images.unsplash.com/photo-1632215861513-130b66fe97f4?w=400&h=400&fit=crop&auto=format" },
-  { name: "Jonathan Kalala", role: "Community Development Lead", bio: "A native of Kasai Province, Jonathan builds relationships with village chiefs and local NGOs to ensure every project is community-owned.", img: "https://images.unsplash.com/photo-1571417800906-5a5058dbd45d?w=400&h=400&fit=crop&auto=format" },
+  { name: "Rev. Emmanuel Tshilobo", role: "Executive Director & Co-Founder", bio: "Born in the DRC, Emmanuel has served in ministry for 20+ years. He holds a Master of Divinity and has a heart for reconciling the church with its community calling.", img: localImages.leaderOne },
+  { name: "Grace Tshilobo", role: "Director of Programs & Co-Founder", bio: "Originally from Atlanta, Grace brings expertise in women's development, entrepreneurship education, and cross-cultural program design.", img: localImages.leaderTwo },
+  { name: "Jonathan Kalala", role: "Community Development Lead", bio: "A native of Kasai Province, Jonathan builds relationships with village chiefs and local NGOs to ensure every project is community-owned.", img: localImages.leaderThree },
 ];
 
 export default function AboutPage() {
@@ -32,17 +33,17 @@ export default function AboutPage() {
     <div className="overflow-x-hidden pt-20">
 
       {/* Page Hero */}
-      <section className="relative h-72 sm:h-96 flex items-center justify-center overflow-hidden bg-[#1a2a1f]">
+      <section className="relative h-72 sm:h-96 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
         <motion.img
-          src="https://images.unsplash.com/photo-1717572316112-3e3839554744?w=1400&h=600&fit=crop&auto=format"
+          src={websiteUseImages.about}
           alt="Community gathering"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.38 }}
+          style={{ opacity: c.isDark ? 0.26 : 0.38 }}
           initial={{ scale: 1.08 }}
           animate={{ scale: 1 }}
           transition={{ duration: 1.4, ease: "easeOut" }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60" />
+        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.60), rgba(0,0,0,0.20), rgba(0,0,0,0.75))" : "linear-gradient(to bottom, rgba(0,0,0,0.40), transparent, rgba(0,0,0,0.60))" }} />
         <Sparkles count={10} color="#EAC79A" className="inset-0" />
         <AnimatedBlob color="#6E9277" opacity={0.08} size={400} className="-top-20 right-0" />
 
@@ -64,7 +65,9 @@ export default function AboutPage() {
             About One By One Ministries
           </motion.h1>
         </div>
-        <WaveDivider topColor="transparent" bottomColor={c.cream} />
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+          <WaveDivider topColor="transparent" bottomColor={c.cream} />
+        </div>
       </section>
 
       {/* Our Story */}
@@ -72,7 +75,7 @@ export default function AboutPage() {
         <CrossPattern color="rgba(110,146,119,0.06)" />
         <AnimatedBlob color="#EAC79A" opacity={0.07} size={500} className="-top-20 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-2 gap-14 items-center relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-2 gap-14 lg:gap-20 items-center relative z-10">
           <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>How It Began</p>
             <h2 className="text-3xl lg:text-5xl mb-6 leading-tight" style={{ color: c.text }}>A Vision Born in the Heart of Congo</h2>
@@ -109,9 +112,9 @@ export default function AboutPage() {
             className="grid grid-cols-2 gap-4"
           >
             {[
-              { src: "https://images.unsplash.com/photo-1627423896085-e3e694d88e40?w=600&h=400&fit=crop&auto=format", className: "col-span-2 h-52 rounded-2xl object-cover w-full" },
-              { src: "https://images.unsplash.com/photo-1689844759889-f8d92bd8a03a?w=350&h=300&fit=crop&auto=format", className: "h-40 rounded-2xl object-cover w-full" },
-              { src: "https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=350&h=300&fit=crop&auto=format", className: "h-40 rounded-2xl object-cover w-full" },
+              { src: aboutStoryImages[0], className: "col-span-2 h-52 rounded-2xl object-cover w-full" },
+              { src: aboutStoryImages[1], className: "h-40 rounded-2xl object-cover w-full" },
+              { src: aboutStoryImages[2], className: "h-40 rounded-2xl object-cover w-full" },
             ].map((img, i) => (
               <motion.div
                 key={i}
@@ -132,7 +135,7 @@ export default function AboutPage() {
         <DiagonalStripes color="rgba(110,146,119,0.04)" />
         <AnimatedBlob color="#5A4749" opacity={0.04} size={500} className="-bottom-40 -right-40" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-2 gap-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-2 gap-8 lg:gap-10 relative z-10">
           <motion.div
             custom={0}
             variants={fadeSlide}
@@ -183,13 +186,13 @@ export default function AboutPage() {
         <DotPattern color="rgba(110,146,119,0.08)" size={22} />
         <AnimatedBlob color="#6E9277" opacity={0.06} size={600} className="-top-40 left-0" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
           <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-14">
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>What Drives Us</p>
             <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Our Core Values</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 lg:gap-6">
             {VALUES.map((val, i) => {
               const Icon = val.icon;
               return (
@@ -227,13 +230,13 @@ export default function AboutPage() {
         <CrossPattern color="rgba(110,146,119,0.04)" />
         <AnimatedBlob color="#EAC79A" opacity={0.06} size={500} className="-top-20 -right-20" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
           <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-14">
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>The Team</p>
             <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Leadership</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
             {LEADERS.map((leader, i) => (
               <motion.div
                 key={leader.name}
@@ -272,11 +275,11 @@ export default function AboutPage() {
         <DiagonalStripes color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.07} size={500} className="-bottom-20 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10">
           <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <div className="relative rounded-2xl overflow-hidden shadow-xl">
               <motion.img
-                src="https://images.unsplash.com/photo-1658129850537-ea7517a9682f?w=800&h=600&fit=crop&auto=format"
+                src={localImages.communityAlt}
                 alt="Children in the DRC"
                 className="w-full h-80 object-cover"
                 whileHover={{ scale: 1.04 }}

@@ -39,7 +39,7 @@ export default function Footer() {
             <img
               src={brandAssets.logoWhite}
               alt="One By One Ministries"
-              className="h-14 w-auto object-contain mb-4"
+              className="h-12 w-auto object-contain mb-4"
             />
             <p className="text-white/70 text-sm leading-relaxed mb-5">
               Rebuilding communities through Education, Entrepreneurship, and

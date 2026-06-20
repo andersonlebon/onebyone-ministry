@@ -17,13 +17,15 @@ export default function Logo({
   style?: React.CSSProperties;
 }) {
   const src =
-    variant === "light" || variant === "vertical-light"
+    variant === "light"
       ? brandAssets.logoWhite
+      : variant === "vertical-light"
+        ? brandAssets.logoVerticalWhite
       : variant === "vertical-dark"
         ? brandAssets.logoVertical
         : brandAssets.logoDark;
 
-  const isVertical = variant === "vertical-dark" || variant === "vertical-light" || variant === "light";
+  const isVertical = variant === "vertical-dark" || variant === "vertical-light";
 
   return (
     <Image

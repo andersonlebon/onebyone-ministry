@@ -65,6 +65,7 @@ export function useColors() {
     hoverBg:     d ? "#2a3a2e" : "#EFE7DB",
     /* Hero / dark sections stay dark always */
     hero:        "#0d1810",
+    heroBg:      d ? "#06100a" : "#1a2620",
     /* Footer */
     footer:      d ? "#0f1810" : "#474747",
     /* Brand colours – unchanged */

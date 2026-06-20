@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { X, ArrowRight, Clock, CheckCircle2 } from "lucide-react";
+import { projectImages, websiteUseImages } from "@/content/media";
+import { WaveDivider } from "../components/shared/SvgDecorators";
 
 const CATEGORIES = ["All", "Education", "Entrepreneurship", "Discipleship", "Community"];
 
@@ -14,7 +16,7 @@ const PROJECTS = [
     category: "Education",
     status: "Active",
     desc: "Constructing three new classrooms in Kinshasa's peri-urban villages to give 200+ children a safe place to learn. This project includes teacher training, curriculum development, and school supply provision.",
-    img: "https://images.unsplash.com/photo-1627423896085-e3e694d88e40?w=700&h=480&fit=crop&auto=format",
+    img: projectImages[0],
     location: "Kinshasa Province",
     year: "2024–2025",
     impact: "200+ children",
@@ -26,7 +28,7 @@ const PROJECTS = [
     category: "Entrepreneurship",
     status: "Active",
     desc: "A 12-week skills program empowering 30 women with business training, start-up capital, and peer accountability to launch and sustain small businesses.",
-    img: "https://images.unsplash.com/photo-1632215861513-130b66fe97f4?w=700&h=480&fit=crop&auto=format",
+    img: projectImages[1],
     location: "Kasai Province",
     year: "2023–Ongoing",
     impact: "90+ graduates",
@@ -38,7 +40,7 @@ const PROJECTS = [
     category: "Discipleship",
     status: "Active",
     desc: "Equipping 15 rural pastors per cohort with theological education, discipleship resources, and ongoing mentorship to strengthen the local church.",
-    img: "https://images.unsplash.com/photo-1717572316112-3e3839554744?w=700&h=480&fit=crop&auto=format",
+    img: projectImages[2],
     location: "Multiple Provinces",
     year: "2021–Ongoing",
     impact: "45+ pastors trained",
@@ -50,7 +52,7 @@ const PROJECTS = [
     category: "Community",
     status: "Completed",
     desc: "Drilled five community wells and trained local technicians in maintenance — providing clean water access to 1,200+ community members.",
-    img: "https://images.unsplash.com/photo-1543181077-099f32f30a1c?w=700&h=480&fit=crop&auto=format",
+    img: projectImages[3],
     location: "Maniema Province",
     year: "2022–2023",
     impact: "1,200+ people",
@@ -62,7 +64,7 @@ const PROJECTS = [
     category: "Discipleship",
     status: "Active",
     desc: "Weekly small groups in 8 villages led by trained youth leaders, discipling the next generation of Christian leaders in the DRC.",
-    img: "https://images.unsplash.com/photo-1689844759889-f8d92bd8a03a?w=700&h=480&fit=crop&auto=format",
+    img: projectImages[4],
     location: "Kinshasa & Kasai",
     year: "2023–Ongoing",
     impact: "350+ youth",
@@ -74,7 +76,7 @@ const PROJECTS = [
     category: "Entrepreneurship",
     status: "Active",
     desc: "Teaching sustainable farming techniques to 40 farming families to improve crop yield, nutrition, and economic independence.",
-    img: "https://images.unsplash.com/photo-1658129850537-ea7517a9682f?w=700&h=480&fit=crop&auto=format",
+    img: projectImages[5],
     location: "Kasai Province",
     year: "2024–Ongoing",
     impact: "40 families",
@@ -99,24 +101,28 @@ export default function ProjectsPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative h-64 sm:h-72 flex items-center justify-center overflow-hidden bg-[#2a2a2a]">
+      <section className="relative h-72 sm:h-80 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
         <img
-          src="https://images.unsplash.com/photo-1770843093640-c44ae557928b?w=1400&h=600&fit=crop&auto=format"
+          src={websiteUseImages.projects}
           alt="Projects in the DRC"
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ opacity: c.isDark ? 0.28 : 0.40 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/50" />
+        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.75))" : "linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.50))" }} />
         <div className="relative z-10 text-center px-5">
           <p className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3">On the Ground</p>
           <h1 className="text-4xl lg:text-5xl text-white">Our Projects</h1>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+          <WaveDivider topColor="transparent" bottomColor={c.cream} />
+        </div>
       </section>
 
       {/* Filter + Grid */}
-      <section className="py-16 lg:py-20" style={{ backgroundColor: c.cream }}>
-        <div className="max-w-7xl mx-auto px-5 lg:px-8">
+      <section className="py-20 lg:py-28" style={{ backgroundColor: c.cream }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
           {/* Category Filter */}
-          <div className="flex flex-wrap gap-2 mb-10">
+          <div className="flex flex-wrap gap-2.5 mb-12">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -134,7 +140,7 @@ export default function ProjectsPage() {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             <AnimatePresence mode="popLayout">
               {filtered.map((project) => (
                 <motion.div
@@ -169,7 +175,7 @@ export default function ProjectsPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="p-6">
+                  <div className="p-6 lg:p-7">
                     <div className="flex items-center gap-2 mb-2 text-xs" style={{ color: c.muted }}>
                       <span>{project.location}</span>
                       <span>·</span>

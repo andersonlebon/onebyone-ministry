@@ -8,11 +8,11 @@ import {
   BookOpen, Lightbulb, Heart, Users, ArrowRight, ChevronDown,
   Globe, Quote, Sparkles as SparklesIcon,
 } from "lucide-react";
-import { brandAssets, websiteUseImages } from "@/content/media";
+import { brandAssets, homePillars, homeProjects, homeStories, websiteUseImages } from "@/content/media";
 import FloatingParticles from "../components/shared/FloatingParticles";
 import {
   WaveDivider, WaveBottom, DotPattern,
-  AnimatedBlob, CrossPattern, DiagonalStripes, PulsingRing, Sparkles,
+  AnimatedBlob, CrossPattern, DiagonalStripes, PulsingRing, Sparkles, OrnamentalRule,
 } from "../components/shared/SvgDecorators";
 
 /* ───── Animated Counter ───── */
@@ -84,10 +84,10 @@ function StatCard({ value, suffix, label, icon: Icon }: { value: number; suffix:
       whileInView="show"
       viewport={{ once: true, margin: "-50px" }}
       whileHover={{ scale: 1.04 }}
-      className="relative flex flex-col items-center text-center px-6 py-10 rounded-2xl overflow-hidden"
+      className="relative flex flex-col items-center text-center px-5 py-7 sm:px-6 sm:py-8 rounded-2xl overflow-hidden"
       style={{ backgroundColor: c.white, border: "1px solid rgba(110,146,119,0.15)" }}
     >
-      <PulsingRing color="#6E9277" size={60} className="-top-8 -right-8 opacity-30" />
+      <PulsingRing color="#6E9277" size={48} className="absolute top-2 right-2 opacity-20 pointer-events-none" />
       <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: c.cream }}>
         <Icon size={20} style={{ color: "#6E9277" }} />
       </div>
@@ -101,22 +101,22 @@ function StatCard({ value, suffix, label, icon: Icon }: { value: number; suffix:
 
 /* ───── Data ───── */
 const PILLARS = [
-  { icon: BookOpen, title: "Education", color: "#6E9277", img: "https://images.unsplash.com/photo-1770843093640-c44ae557928b?w=600&h=400&fit=crop&auto=format", desc: "Building schools, training teachers, and equipping every child with the tools they need to flourish." },
-  { icon: Lightbulb, title: "Entrepreneurship", color: "#EAC79A", img: "https://images.unsplash.com/photo-1543181077-099f32f30a1c?w=600&h=400&fit=crop&auto=format", desc: "Equipping families with skills, micro-grants, and mentorship to build sustainable livelihoods." },
-  { icon: Heart, title: "Spiritual Discipleship", color: "#5A4749", img: "https://images.unsplash.com/photo-1689844759889-f8d92bd8a03a?w=600&h=400&fit=crop&auto=format", desc: "Sharing the Gospel through Bible study, pastoral training, and church partnerships in unreached villages." },
-  { icon: Users, title: "Community Development", color: "#6E9277", img: "https://images.unsplash.com/photo-1515657241610-a6b33f0f6c5a?w=600&h=400&fit=crop&auto=format", desc: "Building infrastructure, clean water access, and healthcare systems that lift entire communities." },
+  { icon: BookOpen, title: "Education", color: "#6E9277", img: homePillars[0].img, desc: "Building schools, training teachers, and equipping every child with the tools they need to flourish." },
+  { icon: Lightbulb, title: "Entrepreneurship", color: "#EAC79A", img: homePillars[1].img, desc: "Equipping families with skills, micro-grants, and mentorship to build sustainable livelihoods." },
+  { icon: Heart, title: "Spiritual Discipleship", color: "#5A4749", img: homePillars[2].img, desc: "Sharing the Gospel through Bible study, pastoral training, and church partnerships in unreached villages." },
+  { icon: Users, title: "Community Development", color: "#6E9277", img: homePillars[3].img, desc: "Building infrastructure, clean water access, and healthcare systems that lift entire communities." },
 ];
 
 const PROJECTS = [
-  { id: 1, title: "Rural School Building Initiative", category: "Education", desc: "Constructing classrooms in remote villages to give 200+ children a safe place to learn.", img: "https://images.unsplash.com/photo-1627423896085-e3e694d88e40?w=700&h=480&fit=crop&auto=format", status: "Active" },
-  { id: 2, title: "Women's Entrepreneurship Cohort", category: "Entrepreneurship", desc: "12-week program empowering 30 women with business training and start-up capital.", img: "https://images.unsplash.com/photo-1632215861513-130b66fe97f4?w=700&h=480&fit=crop&auto=format", status: "Active" },
-  { id: 3, title: "Village Pastoral Training", category: "Discipleship", desc: "Equipping 15 rural pastors per cohort with theological education and ongoing mentorship.", img: "https://images.unsplash.com/photo-1717572316112-3e3839554744?w=700&h=480&fit=crop&auto=format", status: "Active" },
+  { id: 1, title: "Rural School Building Initiative", category: "Education", desc: "Constructing classrooms in remote villages to give 200+ children a safe place to learn.", img: homeProjects[0], status: "Active" },
+  { id: 2, title: "Women's Entrepreneurship Cohort", category: "Entrepreneurship", desc: "12-week program empowering 30 women with business training and start-up capital.", img: homeProjects[1], status: "Active" },
+  { id: 3, title: "Village Pastoral Training", category: "Discipleship", desc: "Equipping 15 rural pastors per cohort with theological education and ongoing mentorship.", img: homeProjects[2], status: "Active" },
 ];
 
 const STORIES = [
-  { id: 1, title: "How One School Changed a Whole Village", date: "May 28, 2025", category: "Education", img: "https://images.unsplash.com/flagged/photo-1555251255-e9a095d6eb9d?w=600&h=400&fit=crop&auto=format", excerpt: "When Amara received her first textbook at 11, she said it was the most beautiful thing she'd ever seen. Today she teaches the next generation." },
-  { id: 2, title: "From Despair to Purpose: Jean-Paul's Story", date: "April 14, 2025", category: "Discipleship", img: "https://images.unsplash.com/photo-1627423893729-3a79f48ff473?w=600&h=400&fit=crop&auto=format", excerpt: "One discipleship meeting sparked a revival now reaching five surrounding villages every Sunday morning." },
-  { id: 3, title: "Mamas Building a Future", date: "March 3, 2025", category: "Entrepreneurship", img: "https://images.unsplash.com/photo-1571417800906-5a5058dbd45d?w=600&h=400&fit=crop&auto=format", excerpt: "28 women graduated from the Entrepreneurship Cohort, now running businesses that feed their families." },
+  { id: 1, title: "How One School Changed a Whole Village", date: "May 28, 2025", category: "Education", img: homeStories[0], excerpt: "When Amara received her first textbook at 11, she said it was the most beautiful thing she'd ever seen. Today she teaches the next generation." },
+  { id: 2, title: "From Despair to Purpose: Jean-Paul's Story", date: "April 14, 2025", category: "Discipleship", img: homeStories[1], excerpt: "One discipleship meeting sparked a revival now reaching five surrounding villages every Sunday morning." },
+  { id: 3, title: "Mamas Building a Future", date: "March 3, 2025", category: "Entrepreneurship", img: homeStories[2], excerpt: "28 women graduated from the Entrepreneurship Cohort, now running businesses that feed their families." },
 ];
 
 /* ═══════════════════════════════════════════════════════════ */
@@ -132,21 +132,23 @@ export default function HomePage() {
     <div className="overflow-x-hidden">
 
       {/* ══════════ HERO ══════════ */}
-      <section ref={heroRef} className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+      <section ref={heroRef} className="relative min-h-[100svh] flex items-center justify-center overflow-hidden py-28 sm:py-32 lg:py-36">
         {/* Background image with parallax */}
         <motion.div className="absolute inset-0" style={{ y: parallaxSmooth }}>
-          <div className="absolute inset-0 bg-[#0d1810]" />
+          <div className="absolute inset-0" style={{ backgroundColor: c.heroBg }} />
           <img
             src={websiteUseImages.hero}
             alt="One By One Ministries community"
             className="w-full h-full object-cover"
-            style={{ opacity: 0.22 }}
+            style={{ opacity: c.isDark ? 0.16 : 0.22 }}
+            fetchPriority="high"
+            decoding="async"
           />
         </motion.div>
 
         {/* Strong dark gradients so logo + text are clearly readable */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/20" />
+        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.50) 50%, rgba(0,0,0,0.90) 100%)" : "linear-gradient(to bottom, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0.40) 50%, rgba(0,0,0,0.80) 100%)" }} />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/12" />
 
         {/* Particles */}
         <FloatingParticles count={32} />
@@ -158,18 +160,18 @@ export default function HomePage() {
 
         <motion.div
           style={{ opacity: heroOpacity }}
-          className="relative z-10 text-center px-5 max-w-4xl mx-auto flex flex-col items-center"
+          className="relative z-10 text-center px-5 max-w-5xl mx-auto flex flex-col items-center"
         >
-          {/* VERTICAL LOGO — large, prominent, white version for dark hero */}
+          {/* Vertical brand mark — smaller here so the hero copy has room to breathe. */}
           <motion.img
-            src={brandAssets.logoWhite}
+            src={brandAssets.logoVerticalWhite}
             alt="One By One Ministries"
             initial={{ opacity: 0, scale: 0.6, y: -40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-8"
+            className="mb-7"
             style={{
-              width: "clamp(180px, 26vw, 300px)",
+              width: "clamp(92px, 12vw, 150px)",
               filter: "drop-shadow(0 4px 32px rgba(0,0,0,0.7)) brightness(1.1)",
             }}
           />
@@ -179,13 +181,13 @@ export default function HomePage() {
             initial={{ opacity: 0, letterSpacing: "0.1em" }}
             animate={{ opacity: 1, letterSpacing: "0.22em" }}
             transition={{ delay: 0.6, duration: 0.8 }}
-            className="text-[#EAC79A] text-xs tracking-[0.22em] uppercase mb-5"
+            className="text-[#EAC79A] text-xs tracking-[0.22em] uppercase mb-6"
           >
             Rebuilding Lives · Democratic Republic of Congo
           </motion.p>
 
           {/* Main headline */}
-          <h1 className="text-white mb-6 leading-tight" style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}>
+          <h1 className="text-white mb-7 leading-tight max-w-4xl" style={{ fontSize: "clamp(2.25rem, 5.8vw, 4.75rem)" }}>
             <WordReveal text="Bringing Hope, Education, and the Love of Christ" delay={0.7} />
             <span className="block mt-2">
               <motion.span
@@ -204,7 +206,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.8, duration: 0.7 }}
-            className="text-white/80 text-lg sm:text-xl mb-10 max-w-2xl leading-relaxed"
+            className="text-white/80 text-lg sm:text-xl mb-12 max-w-3xl leading-relaxed"
           >
             Transforming communities through Education, Entrepreneurship, and Spiritual Discipleship — one person at a time.
           </motion.p>
@@ -243,7 +245,7 @@ export default function HomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/40"
+          className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/40"
         >
           <motion.div
             animate={{ y: [0, 8, 0] }}
@@ -260,25 +262,24 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ IMPACT STATS ══════════ */}
-      <section className="relative py-6" style={{ backgroundColor: c.cream }}>
+      <section className="relative -mt-px pt-6 pb-16 sm:pt-8 sm:pb-20" style={{ backgroundColor: c.cream }}>
         <DotPattern color="rgba(110,146,119,0.06)" size={24} />
-        <div className="max-w-5xl mx-auto px-5 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             <StatCard value={18} suffix="+" label="Communities Served" icon={Globe} />
             <StatCard value={500} suffix="+" label="Families Reached" icon={Users} />
             <StatCard value={8} suffix="" label="Education Projects" icon={BookOpen} />
             <StatCard value={65} suffix="+" label="Volunteers" icon={Heart} />
           </div>
         </div>
-        <WaveDivider topColor={c.cream} bottomColor={c.white} />
       </section>
 
       {/* ══════════ MISSION STATEMENT ══════════ */}
-      <section className="relative py-24 lg:py-32 overflow-hidden" style={{ backgroundColor: c.white }}>
+      <section className="relative py-20 lg:py-28 overflow-hidden" style={{ backgroundColor: c.white }}>
         <CrossPattern color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.05} size={700} className="-top-60 -left-60" />
         <AnimatedBlob color="#EAC79A" opacity={0.08} size={500} className="-bottom-40 -right-40" />
-        <div className="max-w-3xl mx-auto px-5 text-center relative z-10">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center relative z-10">
           <motion.div
             variants={fadeSlide}
             initial="hidden"
@@ -321,6 +322,7 @@ export default function HomePage() {
             >
               Our Mission
             </motion.p>
+            <OrnamentalRule color="#6E9277" />
             <motion.h2
               variants={fadeSlide}
               initial="hidden"
@@ -354,7 +356,6 @@ export default function HomePage() {
             </motion.p>
           </motion.div>
         </div>
-        <WaveDivider topColor={c.white} bottomColor={c.cream} />
       </section>
 
       {/* ══════════ CORE PILLARS ══════════ */}
@@ -362,13 +363,13 @@ export default function HomePage() {
         <DiagonalStripes color="rgba(110,146,119,0.06)" />
         <AnimatedBlob color="#5A4749" opacity={0.05} size={600} className="top-0 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-16">
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>How We Serve</p>
             <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Four Pillars of Transformation</h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {PILLARS.map((pillar, i) => {
               const Icon = pillar.icon;
               return (
@@ -418,7 +419,7 @@ export default function HomePage() {
       <section className="relative py-24 overflow-hidden" style={{ backgroundColor: c.white }}>
         <AnimatedBlob color="#6E9277" opacity={0.05} size={500} className="top-20 -left-40" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-14">
             <div>
               <p className="text-xs tracking-[0.22em] uppercase mb-2" style={{ color: "#6E9277" }}>On the Ground</p>
@@ -429,7 +430,7 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
             {PROJECTS.map((project, i) => (
               <motion.div
                 key={project.id}
@@ -520,7 +521,7 @@ export default function HomePage() {
         <CrossPattern color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.05} size={450} className="top-0 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex items-end justify-between gap-4 mb-14">
             <div>
               <p className="text-xs tracking-[0.22em] uppercase mb-2" style={{ color: "#6E9277" }}>From the Field</p>
@@ -531,7 +532,7 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
             {STORIES.map((story, i) => (
               <motion.article
                 key={story.id}
@@ -570,11 +571,10 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
       </section>
 
       {/* ══════════ DONATE CTA ══════════ */}
-      <section className="relative py-28 overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
+      <section className="relative py-20 lg:py-24 overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
         <DotPattern color="rgba(255,255,255,0.1)" size={24} />
         <AnimatedBlob color="#ffffff" opacity={0.06} size={600} className="-top-40 -left-40" />
         <AnimatedBlob color="#EAC79A" opacity={0.1} size={400} className="-bottom-20 right-0" />
@@ -629,9 +629,9 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ NEWSLETTER ══════════ */}
-      <section className="py-14" style={{ backgroundColor: "#474747" }}>
+      <section className="py-16 lg:py-20" style={{ backgroundColor: "#474747" }}>
         <DotPattern color="rgba(255,255,255,0.04)" size={20} />
-        <div className="max-w-xl mx-auto px-5 text-center relative z-10">
+        <div className="max-w-xl mx-auto px-5 sm:px-8 text-center relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <p className="text-xs tracking-[0.2em] uppercase mb-2 text-[#EAC79A]">Stay Connected</p>
             <h3 className="text-2xl text-white mb-2">Join Our Prayer Network</h3>

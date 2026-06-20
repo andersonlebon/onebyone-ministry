@@ -3,10 +3,12 @@
 import { motion } from "motion/react";
 
 /* ─── Wave Transitions ─── */
+const WAVE_HEIGHT = 72;
+
 export function WaveBottom({ fill = "#ffffff" }: { fill?: string }) {
   return (
-    <div style={{ lineHeight: 0, marginBottom: -1 }}>
-      <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: 90 }}>
+    <div className="leading-none -mb-px" aria-hidden="true">
+      <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: WAVE_HEIGHT }}>
         <path d="M0,45 C240,90 480,0 720,45 C960,90 1200,10 1440,30 L1440,90 L0,90 Z" fill={fill} />
       </svg>
     </div>
@@ -15,8 +17,8 @@ export function WaveBottom({ fill = "#ffffff" }: { fill?: string }) {
 
 export function WaveTop({ fill = "#EFE7DB" }: { fill?: string }) {
   return (
-    <div style={{ lineHeight: 0, marginTop: -1 }}>
-      <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: 90 }}>
+    <div className="leading-none" aria-hidden="true">
+      <svg viewBox="0 0 1440 90" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: WAVE_HEIGHT }}>
         <path d="M0,60 C360,10 720,90 1080,40 C1260,10 1380,55 1440,45 L1440,0 L0,0 Z" fill={fill} />
       </svg>
     </div>
@@ -25,8 +27,8 @@ export function WaveTop({ fill = "#EFE7DB" }: { fill?: string }) {
 
 export function WaveDivider({ topColor, bottomColor }: { topColor: string; bottomColor: string }) {
   return (
-    <div style={{ backgroundColor: topColor, lineHeight: 0, marginBottom: -1 }}>
-      <svg viewBox="0 0 1440 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: 100 }}>
+    <div className="leading-none" style={{ backgroundColor: topColor }} aria-hidden="true">
+      <svg viewBox="0 0 1440 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: WAVE_HEIGHT }}>
         <path d="M0,50 C200,100 400,0 600,50 C800,100 1000,10 1200,50 C1320,80 1400,30 1440,40 L1440,100 L0,100 Z" fill={bottomColor} />
       </svg>
     </div>
@@ -205,6 +207,19 @@ export function DrawPath({
         transition={{ duration, delay, ease: "easeInOut" }}
       />
     </svg>
+  );
+}
+
+/* ─── Ornamental Rule ─── */
+export function OrnamentalRule({ color = "#6E9277" }: { color?: string }) {
+  return (
+    <div className="flex items-center gap-4 my-2" aria-hidden="true">
+      <div className="flex-1 h-px opacity-20" style={{ backgroundColor: color }} />
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 0.5 L8.3 5.7 L13.5 7 L8.3 8.3 L7 13.5 L5.7 8.3 L0.5 7 L5.7 5.7 Z" fill={color} opacity="0.45" />
+      </svg>
+      <div className="flex-1 h-px opacity-20" style={{ backgroundColor: color }} />
+    </div>
   );
 }
 

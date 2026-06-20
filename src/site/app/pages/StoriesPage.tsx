@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Search, ArrowRight, Calendar, Tag } from "lucide-react";
+import { localImages, storyImages } from "@/content/media";
+import { WaveDivider } from "../components/shared/SvgDecorators";
 
 const CATEGORIES = ["All", "Education", "Discipleship", "Entrepreneurship", "Community", "Updates"];
 
@@ -15,7 +17,7 @@ const STORIES = [
     body: "The village of Maluku sits 45 kilometers east of Kinshasa, accessible only by a dirt road that becomes impassable in rainy season. For generations, children here walked hours to reach the nearest school, or simply didn't go at all. That changed in 2022 when OBOM partnered with local elders to build two classrooms and train three community teachers.",
     date: "May 28, 2025",
     category: "Education",
-    img: "https://images.unsplash.com/photo-1627423896085-e3e694d88e40?w=900&h=600&fit=crop&auto=format",
+    img: storyImages[0],
     author: "Sarah M.",
     featured: true,
   },
@@ -25,7 +27,7 @@ const STORIES = [
     excerpt: "A single discipleship meeting in a pastor's home sparked a revival that now reaches five surrounding villages every Sunday morning.",
     date: "April 14, 2025",
     category: "Discipleship",
-    img: "https://images.unsplash.com/photo-1627423893729-3a79f48ff473?w=700&h=480&fit=crop&auto=format",
+    img: storyImages[1],
     author: "Emmanuel T.",
     featured: false,
   },
@@ -35,7 +37,7 @@ const STORIES = [
     excerpt: "The Women's Entrepreneurship Cohort graduated its second class — 28 women who now run businesses that feed their families and fund their children's school fees.",
     date: "March 3, 2025",
     category: "Entrepreneurship",
-    img: "https://images.unsplash.com/photo-1632215861513-130b66fe97f4?w=700&h=480&fit=crop&auto=format",
+    img: storyImages[2],
     author: "Jonathan K.",
     featured: false,
   },
@@ -45,7 +47,7 @@ const STORIES = [
     excerpt: "Before the new borehole, women walked two hours each way to collect water for their families. Now they have time, health, and hope.",
     date: "February 18, 2025",
     category: "Community",
-    img: "https://images.unsplash.com/photo-1543181077-099f32f30a1c?w=700&h=480&fit=crop&auto=format",
+    img: storyImages[3],
     author: "Jonathan K.",
     featured: false,
   },
@@ -55,7 +57,7 @@ const STORIES = [
     excerpt: "Fifteen young men and women completed their discipleship training and are now leading weekly Bible studies in their own neighborhoods.",
     date: "January 9, 2025",
     category: "Discipleship",
-    img: "https://images.unsplash.com/photo-1689844759889-f8d92bd8a03a?w=700&h=480&fit=crop&auto=format",
+    img: storyImages[4],
     author: "Sarah M.",
     featured: false,
   },
@@ -65,7 +67,7 @@ const STORIES = [
     excerpt: "From 8 to 18 active communities — 2024 was the year OBOM's work multiplied through faithful partnerships and answered prayers.",
     date: "December 31, 2024",
     category: "Updates",
-    img: "https://images.unsplash.com/photo-1717572316112-3e3839554744?w=700&h=480&fit=crop&auto=format",
+    img: storyImages[5],
     author: "Rev. Emmanuel T.",
     featured: false,
   },
@@ -75,7 +77,7 @@ const STORIES = [
     excerpt: "André didn't believe that better farming techniques could change his family's life. Six months after the agricultural training, he has surplus to sell at market.",
     date: "November 12, 2024",
     category: "Entrepreneurship",
-    img: "https://images.unsplash.com/photo-1658129850537-ea7517a9682f?w=700&h=480&fit=crop&auto=format",
+    img: storyImages[6],
     author: "Jonathan K.",
     featured: false,
   },
@@ -113,23 +115,27 @@ export default function StoriesPage() {
   return (
     <div className="pt-20">
       {/* Hero */}
-      <section className="relative h-64 sm:h-72 flex items-center justify-center overflow-hidden bg-[#2a2a2a]">
+      <section className="relative h-72 sm:h-80 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
         <img
-          src="https://images.unsplash.com/flagged/photo-1555251255-e9a095d6eb9d?w=1400&h=600&fit=crop&auto=format"
+          src={localImages.storyHero}
           alt="Ministry stories"
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ opacity: c.isDark ? 0.28 : 0.40 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/55" />
+        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.75))" : "linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.55))" }} />
         <div className="relative z-10 text-center px-5">
           <p className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3">From the Field</p>
           <h1 className="text-4xl lg:text-5xl text-white">Stories & Updates</h1>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+          <WaveDivider topColor="transparent" bottomColor={c.white} />
         </div>
       </section>
 
       {/* Featured Story */}
       {featured && (
-        <section className="py-14" style={{ backgroundColor: c.white }}>
-          <div className="max-w-7xl mx-auto px-5 lg:px-8">
+        <section className="py-16 lg:py-20" style={{ backgroundColor: c.white }}>
+          <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-6">
               <p className="text-xs tracking-[0.2em] uppercase mb-1" style={{ color: "#6E9277" }}>Featured Story</p>
             </motion.div>
@@ -160,13 +166,14 @@ export default function StoriesPage() {
               </div>
             </motion.div>
           </div>
+          <WaveDivider topColor={c.white} bottomColor={c.cream} />
         </section>
       )}
 
       {/* Stories Grid + Sidebar */}
-      <section className="py-14 lg:py-16" style={{ backgroundColor: c.cream }}>
-        <div className="max-w-7xl mx-auto px-5 lg:px-8">
-          <div className="grid lg:grid-cols-3 gap-10">
+      <section className="py-16 lg:py-20" style={{ backgroundColor: c.cream }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+          <div className="grid lg:grid-cols-3 gap-10 lg:gap-14">
             {/* Main content */}
             <div className="lg:col-span-2">
               {/* Search + Filter */}
@@ -203,7 +210,7 @@ export default function StoriesPage() {
               </div>
 
               {/* Story Cards */}
-              <div className="space-y-8">
+              <div className="space-y-6 lg:space-y-8">
                 {filtered.map((story, i) => (
                   <motion.article
                     key={story.id}
