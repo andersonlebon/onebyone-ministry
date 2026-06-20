@@ -9,32 +9,32 @@ export const brandAssets = {
 /** Client-provided website hero / section images (Website Use.zip) */
 export const websiteUseImages = {
   hero: "/assets/brand/23-hero.jpg",
-  about: "/assets/website-use/2.png",
-  mission: "/assets/website-use/3.png",
-  projects: "/assets/website-use/4.png",
-  outreach: "/assets/website-use/5.png",
-  community: "/assets/website-use/6.png",
-  worship: "/assets/website-use/7.png",
+  about: "/assets/website-use/2.jpg",
+  mission: "/assets/website-use/3.jpg",
+  projects: "/assets/website-use/4.jpg",
+  outreach: "/assets/website-use/5.jpg",
+  community: "/assets/website-use/6.jpg",
+  worship: "/assets/website-use/7.jpg",
 } as const;
 
 export const localImages = {
-  education: "/assets/distribution-23/1.png",
-  educationAlt: "/assets/distribution-24/3.png",
-  entrepreneurship: "/assets/photos/4.png",
-  discipleship: "/assets/photos/8.png",
-  community: "/assets/photos/2.png",
-  communityAlt: "/assets/distribution-25/5.png",
-  outreach: "/assets/website-use/5.png",
-  water: "/assets/website-use/6.png",
-  worship: "/assets/website-use/7.png",
-  leaderOne: "/assets/brand/14.png",
-  leaderTwo: "/assets/brand/15.png",
-  leaderThree: "/assets/brand/16.png",
-  testimonialOne: "/assets/photos/9.png",
-  testimonialTwo: "/assets/photos/10.png",
+  education: "/assets/distribution-23/1.jpg",
+  educationAlt: "/assets/distribution-24/3.jpg",
+  entrepreneurship: "/assets/photos/4.jpg",
+  discipleship: "/assets/photos/8.jpg",
+  community: "/assets/photos/2.jpg",
+  communityAlt: "/assets/distribution-25/5.jpg",
+  outreach: "/assets/website-use/5.jpg",
+  water: "/assets/website-use/6.jpg",
+  worship: "/assets/website-use/7.jpg",
+  leaderOne: "/assets/brand/14.jpg",
+  leaderTwo: "/assets/brand/15.jpg",
+  leaderThree: "/assets/brand/16.jpg",
+  testimonialOne: "/assets/photos/9.jpg",
+  testimonialTwo: "/assets/photos/10.jpg",
   storyHero: "/assets/brand/23-hero.jpg",
-  donateHero: "/assets/distribution-25/8.png",
-  contactHero: "/assets/website-use/2.png",
+  donateHero: "/assets/distribution-25/8.jpg",
+  contactHero: "/assets/website-use/2.jpg",
 } as const;
 
 /** Client YouTube videos */
@@ -99,7 +99,7 @@ function buildPhotos(
 ): PhotoEntry[] {
   return Array.from({ length: count }, (_, i) => ({
     id: idStart + i,
-    src: `/assets/${folder}/${i + 1}.png`,
+    src: `/assets/${folder}/${i + 1}.jpg`,
     alt: `${altPrefix} ${i + 1}`,
     category,
     h: 480 + ((i * 37) % 280),
@@ -159,12 +159,12 @@ export const storyImages = [
 ] as const;
 
 export const founderTimelineImages = [
-  "/assets/photos/1.png",
-  "/assets/photos/2.png",
-  "/assets/website-use/1.png",
-  "/assets/brand/23.png",
-  "/assets/distribution-23/1.png",
-  "/assets/photos/4.png",
-  "/assets/website-use/7.png",
-  "/assets/distribution-25/1.png",
+  "/assets/photos/1.jpg",
+  "/assets/photos/2.jpg",
+  "/assets/website-use/1.jpg",
+  "/assets/brand/23.jpg",
+  "/assets/distribution-23/1.jpg",
+  "/assets/photos/4.jpg",
+  "/assets/website-use/7.jpg",
+  "/assets/distribution-25/1.jpg",
 ] as const;
