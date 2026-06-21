@@ -132,23 +132,41 @@ export default function HomePage() {
     <div className="overflow-x-hidden">
 
       {/* ══════════ HERO ══════════ */}
-      <section ref={heroRef} className="relative min-h-[100svh] flex items-center justify-center overflow-hidden py-28 sm:py-32 lg:py-36">
+      <section ref={heroRef} className="relative min-h-[100svh] flex flex-col overflow-hidden">
         {/* Background image with parallax */}
-        <motion.div className="absolute inset-0" style={{ y: parallaxSmooth }}>
-          <div className="absolute inset-0" style={{ backgroundColor: c.heroBg }} />
+        <motion.div className="absolute inset-0 overflow-hidden" style={{ y: parallaxSmooth }}>
+          <div className="absolute inset-0" style={{ backgroundColor: c.isDark ? c.heroBg : c.cream }} />
           <img
             src={websiteUseImages.hero}
             alt="One By One Ministries community"
-            className="w-full h-full object-cover"
-            style={{ opacity: c.isDark ? 0.16 : 0.22 }}
+            className="absolute left-0 w-full object-cover"
+            style={{
+              height: "calc(100% + 130px)",
+              top: "-65px",
+              opacity: c.isDark ? 0.22 : 0.52,
+            }}
             fetchPriority="high"
             decoding="async"
           />
         </motion.div>
 
-        {/* Strong dark gradients so logo + text are clearly readable */}
-        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.50) 50%, rgba(0,0,0,0.90) 100%)" : "linear-gradient(to bottom, rgba(0,0,0,0.70) 0%, rgba(0,0,0,0.40) 50%, rgba(0,0,0,0.80) 100%)" }} />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/12" />
+        {/* Theme-aware overlay: white wash in light mode, softer dark veil in dark mode */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: c.isDark
+              ? "linear-gradient(to bottom, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.28) 50%, rgba(0,0,0,0.58) 100%)"
+              : "linear-gradient(to bottom, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0.48) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background: c.isDark
+              ? "linear-gradient(to right, rgba(0,0,0,0.14) 0%, transparent 50%, rgba(0,0,0,0.08) 100%)"
+              : "linear-gradient(to right, rgba(255,255,255,0.18) 0%, transparent 50%, rgba(255,255,255,0.1) 100%)",
+          }}
+        />
 
         {/* Particles */}
         <FloatingParticles count={32} />
@@ -158,13 +176,14 @@ export default function HomePage() {
         <AnimatedBlob color="#6E9277" opacity={0.08} size={500} className="-top-40 -right-40" />
         <AnimatedBlob color="#EAC79A" opacity={0.06} size={400} className="-bottom-20 -left-40" />
 
-        <motion.div
-          style={{ opacity: heroOpacity }}
-          className="relative z-10 text-center px-5 max-w-5xl mx-auto flex flex-col items-center"
-        >
+        <div className="relative z-10 flex flex-1 flex-col items-center justify-center w-full py-28 sm:py-32 lg:py-36">
+          <motion.div
+            style={{ opacity: heroOpacity }}
+            className="text-center px-5 max-w-5xl mx-auto flex flex-col items-center"
+          >
           {/* Vertical brand mark — smaller here so the hero copy has room to breathe. */}
           <motion.img
-            src={brandAssets.logoVerticalWhite}
+            src={c.isDark ? brandAssets.logoVerticalWhite : brandAssets.logoVertical}
             alt="One By One Ministries"
             initial={{ opacity: 0, scale: 0.6, y: -40 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -172,7 +191,9 @@ export default function HomePage() {
             className="mb-7"
             style={{
               width: "clamp(92px, 12vw, 150px)",
-              filter: "drop-shadow(0 4px 32px rgba(0,0,0,0.7)) brightness(1.1)",
+              filter: c.isDark
+                ? "drop-shadow(0 4px 32px rgba(0,0,0,0.7)) brightness(1.1)"
+                : "drop-shadow(0 4px 20px rgba(71,71,71,0.15))",
             }}
           />
 
@@ -181,13 +202,17 @@ export default function HomePage() {
             initial={{ opacity: 0, letterSpacing: "0.1em" }}
             animate={{ opacity: 1, letterSpacing: "0.22em" }}
             transition={{ delay: 0.6, duration: 0.8 }}
-            className="text-[#EAC79A] text-xs tracking-[0.22em] uppercase mb-6"
+            className="text-xs tracking-[0.22em] uppercase mb-6"
+            style={{ color: c.isDark ? "#EAC79A" : "#6E9277" }}
           >
             Rebuilding Lives · Democratic Republic of Congo
           </motion.p>
 
           {/* Main headline */}
-          <h1 className="text-white mb-7 leading-tight max-w-4xl" style={{ fontSize: "clamp(2.25rem, 5.8vw, 4.75rem)" }}>
+          <h1
+            className="mb-7 leading-tight max-w-4xl"
+            style={{ fontSize: "clamp(2.25rem, 5.8vw, 4.75rem)", color: c.isDark ? "#ffffff" : c.text }}
+          >
             <WordReveal text="Bringing Hope, Education, and the Love of Christ" delay={0.7} />
             <span className="block mt-2">
               <motion.span
@@ -206,7 +231,8 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.8, duration: 0.7 }}
-            className="text-white/80 text-lg sm:text-xl mb-12 max-w-3xl leading-relaxed"
+            className="text-lg sm:text-xl mb-12 max-w-3xl leading-relaxed"
+            style={{ color: c.isDark ? "rgba(255,255,255,0.8)" : c.muted }}
           >
             Transforming communities through Education, Entrepreneurship, and Spiritual Discipleship — one person at a time.
           </motion.p>
@@ -220,9 +246,14 @@ export default function HomePage() {
           >
             <Link href="/about">
               <motion.button
-                whileHover={{ scale: 1.05, borderColor: "rgba(255,255,255,0.9)" }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-9 py-3.5 rounded-lg font-semibold text-white border border-white/55 hover:bg-white/15 transition-colors text-base"
+                className="px-9 py-3.5 rounded-lg font-semibold text-base transition-colors"
+                style={
+                  c.isDark
+                    ? { color: "#ffffff", border: "1px solid rgba(255,255,255,0.55)" }
+                    : { color: c.text, border: "1px solid rgba(71,71,71,0.25)", backgroundColor: "rgba(255,255,255,0.6)" }
+                }
               >
                 Learn More
               </motion.button>
@@ -238,14 +269,16 @@ export default function HomePage() {
               </motion.button>
             </Link>
           </motion.div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         {/* Scroll cue */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.5 }}
-          className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/40"
+          className="absolute bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5"
+          style={{ color: c.isDark ? "rgba(255,255,255,0.4)" : "rgba(71,71,71,0.45)" }}
         >
           <motion.div
             animate={{ y: [0, 8, 0] }}
@@ -262,9 +295,9 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ IMPACT STATS ══════════ */}
-      <section className="relative -mt-px pt-6 pb-16 sm:pt-8 sm:pb-20" style={{ backgroundColor: c.cream }}>
+      <section className="relative -mt-px" style={{ backgroundColor: c.cream }}>
         <DotPattern color="rgba(110,146,119,0.06)" size={24} />
-        <div className="max-w-5xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 lg:px-10 py-14 lg:py-20 relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             <StatCard value={18} suffix="+" label="Communities Served" icon={Globe} />
             <StatCard value={500} suffix="+" label="Families Reached" icon={Users} />
@@ -272,14 +305,15 @@ export default function HomePage() {
             <StatCard value={65} suffix="+" label="Volunteers" icon={Heart} />
           </div>
         </div>
+        <WaveDivider topColor={c.cream} bottomColor={c.white} />
       </section>
 
       {/* ══════════ MISSION STATEMENT ══════════ */}
-      <section className="relative py-20 lg:py-28 overflow-hidden" style={{ backgroundColor: c.white }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <CrossPattern color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.05} size={700} className="-top-60 -left-60" />
         <AnimatedBlob color="#EAC79A" opacity={0.08} size={500} className="-bottom-40 -right-40" />
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center relative z-10">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-14 lg:py-20 text-center relative z-10">
           <motion.div
             variants={fadeSlide}
             initial="hidden"
@@ -356,14 +390,15 @@ export default function HomePage() {
             </motion.p>
           </motion.div>
         </div>
+        <WaveDivider topColor={c.white} bottomColor={c.cream} />
       </section>
 
       {/* ══════════ CORE PILLARS ══════════ */}
-      <section className="relative py-24 lg:py-32 overflow-hidden" style={{ backgroundColor: c.cream }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <DiagonalStripes color="rgba(110,146,119,0.06)" />
         <AnimatedBlob color="#5A4749" opacity={0.05} size={600} className="top-0 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-14 lg:py-20 relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-16">
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>How We Serve</p>
             <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Four Pillars of Transformation</h2>
@@ -416,10 +451,10 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ FEATURED PROJECTS ══════════ */}
-      <section className="relative py-24 overflow-hidden" style={{ backgroundColor: c.white }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <AnimatedBlob color="#6E9277" opacity={0.05} size={500} className="top-20 -left-40" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-14 lg:py-20 relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-14">
             <div>
               <p className="text-xs tracking-[0.22em] uppercase mb-2" style={{ color: "#6E9277" }}>On the Ground</p>
@@ -477,15 +512,16 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+        <WaveDivider topColor={c.white} bottomColor="#5A4749" />
       </section>
 
       {/* ══════════ VERSE BREAK ══════════ */}
-      <section className="relative py-20 overflow-hidden" style={{ backgroundColor: "#5A4749" }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: "#5A4749" }}>
         <DotPattern color="rgba(234,199,154,0.12)" size={22} />
         <AnimatedBlob color="#EAC79A" opacity={0.08} size={500} className="-top-20 right-0" />
         <AnimatedBlob color="#6E9277" opacity={0.1} size={400} className="-bottom-10 left-10" />
         <Sparkles count={12} color="#EAC79A" className="inset-0" />
-        <div className="max-w-3xl mx-auto px-5 text-center relative z-10">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-14 lg:py-20 text-center relative z-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             whileInView={{ scale: 1, opacity: 1 }}
@@ -514,14 +550,15 @@ export default function HomePage() {
             — Philippians 1:6
           </motion.p>
         </div>
+        <WaveDivider topColor="#5A4749" bottomColor={c.cream} />
       </section>
 
       {/* ══════════ STORIES ══════════ */}
-      <section className="relative py-24 overflow-hidden" style={{ backgroundColor: c.cream }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <CrossPattern color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.05} size={450} className="top-0 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-14 lg:py-20 relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="flex items-end justify-between gap-4 mb-14">
             <div>
               <p className="text-xs tracking-[0.22em] uppercase mb-2" style={{ color: "#6E9277" }}>From the Field</p>
@@ -571,17 +608,18 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+        <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
       </section>
 
       {/* ══════════ DONATE CTA ══════════ */}
-      <section className="relative py-20 lg:py-24 overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
         <DotPattern color="rgba(255,255,255,0.1)" size={24} />
         <AnimatedBlob color="#ffffff" opacity={0.06} size={600} className="-top-40 -left-40" />
         <AnimatedBlob color="#EAC79A" opacity={0.1} size={400} className="-bottom-20 right-0" />
         <Sparkles count={14} color="rgba(255,255,255,0.6)" className="inset-0" />
         <PulsingRing color="#ffffff" size={200} className="-top-20 -right-20 opacity-10" />
 
-        <div className="max-w-3xl mx-auto px-5 text-center relative z-10">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-14 lg:py-20 text-center relative z-10">
           <motion.div
             variants={fadeSlide}
             initial="hidden"
@@ -626,12 +664,13 @@ export default function HomePage() {
             </div>
           </motion.div>
         </div>
+        <WaveDivider topColor="#6E9277" bottomColor="#474747" />
       </section>
 
       {/* ══════════ NEWSLETTER ══════════ */}
-      <section className="py-16 lg:py-20" style={{ backgroundColor: "#474747" }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: "#474747" }}>
         <DotPattern color="rgba(255,255,255,0.04)" size={20} />
-        <div className="max-w-xl mx-auto px-5 sm:px-8 text-center relative z-10">
+        <div className="max-w-xl mx-auto px-5 sm:px-8 py-14 lg:py-20 text-center relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <p className="text-xs tracking-[0.2em] uppercase mb-2 text-[#EAC79A]">Stay Connected</p>
             <h3 className="text-2xl text-white mb-2">Join Our Prayer Network</h3>
@@ -655,6 +694,7 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+      <WaveDivider topColor="#474747" bottomColor={ c.footer } />
     </div>
   );
 }

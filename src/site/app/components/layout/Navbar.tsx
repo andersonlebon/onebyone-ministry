@@ -28,6 +28,7 @@ export default function Navbar() {
 
   const transparent = isHome && !scrolled;
   const isDark = theme === "dark";
+  const heroLight = transparent && !isDark;
 
   const navLinks = [
     { to: "/about",    label: t("nav.about") },
@@ -39,9 +40,12 @@ export default function Navbar() {
   ];
 
   const solidBg = isDark ? "#1a2620" : "#ffffff";
-  const textColor = transparent ? "rgba(255,255,255,0.88)" : isDark ? "#EDE7DA" : "#474747";
-  const activeColor = transparent ? "#ffffff" : "#6E9277";
+  const textColor = heroLight ? "#474747" : transparent ? "rgba(255,255,255,0.88)" : isDark ? "#EDE7DA" : "#474747";
+  const activeColor = heroLight ? "#6E9277" : transparent ? "#ffffff" : "#6E9277";
   const borderStyle = transparent ? "transparent" : isDark ? "#2a3a2e" : "#f0ebe4";
+  const controlBg = heroLight ? "rgba(110,146,119,0.12)" : transparent ? "rgba(255,255,255,0.12)" : isDark ? "#2a3a2e" : "#EFE7DB";
+  const controlColor = heroLight ? "#6E9277" : transparent ? "#ffffff" : isDark ? "#EDE7DA" : "#474747";
+  const iconColor = heroLight ? "#6E9277" : transparent ? "#ffffff" : isDark ? "#7aaa88" : "#6E9277";
 
   return (
     <header
@@ -57,8 +61,8 @@ export default function Navbar() {
         {/* ── Logo ── */}
         <Link href="/" className="flex-shrink-0">
           <motion.img
-            key={transparent ? "white" : "dark"}
-            src={transparent || isDark ? brandAssets.logoWhite : brandAssets.logoDark}
+            key={heroLight ? "dark" : transparent || isDark ? "white" : "dark"}
+            src={heroLight ? brandAssets.logoDark : transparent || isDark ? brandAssets.logoWhite : brandAssets.logoDark}
             alt="One By One Ministries"
             className="w-auto object-contain"
             style={{ height: "clamp(34px, 4.2vw, 44px)" }}
@@ -94,8 +98,8 @@ export default function Navbar() {
             onClick={toggleTheme}
             className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
             style={{
-              backgroundColor: transparent ? "rgba(255,255,255,0.12)" : isDark ? "#2a3a2e" : "#EFE7DB",
-              color: transparent ? "#ffffff" : isDark ? "#7aaa88" : "#6E9277",
+              backgroundColor: controlBg,
+              color: iconColor,
             }}
             aria-label="Toggle theme"
           >
@@ -113,8 +117,8 @@ export default function Navbar() {
               onClick={() => setLangOpen(!langOpen)}
               className="flex items-center gap-1.5 px-3 h-9 rounded-xl text-sm font-medium transition-colors"
               style={{
-                backgroundColor: transparent ? "rgba(255,255,255,0.12)" : isDark ? "#2a3a2e" : "#EFE7DB",
-                color: transparent ? "#ffffff" : isDark ? "#EDE7DA" : "#474747",
+                backgroundColor: controlBg,
+                color: controlColor,
               }}
             >
               <span>{LANG_LABELS[language].flag}</span>
@@ -155,12 +159,13 @@ export default function Navbar() {
           {/* Donate CTA */}
           <Link href="/donate">
             <motion.button
-              whileHover={{ scale: 1.05, backgroundColor: transparent ? "rgba(255,255,255,0.3)" : "#5a7d64" }}
+              whileHover={{ scale: 1.05, backgroundColor: heroLight ? "#5a7d64" : transparent ? "rgba(255,255,255,0.3)" : "#5a7d64" }}
               whileTap={{ scale: 0.97 }}
-              className="px-5 h-9 rounded-xl text-sm font-semibold text-white transition-all"
+              className="px-5 h-9 rounded-xl text-sm font-semibold transition-all"
               style={{
-                backgroundColor: transparent ? "rgba(255,255,255,0.18)" : "#6E9277",
-                border: transparent ? "1.5px solid rgba(255,255,255,0.6)" : "none",
+                backgroundColor: heroLight ? "#6E9277" : transparent ? "rgba(255,255,255,0.18)" : "#6E9277",
+                color: "#ffffff",
+                border: heroLight ? "none" : transparent ? "1.5px solid rgba(255,255,255,0.6)" : "none",
               }}
             >
               {t("nav.donate")}
@@ -172,10 +177,10 @@ export default function Navbar() {
         <div className="lg:hidden flex items-center gap-2">
           <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} onClick={toggleTheme}
             className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ color: transparent ? "#ffffff" : isDark ? "#7aaa88" : "#474747" }}>
+            style={{ color: iconColor }}>
             {isDark ? <Moon size={15} /> : <Sun size={15} />}
           </motion.button>
-          <button onClick={() => setMenuOpen(!menuOpen)} className="p-1.5 rounded-lg" style={{ color: transparent ? "#ffffff" : isDark ? "#EDE7DA" : "#474747" }} aria-label="Menu">
+          <button onClick={() => setMenuOpen(!menuOpen)} className="p-1.5 rounded-lg" style={{ color: controlColor }} aria-label="Menu">
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
