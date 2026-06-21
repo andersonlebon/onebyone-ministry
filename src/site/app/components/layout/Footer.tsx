@@ -39,7 +39,7 @@ export default function Footer() {
             <img
               src={brandAssets.logoWhite}
               alt="One By One Ministries"
-              className="h-12 w-auto object-contain mb-4"
+              className="h-24 w-auto object-contain mb-4"
             />
             <p className="text-white/70 text-sm leading-relaxed mb-5">
               Rebuilding communities through Education, Entrepreneurship, and
@@ -82,7 +82,7 @@ export default function Footer() {
             <h4 className="text-white text-sm tracking-widest uppercase mb-5" style={{ fontFamily: "'Francois One', sans-serif" }}>
               Quick Links
             </h4>
-            <ul className="space-y-2">
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-2">
               {QUICK_LINKS.map((link) => (
                 <li key={link.to}>
                   <Link

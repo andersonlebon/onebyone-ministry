@@ -143,7 +143,7 @@ export default function HomePage() {
             style={{
               height: "calc(100% + 130px)",
               top: "-65px",
-              opacity: c.isDark ? 0.22 : 0.52,
+              opacity: c.isDark ? 0.18 : 0.45,
             }}
             fetchPriority="high"
             decoding="async"
@@ -155,16 +155,16 @@ export default function HomePage() {
           className="absolute inset-0"
           style={{
             background: c.isDark
-              ? "linear-gradient(to bottom, rgba(0,0,0,0.52) 0%, rgba(0,0,0,0.28) 50%, rgba(0,0,0,0.58) 100%)"
-              : "linear-gradient(to bottom, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0.48) 100%)",
+              ? "linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.38) 50%, rgba(0,0,0,0.68) 100%)"
+              : "linear-gradient(to bottom, rgba(255,255,255,0.58) 0%, rgba(255,255,255,0.34) 50%, rgba(255,255,255,0.62) 100%)",
           }}
         />
         <div
           className="absolute inset-0"
           style={{
             background: c.isDark
-              ? "linear-gradient(to right, rgba(0,0,0,0.14) 0%, transparent 50%, rgba(0,0,0,0.08) 100%)"
-              : "linear-gradient(to right, rgba(255,255,255,0.18) 0%, transparent 50%, rgba(255,255,255,0.1) 100%)",
+              ? "linear-gradient(to right, rgba(0,0,0,0.20) 0%, transparent 50%, rgba(0,0,0,0.12) 100%)"
+              : "linear-gradient(to right, rgba(255,255,255,0.26) 0%, transparent 50%, rgba(255,255,255,0.14) 100%)",
           }}
         />
 

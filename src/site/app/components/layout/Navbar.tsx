@@ -65,7 +65,7 @@ export default function Navbar() {
             src={heroLight ? brandAssets.logoDark : transparent || isDark ? brandAssets.logoWhite : brandAssets.logoDark}
             alt="One By One Ministries"
             className="w-auto object-contain"
-            style={{ height: "clamp(34px, 4.2vw, 44px)" }}
+            style={{ height: "clamp(40px, 5vw, 52px)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
