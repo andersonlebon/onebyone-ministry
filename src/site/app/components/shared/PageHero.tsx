@@ -61,7 +61,7 @@ export default function PageHero({
   if (variant === "cinematic") {
     return (
       <section
-        className={`relative flex items-center justify-center overflow-hidden ${CINEMATIC_SIZE_CLASS}`}
+        className={`relative pt-24 h-[60vh] flex flex-col items-center justify-end overflow-hidden`}
         style={{ backgroundColor: c.heroBg }}
       >
         <div
@@ -84,7 +84,7 @@ export default function PageHero({
         <AnimatedBlob color="#6E9277" opacity={0.08} size={400} className="-top-20 right-0" />
         {decorative}
 
-        <div className="relative z-10 text-center px-5">
+        <div className="relative z-10 text-center pb-16 px-5">
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}

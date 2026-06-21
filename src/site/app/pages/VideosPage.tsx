@@ -59,8 +59,8 @@ export default function VideosPage() {
         eyebrow="Watch & Be Moved"
         title="Video Library"
         bottomColor={c.white}
+        variant="cinematic"
       />
-
       {/* Featured Video */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>

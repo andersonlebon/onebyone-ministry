@@ -27,7 +27,7 @@ export function WaveTop({ fill = "#EFE7DB" }: { fill?: string }) {
 
 export function WaveDivider({ topColor, bottomColor }: { topColor: string; bottomColor: string }) {
   return (
-    <div className="leading-none" style={{ backgroundColor: topColor }} aria-hidden="true">
+    <div className="leading-none relative z-10 w-full" style={{ backgroundColor: topColor }} aria-hidden="true">
       <svg viewBox="0 0 1440 100" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style={{ display: "block", width: "100%", height: WAVE_HEIGHT }}>
         <path d="M0,50 C200,100 400,0 600,50 C800,100 1000,10 1200,50 C1320,80 1400,30 1440,40 L1440,100 L0,100 Z" fill={bottomColor} />
       </svg>
