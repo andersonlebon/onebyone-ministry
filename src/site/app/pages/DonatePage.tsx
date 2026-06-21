@@ -10,7 +10,9 @@ import {
   CreditCard, Smartphone, Building2, Copy, ExternalLink,
 } from "lucide-react";
 import { WaveDivider, AnimatedBlob, DotPattern, Sparkles } from "../components/shared/SvgDecorators";
+import PageHero from "../components/shared/PageHero";
 import { localImages } from "@/content/media";
+import { SECTION_PY } from "../../lib/pageLayout";
 
 const IMPACT_ITEMS = [
   { amount: 25, label: "Feeds a family for one week", icon: Heart },
@@ -261,42 +263,41 @@ export default function DonatePage() {
   return (
     <div className="overflow-x-hidden pt-20">
 
-      {/* Hero */}
-      <section className="relative py-28 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
-        <motion.img
-          src={localImages.donateHero}
-          alt="Hands together"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: c.isDark ? 0.22 : 0.3 }}
-          initial={{ scale: 1.06 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.5 }}
-        />
-        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.70), rgba(0,0,0,0.30), rgba(0,0,0,0.85))" : "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.20), rgba(0,0,0,0.70))" }} />
-        <DotPattern color="rgba(234,199,154,0.1)" size={20} />
-        <Sparkles count={12} color="#EAC79A" className="inset-0" />
-        <AnimatedBlob color="#6E9277" opacity={0.1} size={500} className="-top-40 left-0" />
-
-        <div className="relative z-10 text-center px-5 max-w-3xl mx-auto">
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-            className="text-[#EAC79A] text-xs tracking-[0.22em] uppercase mb-4">Every Gift Matters</motion.p>
-          <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }}
-            className="text-4xl lg:text-6xl text-white mb-5 leading-tight">Give to Change a Life in Congo</motion.h1>
-          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
-            className="text-white/80 text-xl leading-relaxed"
-            style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}>
-            "Whoever is generous to the poor lends to the Lord, and He will repay him for his deed." — Proverbs 19:17
-          </motion.p>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <WaveDivider topColor="transparent" bottomColor={c.white} />
-        </div>
-      </section>
+      <PageHero
+        imageSrc={localImages.donateHero}
+        imageAlt="Hands together"
+        eyebrow="Every Gift Matters"
+        title="Give to Change a Life in Congo"
+        bottomColor={c.white}
+        size="tall"
+        animateImage
+        decorative={
+          <>
+            <DotPattern color="rgba(234,199,154,0.1)" size={20} />
+            <Sparkles count={12} color="#EAC79A" className="inset-0" />
+            <AnimatedBlob color="#6E9277" opacity={0.1} size={500} className="-top-40 left-0" />
+          </>
+        }
+      >
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="text-lg sm:text-xl mt-5 max-w-3xl mx-auto leading-relaxed"
+          style={{
+            color: c.isDark ? "rgba(255,255,255,0.8)" : c.muted,
+            fontFamily: "'Cormorant Garamond', serif",
+            fontStyle: "italic",
+          }}
+        >
+          "Whoever is generous to the poor lends to the Lord, and He will repay him for his deed." — Proverbs 19:17
+        </motion.p>
+      </PageHero>
 
       {/* Impact Breakdown */}
-      <section className="relative py-20 lg:py-28 overflow-hidden" style={{ backgroundColor: c.white }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <AnimatedBlob color="#6E9277" opacity={0.04} size={500} className="-top-20 right-0" />
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
           <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-12">
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>What Your Gift Does</p>
             <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Every Dollar Goes to the Field</h2>
@@ -333,11 +334,11 @@ export default function DonatePage() {
       </section>
 
       {/* Donation Form + Sidebar */}
-      <section className="relative py-20 lg:py-28 overflow-hidden" style={{ backgroundColor: c.cream }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <DotPattern color="rgba(110,146,119,0.07)" size={24} />
         <AnimatedBlob color="#EAC79A" opacity={0.07} size={500} className="-bottom-20 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-5 gap-10 lg:gap-14 items-start relative z-10">
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-5 gap-10 lg:gap-14 items-start relative z-10`}>
 
           {/* Form */}
           <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="lg:col-span-3 rounded-2xl p-8 shadow-sm" style={{ backgroundColor: c.white }}>
@@ -462,8 +463,8 @@ export default function DonatePage() {
       </section>
 
       {/* Other Ways */}
-      <section className="py-16 lg:py-24" style={{ backgroundColor: c.white }}>
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 text-center">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
+        <div className={`max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} text-center`}>
           <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <h3 className="text-2xl mb-3" style={{ color: c.text }}>Other Ways to Give</h3>
             <p className="text-sm mb-8" style={{ color: c.muted }}>Beyond financial donations, support the mission through prayer, volunteering, or in-kind gifts.</p>

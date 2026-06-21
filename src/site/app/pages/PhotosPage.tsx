@@ -6,6 +6,9 @@ import { useColors } from "../../lib/themeStore";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import { galleryPhotos, websiteUseImages } from "@/content/media";
+import PageHero from "../components/shared/PageHero";
+import { WaveDivider } from "../components/shared/SvgDecorators";
+import { SECTION_PY } from "../../lib/pageLayout";
 
 const CATEGORIES = ["All", "Education", "Community", "Worship", "Outreach"];
 
@@ -26,24 +29,19 @@ export default function PhotosPage() {
   const goNext = () => setLightboxIndex((prev) => (prev !== null && prev < filtered.length - 1 ? prev + 1 : prev));
 
   return (
-    <div className="pt-20">
-      {/* Hero */}
-      <section className="relative h-64 sm:h-72 flex items-center justify-center overflow-hidden bg-[#2a2a2a]">
-        <img
-          src={websiteUseImages.community}
-          alt="Ministry photos"
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/50" />
-        <div className="relative z-10 text-center px-5">
-          <p className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3">Visual Stories</p>
-          <h1 className="text-4xl lg:text-5xl text-white">Photo Gallery</h1>
-        </div>
-      </section>
+    <div className="overflow-x-hidden">
+      <PageHero
+        imageSrc={websiteUseImages.community}
+        imageAlt="Ministry photos"
+        eyebrow="Visual Stories"
+        title="Photo Gallery"
+        bottomColor={c.cream}
+        variant="cinematic"
+      />
 
       {/* Gallery */}
-      <section className="py-14 lg:py-20" style={{ backgroundColor: c.cream }}>
-        <div className="max-w-7xl mx-auto px-5 lg:px-8">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
+        <div className={`max-w-7xl mx-auto px-5 lg:px-8 ${SECTION_PY}`}>
           {/* Filters */}
           <div className="flex flex-wrap gap-2 mb-10">
             {CATEGORIES.map((cat) => (
@@ -93,6 +91,7 @@ export default function PhotosPage() {
             </Masonry>
           </ResponsiveMasonry>
         </div>
+        <WaveDivider topColor={c.cream} bottomColor={c.footer} />
       </section>
 
       {/* Lightbox */}

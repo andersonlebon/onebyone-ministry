@@ -5,6 +5,8 @@ import { motion, useScroll, useTransform, type Variants } from "motion/react";
 import { useColors } from "../../../lib/themeStore";
 import { Heart, Globe, BookOpen, Users, Star, Leaf } from "lucide-react";
 import { founderTimelineImages } from "@/content/media";
+import { SECTION_PY } from "../../../lib/pageLayout";
+import { WaveDivider } from "./SvgDecorators";
 
 const ROOTS = [
   { side: "left", label: "Emmanuel Tshilobo", sub: "Born in Kinshasa, DRC · 1982", color: "#6E9277" },
@@ -157,7 +159,7 @@ export default function FoundersTree() {
   const trunkHeight = useTransform(scrollYProgress, [0.05, 0.95], ["0%", "100%"]);
 
   return (
-    <section ref={containerRef} className="relative py-24 lg:py-32 overflow-hidden" style={{ backgroundColor: c.white }}>
+    <section ref={containerRef} className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
       {/* Decorative background */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
@@ -170,7 +172,7 @@ export default function FoundersTree() {
         </motion.div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-5 lg:px-8 relative">
+      <div className={`max-w-6xl mx-auto px-5 lg:px-8 relative ${SECTION_PY}`}>
         {/* Header */}
         <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-16">
           <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>The Story Behind the Mission</p>
@@ -299,6 +301,7 @@ export default function FoundersTree() {
           </div>
         </div>
       </div>
+      <WaveDivider topColor={c.white} bottomColor={c.cream} />
     </section>
   );
 }

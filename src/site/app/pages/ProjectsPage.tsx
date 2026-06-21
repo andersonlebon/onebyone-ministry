@@ -5,7 +5,9 @@ import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { X, ArrowRight, Clock, CheckCircle2 } from "lucide-react";
 import { projectImages, websiteUseImages } from "@/content/media";
+import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
+import { SECTION_PY } from "../../lib/pageLayout";
 
 const CATEGORIES = ["All", "Education", "Entrepreneurship", "Discipleship", "Community"];
 
@@ -99,28 +101,19 @@ export default function ProjectsPage() {
     : PROJECTS.filter((p) => p.category === activeCategory);
 
   return (
-    <div className="pt-20">
-      {/* Hero */}
-      <section className="relative h-72 sm:h-80 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
-        <img
-          src={websiteUseImages.projects}
-          alt="Projects in the DRC"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: c.isDark ? 0.28 : 0.40 }}
-        />
-        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.75))" : "linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.50))" }} />
-        <div className="relative z-10 text-center px-5">
-          <p className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3">On the Ground</p>
-          <h1 className="text-4xl lg:text-5xl text-white">Our Projects</h1>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <WaveDivider topColor="transparent" bottomColor={c.cream} />
-        </div>
-      </section>
+    <div className="overflow-x-hidden">
+      <PageHero
+        imageSrc={websiteUseImages.projects}
+        imageAlt="Projects in the DRC"
+        eyebrow="On the Ground"
+        title="Our Projects"
+        bottomColor={c.cream}
+        variant="cinematic"
+      />
 
       {/* Filter + Grid */}
-      <section className="py-20 lg:py-28" style={{ backgroundColor: c.cream }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2.5 mb-12">
             {CATEGORIES.map((cat) => (
@@ -197,6 +190,7 @@ export default function ProjectsPage() {
             </AnimatePresence>
           </div>
         </div>
+        <WaveDivider topColor={c.cream} bottomColor={c.footer} />
       </section>
 
       {/* Project Detail Modal */}

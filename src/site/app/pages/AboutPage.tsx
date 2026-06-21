@@ -7,6 +7,7 @@ import { Heart, Globe, BookOpen, Users, Lightbulb, ArrowRight } from "lucide-rea
 import { WaveDivider, AnimatedBlob, DotPattern, CrossPattern, DiagonalStripes, Sparkles } from "../components/shared/SvgDecorators";
 import FoundersTree from "../components/shared/FoundersTree";
 import { aboutStoryImages, localImages, websiteUseImages } from "@/content/media";
+import { SECTION_PY } from "../../lib/pageLayout";
 
 const fadeSlide: Variants = {
   hidden: { opacity: 0, y: 28 },
@@ -30,19 +31,23 @@ const LEADERS = [
 export default function AboutPage() {
   const c = useColors();
   return (
-    <div className="overflow-x-hidden pt-20">
+    <div className="overflow-x-hidden">
 
-      {/* Page Hero */}
       <section className="relative h-72 sm:h-96 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
-        <motion.img
-          src={websiteUseImages.about}
-          alt="Community gathering"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: c.isDark ? 0.26 : 0.38 }}
-          initial={{ scale: 1.08 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.4, ease: "easeOut" }}
-        />
+        <div
+          className="absolute top-0 h-full"
+          style={{ width: "calc(100% + 200px)", left: "50%", transform: "translateX(-50%)" }}
+        >
+          <motion.img
+            src={websiteUseImages.about}
+            alt="Community gathering"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ opacity: c.isDark ? 0.26 : 0.38 }}
+            initial={{ scale: 1.08 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1.4, ease: "easeOut" }}
+          />
+        </div>
         <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.60), rgba(0,0,0,0.20), rgba(0,0,0,0.75))" : "linear-gradient(to bottom, rgba(0,0,0,0.40), transparent, rgba(0,0,0,0.60))" }} />
         <Sparkles count={10} color="#EAC79A" className="inset-0" />
         <AnimatedBlob color="#6E9277" opacity={0.08} size={400} className="-top-20 right-0" />
@@ -71,11 +76,11 @@ export default function AboutPage() {
       </section>
 
       {/* Our Story */}
-      <section className="relative py-24 lg:py-32 overflow-hidden" style={{ backgroundColor: c.cream }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <CrossPattern color="rgba(110,146,119,0.06)" />
         <AnimatedBlob color="#EAC79A" opacity={0.07} size={500} className="-top-20 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-2 gap-14 lg:gap-20 items-center relative z-10">
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-14 lg:gap-20 items-center relative z-10`}>
           <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>How It Began</p>
             <h2 className="text-3xl lg:text-5xl mb-6 leading-tight" style={{ color: c.text }}>A Vision Born in the Heart of Congo</h2>
@@ -131,11 +136,11 @@ export default function AboutPage() {
       </section>
 
       {/* Vision & Mission */}
-      <section className="relative py-24 overflow-hidden" style={{ backgroundColor: c.white }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <DiagonalStripes color="rgba(110,146,119,0.04)" />
         <AnimatedBlob color="#5A4749" opacity={0.04} size={500} className="-bottom-40 -right-40" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-2 gap-8 lg:gap-10 relative z-10">
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-8 lg:gap-10 relative z-10`}>
           <motion.div
             custom={0}
             variants={fadeSlide}
@@ -182,11 +187,11 @@ export default function AboutPage() {
       <FoundersTree />
 
       {/* Core Values */}
-      <section className="relative py-24 overflow-hidden" style={{ backgroundColor: c.cream }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <DotPattern color="rgba(110,146,119,0.08)" size={22} />
         <AnimatedBlob color="#6E9277" opacity={0.06} size={600} className="-top-40 left-0" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
           <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-14">
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>What Drives Us</p>
             <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Our Core Values</h2>
@@ -226,11 +231,11 @@ export default function AboutPage() {
       </section>
 
       {/* Leadership */}
-      <section className="relative py-24 overflow-hidden" style={{ backgroundColor: c.white }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <CrossPattern color="rgba(110,146,119,0.04)" />
         <AnimatedBlob color="#EAC79A" opacity={0.06} size={500} className="-top-20 -right-20" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 relative z-10">
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
           <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-14">
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>The Team</p>
             <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Leadership</h2>
@@ -268,14 +273,15 @@ export default function AboutPage() {
             ))}
           </div>
         </div>
+        <WaveDivider topColor={c.white} bottomColor={c.cream} />
       </section>
 
       {/* Why Congo */}
-      <section className="relative py-24 overflow-hidden" style={{ backgroundColor: c.cream }}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <DiagonalStripes color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.07} size={500} className="-bottom-20 right-0" />
 
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10">
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10`}>
           <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <div className="relative rounded-2xl overflow-hidden shadow-xl">
               <motion.img
@@ -316,6 +322,7 @@ export default function AboutPage() {
             </div>
           </motion.div>
         </div>
+        <WaveDivider topColor={c.cream} bottomColor={c.footer} />
       </section>
     </div>
   );

@@ -191,14 +191,14 @@ export default function SetupPage() {
                 ))}
               </ul>
 
-              {status.databaseError && (
+              {status?.databaseError && (
                 <div
                   className="flex items-start gap-2 px-4 py-3 rounded-xl mb-4 text-sm"
                   style={{ backgroundColor: "#fffbeb", color: "#b45309" }}
                 >
                   <AlertCircle size={15} className="mt-0.5 flex-shrink-0" />
                   <span>
-                    Database connection issue: {status.databaseError}. Check{" "}
+                    Database connection issue: {status?.databaseError}. Check{" "}
                     <code className="text-[10px]">DATABASE_URL</code> in{" "}
                     <code className="text-[10px]">.env.local</code> (use the Transaction pooler host from Supabase
                     Dashboard, often <code className="text-[10px]">aws-1-…</code> not{" "}

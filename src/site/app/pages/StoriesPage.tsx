@@ -5,7 +5,9 @@ import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Search, ArrowRight, Calendar, Tag } from "lucide-react";
 import { localImages, storyImages } from "@/content/media";
+import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
+import { SECTION_PY } from "../../lib/pageLayout";
 
 const CATEGORIES = ["All", "Education", "Discipleship", "Entrepreneurship", "Community", "Updates"];
 
@@ -113,29 +115,20 @@ export default function StoriesPage() {
   const recentPosts = STORIES.slice(0, 4);
 
   return (
-    <div className="pt-20">
-      {/* Hero */}
-      <section className="relative h-72 sm:h-80 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
-        <img
-          src={localImages.storyHero}
-          alt="Ministry stories"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: c.isDark ? 0.28 : 0.40 }}
-        />
-        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.75))" : "linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.55))" }} />
-        <div className="relative z-10 text-center px-5">
-          <p className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3">From the Field</p>
-          <h1 className="text-4xl lg:text-5xl text-white">Stories & Updates</h1>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <WaveDivider topColor="transparent" bottomColor={c.white} />
-        </div>
-      </section>
+    <div className="overflow-x-hidden">
+      <PageHero
+        imageSrc={localImages.storyHero}
+        imageAlt="Ministry stories"
+        eyebrow="From the Field"
+        title="Stories & Updates"
+        bottomColor={c.white}
+        variant="cinematic"
+      />
 
       {/* Featured Story */}
       {featured && (
-        <section className="py-16 lg:py-20" style={{ backgroundColor: c.white }}>
-          <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+        <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
+          <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-6">
               <p className="text-xs tracking-[0.2em] uppercase mb-1" style={{ color: "#6E9277" }}>Featured Story</p>
             </motion.div>
@@ -171,8 +164,8 @@ export default function StoriesPage() {
       )}
 
       {/* Stories Grid + Sidebar */}
-      <section className="py-16 lg:py-20" style={{ backgroundColor: c.cream }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
           <div className="grid lg:grid-cols-3 gap-10 lg:gap-14">
             {/* Main content */}
             <div className="lg:col-span-2">
@@ -332,6 +325,7 @@ export default function StoriesPage() {
             </aside>
           </div>
         </div>
+        <WaveDivider topColor={c.cream} bottomColor={c.footer} />
       </section>
     </div>
   );

@@ -5,7 +5,9 @@ import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Play, Youtube } from "lucide-react";
 import { featuredVideo, ministryVideos, websiteUseImages } from "@/content/media";
+import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
+import { SECTION_PY } from "../../lib/pageLayout";
 
 const FEATURED = {
   id: featuredVideo.id,
@@ -51,27 +53,17 @@ export default function VideosPage() {
 
   return (
     <div className="pt-20">
-      {/* Hero */}
-      <section className="relative h-72 sm:h-80 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
-        <img
-          src={websiteUseImages.outreach}
-          alt="Ministry videos"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: c.isDark ? 0.24 : 0.35 }}
-        />
-        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.80))" : "linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.60))" }} />
-        <div className="relative z-10 text-center px-5">
-          <p className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3">Watch & Be Moved</p>
-          <h1 className="text-4xl lg:text-5xl text-white">Video Library</h1>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <WaveDivider topColor="transparent" bottomColor={c.white} />
-        </div>
-      </section>
+      <PageHero
+        imageSrc={websiteUseImages.outreach}
+        imageAlt="Ministry videos"
+        eyebrow="Watch & Be Moved"
+        title="Video Library"
+        bottomColor={c.white}
+      />
 
       {/* Featured Video */}
-      <section className="py-16 lg:py-20" style={{ backgroundColor: c.white }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-8">
             <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: "#6E9277" }}>Featured</p>
             <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>Mission Documentary</h2>
@@ -137,8 +129,8 @@ export default function VideosPage() {
       </section>
 
       {/* Video Library */}
-      <section className="py-16 lg:py-20" style={{ backgroundColor: c.cream }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-8">
             <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: "#6E9277" }}>All Videos</p>
             <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>Browse the Collection</h2>
@@ -216,8 +208,8 @@ export default function VideosPage() {
       </section>
 
       {/* YouTube CTA */}
-      <section className="py-16 lg:py-20 text-center" style={{ backgroundColor: c.white }}>
-        <div className="max-w-xl mx-auto px-5 sm:px-8">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
+        <div className={`max-w-xl mx-auto px-5 sm:px-8 ${SECTION_PY} text-center`}>
           <Youtube size={32} className="mx-auto mb-4" style={{ color: "#ff0000" }} />
           <h3 className="text-xl mb-2" style={{ color: c.text }}>Subscribe on YouTube</h3>
           <p className="text-sm mb-5" style={{ color: c.muted }}>

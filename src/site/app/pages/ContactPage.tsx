@@ -7,7 +7,9 @@ import { useForm } from "react-hook-form";
 import { Mail, MapPin, Phone, Facebook, Instagram, Youtube, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { submitContact } from "@/app/actions/contact";
 import { localImages } from "@/content/media";
+import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
+import { SECTION_PY } from "../../lib/pageLayout";
 
 type ContactForm = {
   name: string;
@@ -80,28 +82,19 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="pt-20">
-      {/* Hero */}
-      <section className="relative h-72 sm:h-80 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
-        <img
-          src={localImages.contactHero}
-          alt="Connect with us"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: c.isDark ? 0.24 : 0.35 }}
-        />
-        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.50), rgba(0,0,0,0.75))" : "linear-gradient(to bottom, rgba(0,0,0,0.20), rgba(0,0,0,0.55))" }} />
-        <div className="relative z-10 text-center px-5">
-          <p className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3">Get in Touch</p>
-          <h1 className="text-4xl lg:text-5xl text-white">Contact Us</h1>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <WaveDivider topColor="transparent" bottomColor={c.cream} />
-        </div>
-      </section>
+    <div className="overflow-x-hidden">
+      <PageHero
+        imageSrc={localImages.contactHero}
+        imageAlt="Connect with us"
+        eyebrow="Get in Touch"
+        title="Contact Us"
+        bottomColor={c.cream}
+        variant="cinematic"
+      />
 
       {/* Contact Section */}
-      <section className="py-20 lg:py-28" style={{ backgroundColor: c.cream }}>
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 grid lg:grid-cols-5 gap-10 lg:gap-14 items-start">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-5 gap-10 lg:gap-14 items-start`}>
           {/* Form */}
           <motion.div
             variants={fadeUp}
@@ -284,8 +277,8 @@ export default function ContactPage() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 lg:py-28" style={{ backgroundColor: c.white }}>
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 lg:px-10">
+      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
+        <div className={`max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-10">
             <p className="text-xs tracking-[0.2em] uppercase mb-3" style={{ color: "#6E9277" }}>Common Questions</p>
             <h2 className="text-3xl" style={{ color: c.text }}>Frequently Asked Questions</h2>
@@ -303,6 +296,7 @@ export default function ContactPage() {
             ))}
           </motion.div>
         </div>
+        <WaveDivider topColor={c.white} bottomColor={c.footer} />
       </section>
     </div>
   );
