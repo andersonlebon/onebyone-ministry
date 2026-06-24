@@ -27,12 +27,26 @@ function loadEnvFile(path: string) {
 loadEnvFile(resolve(process.cwd(), ".env"));
 loadEnvFile(resolve(process.cwd(), ".env.local"));
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL_MIGRATE ?? process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   throw new Error(
-    "Missing DATABASE_URL. Add it to .env.local (Supabase → Project Settings → Database → Connection string, Transaction pooler)."
+    "Missing DATABASE_URL. Add it to .env.local (Supabase → Project Settings → Database → Connection string)."
   );
+}
+
+/**
+ * drizzle-kit push introspects the full schema and hangs on Supabase's
+ * Transaction pooler (port 6543). Use Session pooler (5432) or set DATABASE_URL_MIGRATE.
+ */
+function getDrizzleDatabaseUrl(url: string) {
+  if (url.includes(":6543/")) {
+    console.warn(
+      "[drizzle] Transaction pooler (6543) can hang on db:push. Using Session pooler (5432) instead."
+    );
+    return url.replace(":6543/", ":5432/");
+  }
+  return url;
 }
 
 export default defineConfig({
@@ -40,6 +54,6 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: databaseUrl,
+    url: getDrizzleDatabaseUrl(databaseUrl),
   },
 });
