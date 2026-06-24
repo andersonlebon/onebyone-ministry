@@ -71,14 +71,33 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 export default function ContactPage() {
   const c = useColors();
-  const [submitted, setSubmitted] = useState(false);
-  const { register, handleSubmit, formState: { errors } } = useForm<ContactForm>();
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [statusMessage, setStatusMessage] = useState("");
+  const { register, handleSubmit, setError, formState: { errors } } = useForm<ContactForm>();
 
   const onSubmit = async (data: ContactForm) => {
-    // Fire-and-forget to the server action; success UI is shown regardless so
-    // the visitor always gets confirmation. Delivery errors are logged server-side.
-    try { await submitContact(data); } catch {}
-    setSubmitted(true);
+    setStatus("loading");
+    setStatusMessage("");
+    try {
+      const result = await submitContact(data);
+      if (result.ok) {
+        setStatus("success");
+        setStatusMessage(result.message);
+      } else {
+        setStatus("error");
+        setStatusMessage(result.message);
+        if (result.fieldErrors) {
+          for (const [field, message] of Object.entries(result.fieldErrors)) {
+            if (field === "name" || field === "email" || field === "subject" || field === "message") {
+              setError(field, { message });
+            }
+          }
+        }
+      }
+    } catch {
+      setStatus("error");
+      setStatusMessage("Something went wrong. Please try again or email contact@onebyoneministries.org directly.");
+    }
   };
 
   return (
@@ -105,16 +124,21 @@ export default function ContactPage() {
             style={{ backgroundColor: c.white }}
           >
             <h2 className="text-2xl mb-6" style={{ color: c.text }}>Send Us a Message</h2>
-            {submitted ? (
+            {status === "success" ? (
               <div className="text-center py-10">
                 <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ backgroundColor: c.cream }}>
                   <CheckCircle2 size={32} style={{ color: "#6E9277" }} />
                 </div>
                 <h3 className="text-xl mb-2" style={{ color: c.text }}>Message Received!</h3>
-                <p className="text-sm" style={{ color: c.muted }}>Thank you for reaching out. Our team will respond within 2–3 business days.</p>
+                <p className="text-sm" style={{ color: c.muted }}>{statusMessage}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                {status === "error" && statusMessage && (
+                  <div className="px-4 py-3 rounded-lg text-sm text-red-700 bg-red-50 border border-red-200">
+                    {statusMessage}
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>Full Name</label>
                   <input
@@ -162,12 +186,13 @@ export default function ContactPage() {
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3.5 rounded font-semibold text-white text-sm transition-colors"
+                  disabled={status === "loading"}
+                  className="w-full py-3.5 rounded font-semibold text-white text-sm transition-colors disabled:opacity-60"
                   style={{ backgroundColor: "#6E9277" }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#5a7d64")}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#6E9277")}
                 >
-                  Send Message
+                  {status === "loading" ? "Sending..." : "Send Message"}
                 </button>
               </form>
             )}

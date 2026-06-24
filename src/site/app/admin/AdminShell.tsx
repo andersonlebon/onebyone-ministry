@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,12 +21,15 @@ import {
   BarChart2,
   Users,
   Landmark,
+  Inbox,
 } from "lucide-react";
 
+import { getInboxUnreadCountAction } from "@/app/actions/inbox";
 import { brandAssets } from "@/content/media";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
+  { id: "inbox", label: "Inbox", icon: Inbox, href: "/admin/inbox" },
   { id: "posts", label: "Blog Posts", icon: FileText, href: "/admin/posts" },
   { id: "photos", label: "Photo Library", icon: ImageIcon, href: "/admin/photos" },
   { id: "projects", label: "Projects", icon: Folder, href: "/admin/projects" },
@@ -51,6 +54,20 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const refreshUnreadCount = useCallback(async () => {
+    try {
+      const count = await getInboxUnreadCountAction();
+      setUnreadCount(count);
+    } catch {
+      setUnreadCount(0);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshUnreadCount();
+  }, [pathname, refreshUnreadCount]);
 
   const activeItem = NAV_ITEMS.find((item) => isActive(pathname, item.href)) ?? NAV_ITEMS[0];
 
@@ -78,6 +95,7 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const active = isActive(pathname, item.href);
+          const badge = item.id === "inbox" && unreadCount > 0 ? unreadCount : null;
           return (
             <Link key={item.id} href={item.href} onClick={() => setMobileSidebarOpen(false)}>
               <motion.span
@@ -88,6 +106,11 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
               >
                 <Icon size={17} className="flex-shrink-0" />
                 {sidebarOpen && <span className="text-sm flex-1">{item.label}</span>}
+                {sidebarOpen && badge !== null && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#6E9277] text-white min-w-[1.25rem] text-center">
+                    {badge > 99 ? "99+" : badge}
+                  </span>
+                )}
                 {sidebarOpen && active && <ChevronRight size={13} />}
               </motion.span>
             </Link>
@@ -171,10 +194,18 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button className="p-1.5 rounded-lg hover:bg-[#EFE7DB] transition-colors text-[#7a7068] relative">
+            <Link
+              href="/admin/inbox"
+              className="p-1.5 rounded-lg hover:bg-[#EFE7DB] transition-colors text-[#7a7068] relative"
+              aria-label={`Inbox${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
+            >
               <Bell size={16} />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#6E9277]" />
-            </button>
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#6E9277] text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </Link>
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
               style={{ backgroundColor: "#6E9277" }}

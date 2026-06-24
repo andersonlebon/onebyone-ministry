@@ -73,10 +73,13 @@ async function main() {
   const sql = postgres(databaseUrl, { prepare: false, max: 1 });
 
   try {
+    await sql`DELETE FROM contact_thread_messages`;
+    await sql`DELETE FROM contact_threads`;
+    await sql`DELETE FROM contact_messages`;
     await sql`DELETE FROM media_assets`;
     await sql`DELETE FROM site_content`;
     await sql`DELETE FROM project_setup`;
-    console.log("Cleared tables: media_assets, site_content, project_setup");
+    console.log("Cleared tables: contact_thread_messages, contact_threads, contact_messages, media_assets, site_content, project_setup");
   } finally {
     await sql.end();
   }

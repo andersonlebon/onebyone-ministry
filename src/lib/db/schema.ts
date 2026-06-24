@@ -36,3 +36,50 @@ export const siteContent = pgTable("site_content", {
 });
 
 export type SiteContent = typeof siteContent.$inferSelect;
+
+/** Legacy flat contact form rows (migrated into contact_threads). */
+export const contactMessages = pgTable("contact_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  readAt: timestamp("read_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type ContactMessage = typeof contactMessages.$inferSelect;
+export type NewContactMessage = typeof contactMessages.$inferInsert;
+
+/** Inbox conversation thread (one per contact form submission). */
+export const contactThreads = pgTable("contact_threads", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  visitorName: text("visitor_name").notNull(),
+  visitorEmail: text("visitor_email").notNull(),
+  subject: text("subject").notNull(),
+  readAt: timestamp("read_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  lastMessageAt: timestamp("last_message_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type ContactThread = typeof contactThreads.$inferSelect;
+export type NewContactThread = typeof contactThreads.$inferInsert;
+
+export const contactThreadMessageDirections = ["inbound", "outbound"] as const;
+export type ContactThreadMessageDirection = (typeof contactThreadMessageDirections)[number];
+
+/** Individual message within a contact thread. */
+export const contactThreadMessages = pgTable("contact_thread_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  threadId: uuid("thread_id")
+    .notNull()
+    .references(() => contactThreads.id, { onDelete: "cascade" }),
+  direction: text("direction").notNull(),
+  body: text("body").notNull(),
+  senderName: text("sender_name").notNull(),
+  emailSentAt: timestamp("email_sent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type ContactThreadMessage = typeof contactThreadMessages.$inferSelect;
+export type NewContactThreadMessage = typeof contactThreadMessages.$inferInsert;
