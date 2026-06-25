@@ -3,21 +3,40 @@
 import { motion } from "motion/react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from "recharts";
 import { TrendingUp, DollarSign, Users, Heart, Download } from "lucide-react";
-import { useSiteStore } from "@/site/lib/siteStore";
+import { useSiteStore, type Donation } from "@/site/lib/siteStore";
 import { useTheme } from "@/site/lib/themeStore";
+import { isDemoContentEnabled } from "@/lib/runtime-env";
+import { DEMO_MONTHLY_ANALYTICS } from "@/site/lib/store-defaults";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const MONTHLY_DATA = [
-  { month: "Jan", amount: 3200, donors: 8 },
-  { month: "Feb", amount: 4800, donors: 12 },
-  { month: "Mar", amount: 3900, donors: 9 },
-  { month: "Apr", amount: 6200, donors: 15 },
-  { month: "May", amount: 8750, donors: 18 },
-  { month: "Jun", amount: 9500, donors: 22 },
-];
-
 const COLORS = ["#6E9277", "#EAC79A", "#5A4749", "#474747", "#9bc4a8", "#d4b07a", "#a07090", "#70a0b0"];
+
+function buildMonthlyTrendFromDonations(donations: Donation[]) {
+  const byMonth = new Map<string, { month: string; amount: number }>();
+  const donorsByMonth = new Map<string, Set<string>>();
+
+  for (const donation of donations) {
+    const parsed = new Date(donation.date);
+    if (Number.isNaN(parsed.getTime())) continue;
+
+    const key = `${parsed.getFullYear()}-${parsed.getMonth()}`;
+    const month = MONTHS[parsed.getMonth()];
+    const existing = byMonth.get(key) ?? { month, amount: 0 };
+    existing.amount += donation.amount;
+    byMonth.set(key, existing);
+
+    if (!donorsByMonth.has(key)) donorsByMonth.set(key, new Set());
+    donorsByMonth.get(key)!.add(donation.email);
+  }
+
+  return Array.from(byMonth.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, data]) => ({
+      ...data,
+      donors: donorsByMonth.get(key)?.size ?? 0,
+    }));
+}
 
 function StatCard({ icon: Icon, label, value, sub, color }: any) {
   return (
@@ -55,7 +74,10 @@ export default function AdminAnalytics() {
   const uniqueDonors = new Set(donations.map(d => d.email)).size;
   const avgGift = validDonations.length > 0 ? Math.round(totalRaised / validDonations.length) : 0;
 
-  // Method breakdown
+  const monthlyTrendData = isDemoContentEnabled()
+    ? DEMO_MONTHLY_ANALYTICS
+    : buildMonthlyTrendFromDonations(validDonations);
+
   const methodBreakdown = Object.entries(
     validDonations.reduce<Record<string, number>>((acc, d) => {
       acc[d.method] = (acc[d.method] || 0) + d.amount;
@@ -105,9 +127,12 @@ export default function AdminAnalytics() {
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Monthly trend */}
         <div className="bg-card rounded-2xl border border-muted p-6">
-          <h3 className="text-sm font-semibold text-foreground mb-5">Monthly Donation Trend (2025)</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={MONTHLY_DATA} barSize={24}>
+          <h3 className="text-sm font-semibold text-foreground mb-5">Monthly Donation Trend</h3>
+          {monthlyTrendData.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-16 text-center">Donation records will appear here once gifts are logged.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={monthlyTrendData} barSize={24}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: tickColor }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: tickColor }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -115,11 +140,15 @@ export default function AdminAnalytics() {
               <Bar dataKey="amount" fill="#6E9277" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          )}
         </div>
 
         {/* Donation by method */}
         <div className="bg-card rounded-2xl border border-muted p-6">
           <h3 className="text-sm font-semibold text-foreground mb-5">Donations by Payment Method</h3>
+          {methodBreakdown.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-16 text-center">No payment method breakdown yet.</p>
+          ) : (
           <div className="flex items-center gap-4">
             <ResponsiveContainer width="55%" height={200}>
               <PieChart>
@@ -141,6 +170,7 @@ export default function AdminAnalytics() {
               ))}
             </div>
           </div>
+          )}
         </div>
       </div>
 
@@ -210,6 +240,9 @@ export default function AdminAnalytics() {
             </div>
           </div>
         ))}
+        {validDonations.length === 0 && (
+          <p className="px-6 py-10 text-sm text-muted-foreground text-center">No donors yet.</p>
+        )}
       </div>
     </div>
   );

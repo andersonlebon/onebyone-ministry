@@ -1,107 +1,53 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 
-import { galleryPhotos } from "@/content/media";
 import {
-  defaultPosts,
-  defaultProjects,
-  defaultSiteSettings,
-  defaultVideos,
-} from "@/content/site-defaults";
+  createDonationAction,
+  deleteDonationAction,
+  updateDonationAction,
+} from "@/app/actions/donations";
+import {
+  updateFinanceAction,
+  updatePostsAction,
+  updateProjectsAction,
+  updateSettingsAction,
+  updateVideosAction,
+} from "@/app/actions/site-content";
+import { isDatabaseConfigured } from "@/lib/db/config";
+import { getEmptySiteContentBundle } from "@/lib/site-content/defaults";
+import type {
+  AdminUser,
+  Donation,
+  FinanceDetails,
+  Photo,
+  Post,
+  Project,
+  SiteContentBundle,
+  SiteSettings,
+  Video,
+} from "@/lib/site-content/types";
+import { isDemoContentEnabled } from "@/lib/runtime-env";
+import {
+  getInitialAdmins,
+  getInitialDonations,
+  getInitialPhotos,
+} from "@/site/lib/store-defaults";
 
-/* ─── Types ─── */
-export type Post = {
-  id: string;
-  title: string;
-  excerpt: string;
-  body: string;
-  category: string;
-  author: string;
-  date: string;
-  img: string;
-  published: boolean;
+export type {
+  AdminUser,
+  Donation,
+  FinanceDetails,
+  Photo,
+  Post,
+  Project,
+  SiteSettings,
+  Video,
+} from "@/lib/site-content/types";
+
+type StoreInitialData = SiteContentBundle & {
+  donations: Donation[];
 };
-
-export type Photo = {
-  id: string;
-  src: string;
-  alt: string;
-  category: string;
-};
-
-export type Project = {
-  id: string;
-  title: string;
-  category: string;
-  status: "Active" | "Completed" | "Planned";
-  desc: string;
-  fullDesc: string;
-  img: string;
-  location: string;
-  year: string;
-  impact: string;
-};
-
-export type Video = {
-  id: string;
-  youtubeId: string;
-  title: string;
-  category: string;
-  duration: string;
-  thumb: string;
-};
-
-export type Donation = {
-  id: string;
-  name: string;
-  email: string;
-  amount: number;
-  currency: "USD";
-  method: "card" | "paypal" | "bank" | "cash-app" | "venmo" | "zelle" | "check" | "crypto" | "daf" | "other";
-  status: "completed" | "pending" | "approved" | "rejected";
-  frequency: "one-time" | "monthly";
-  date: string;
-  notes: string;
-  transactionId?: string;
-};
-
-export type AdminUser = {
-  id: string;
-  name: string;
-  email: string;
-  role: "super-admin" | "admin" | "viewer";
-  addedDate: string;
-  addedBy: string;
-  lastLogin?: string;
-};
-
-export type SiteSettings = {
-  heroHeadline: string;
-  heroSubheadline: string;
-  missionStatement: string;
-  donatePageHeadline: string;
-  contactEmail: string;
-  contactPhone: string;
-  facebookUrl: string;
-  instagramUrl: string;
-  youtubeUrl: string;
-};
-
-const DEFAULT_DONATIONS: Donation[] = [
-  { id: "d1", name: "James Thompson", email: "james@email.com", amount: 250, currency: "USD", method: "card", status: "completed", frequency: "one-time", date: "June 8, 2025", notes: "", transactionId: "ch_3abc123" },
-  { id: "d2", name: "Marie Dubois", email: "marie@email.com", amount: 100, currency: "USD", method: "paypal", status: "completed", frequency: "monthly", date: "June 5, 2025", notes: "Monthly supporter", transactionId: "PAYPAL-789" },
-  { id: "d3", name: "Emmanuel Kalala", email: "e.kalala@gmail.com", amount: 500, currency: "USD", method: "bank", status: "pending", frequency: "one-time", date: "June 3, 2025", notes: "Wire transfer from Congo - please verify", transactionId: "" },
-  { id: "d4", name: "Sarah Johnson", email: "sarah.j@church.org", amount: 1000, currency: "USD", method: "check", status: "pending", frequency: "one-time", date: "June 1, 2025", notes: "Check #4521 mailed to Atlanta office" },
-  { id: "d5", name: "Pierre Martin", email: "pierre@email.fr", amount: 50, currency: "USD", method: "venmo", status: "approved", frequency: "monthly", date: "May 28, 2025", notes: "Monthly via Venmo @pierre-martin" },
-  { id: "d6", name: "Grace Community Church", email: "admin@gracechurch.org", amount: 5000, currency: "USD", method: "bank", status: "approved", frequency: "one-time", date: "May 20, 2025", notes: "Annual church partnership gift" },
-  { id: "d7", name: "Anonymous", email: "anon@email.com", amount: 25, currency: "USD", method: "crypto", status: "completed", frequency: "one-time", date: "May 15, 2025", notes: "Bitcoin donation, converted to USD" },
-  { id: "d8", name: "Robert Williams", email: "r.williams@corp.com", amount: 2500, currency: "USD", method: "daf", status: "completed", frequency: "one-time", date: "May 10, 2025", notes: "Donor-Advised Fund disbursement via Fidelity Charitable" },
-];
-
-const DEFAULT_ADMINS: AdminUser[] = [
-  { id: "a1", name: "Emmanuel Tshilobo", email: "admin@obom.org", role: "super-admin", addedDate: "January 1, 2015", addedBy: "System", lastLogin: "Today" },
-];
 
 type StoreCtx = {
   posts: Post[];
@@ -111,6 +57,7 @@ type StoreCtx = {
   donations: Donation[];
   admins: AdminUser[];
   settings: SiteSettings;
+  finance: FinanceDetails;
   addPost: (p: Omit<Post, "id">) => void;
   updatePost: (id: string, p: Partial<Post>) => void;
   deletePost: (id: string) => void;
@@ -123,7 +70,8 @@ type StoreCtx = {
   addVideo: (v: Omit<Video, "id">) => void;
   updateVideo: (id: string, v: Partial<Video>) => void;
   deleteVideo: (id: string) => void;
-  updateSettings: (s: Partial<SiteSettings>) => void;
+  updateSettings: (s: Partial<SiteSettings>) => Promise<void>;
+  updateFinance: (f: FinanceDetails) => Promise<void>;
   addDonation: (d: Omit<Donation, "id">) => void;
   updateDonation: (id: string, d: Partial<Donation>) => void;
   deleteDonation: (id: string) => void;
@@ -132,24 +80,10 @@ type StoreCtx = {
   deleteAdmin: (id: string) => void;
 };
 
-const DEFAULT_SETTINGS: SiteSettings = { ...defaultSiteSettings };
-
-const DEFAULT_POSTS: Post[] = defaultPosts.map((p) => ({ ...p }));
-
-const DEFAULT_PHOTOS: Photo[] = galleryPhotos.slice(0, 6).map((p) => ({
-  id: String(p.id),
-  src: p.src,
-  alt: p.alt,
-  category: p.category,
-}));
-
-const DEFAULT_PROJECTS: Project[] = defaultProjects.map((p) => ({ ...p }));
-
-const DEFAULT_VIDEOS: Video[] = defaultVideos.map((v) => ({ ...v }));
-
 const StoreContext = createContext<StoreCtx>({} as StoreCtx);
 
 function load<T>(key: string, fallback: T): T {
+  if (!isDemoContentEnabled() || isDatabaseConfigured()) return fallback;
   try {
     const v = localStorage.getItem(key);
     return v ? JSON.parse(v) : fallback;
@@ -159,55 +93,281 @@ function load<T>(key: string, fallback: T): T {
 }
 
 function save<T>(key: string, val: T) {
+  if (!isDemoContentEnabled() || isDatabaseConfigured()) return;
   try {
     localStorage.setItem(key, JSON.stringify(val));
   } catch {
-    /* ignore quota errors */
+    /* ignore */
   }
 }
 
-const uid = () => Math.random().toString(36).slice(2, 10);
+const uid = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2, 10);
 
-export function SiteStoreProvider({ children }: { children: React.ReactNode }) {
-  const [posts, setPosts] = useState<Post[]>(() => load("obom_posts", DEFAULT_POSTS));
-  const [photos, setPhotos] = useState<Photo[]>(() => load("obom_photos", DEFAULT_PHOTOS));
-  const [projects, setProjects] = useState<Project[]>(() => load("obom_projects", DEFAULT_PROJECTS));
-  const [videos, setVideos] = useState<Video[]>(() => load("obom_videos", DEFAULT_VIDEOS));
-  const [donations, setDonations] = useState<Donation[]>(() => load("obom_donations", DEFAULT_DONATIONS));
-  const [admins, setAdmins] = useState<AdminUser[]>(() => load("obom_admins", DEFAULT_ADMINS));
-  const [settings, setSettings] = useState<SiteSettings>(() => load("obom_settings", DEFAULT_SETTINGS));
+export function SiteStoreProvider({
+  children,
+  initialData,
+}: {
+  children: React.ReactNode;
+  initialData?: StoreInitialData;
+}) {
+  const fallback = getEmptySiteContentBundle();
+  const seed = initialData ?? fallback;
 
-  useEffect(() => { save("obom_posts", posts); }, [posts]);
-  useEffect(() => { save("obom_photos", photos); }, [photos]);
-  useEffect(() => { save("obom_projects", projects); }, [projects]);
-  useEffect(() => { save("obom_videos", videos); }, [videos]);
-  useEffect(() => { save("obom_donations", donations); }, [donations]);
-  useEffect(() => { save("obom_admins", admins); }, [admins]);
-  useEffect(() => { save("obom_settings", settings); }, [settings]);
+  const [posts, setPosts] = useState<Post[]>(() =>
+    isDatabaseConfigured() ? seed.posts : load("obom_posts", seed.posts)
+  );
+  const [photos, setPhotos] = useState<Photo[]>(() =>
+    isDatabaseConfigured() ? getInitialPhotos() : load("obom_photos", getInitialPhotos())
+  );
+  const [projects, setProjects] = useState<Project[]>(() =>
+    isDatabaseConfigured() ? seed.projects : load("obom_projects", seed.projects)
+  );
+  const [videos, setVideos] = useState<Video[]>(() =>
+    isDatabaseConfigured() ? seed.videos : load("obom_videos", seed.videos)
+  );
+  const [donations, setDonations] = useState<Donation[]>(() =>
+    isDatabaseConfigured() ? (initialData?.donations ?? []) : load("obom_donations", getInitialDonations())
+  );
+  const [admins, setAdmins] = useState<AdminUser[]>(() => load("obom_admins", getInitialAdmins()));
+  const [settings, setSettings] = useState<SiteSettings>(() =>
+    isDatabaseConfigured() ? seed.settings : load("obom_settings", seed.settings)
+  );
+  const [finance, setFinance] = useState<FinanceDetails>(() => seed.finance);
 
-  const addPost = useCallback((p: Omit<Post, "id">) => setPosts((prev) => [{ ...p, id: uid() }, ...prev]), []);
-  const updatePost = useCallback((id: string, p: Partial<Post>) => setPosts((prev) => prev.map((x) => (x.id === id ? { ...x, ...p } : x))), []);
-  const deletePost = useCallback((id: string) => setPosts((prev) => prev.filter((x) => x.id !== id)), []);
+  const persistPosts = useCallback(async (next: Post[]) => {
+    if (isDatabaseConfigured()) {
+      await updatePostsAction(next);
+    } else {
+      save("obom_posts", next);
+    }
+  }, []);
 
-  const addPhoto = useCallback((p: Omit<Photo, "id">) => setPhotos((prev) => [{ ...p, id: uid() }, ...prev]), []);
-  const updatePhoto = useCallback((id: string, p: Partial<Photo>) => setPhotos((prev) => prev.map((x) => (x.id === id ? { ...x, ...p } : x))), []);
-  const deletePhoto = useCallback((id: string) => setPhotos((prev) => prev.filter((x) => x.id !== id)), []);
+  const persistProjects = useCallback(async (next: Project[]) => {
+    if (isDatabaseConfigured()) {
+      await updateProjectsAction(next);
+    } else {
+      save("obom_projects", next);
+    }
+  }, []);
 
-  const addProject = useCallback((p: Omit<Project, "id">) => setProjects((prev) => [{ ...p, id: uid() }, ...prev]), []);
-  const updateProject = useCallback((id: string, p: Partial<Project>) => setProjects((prev) => prev.map((x) => (x.id === id ? { ...x, ...p } : x))), []);
-  const deleteProject = useCallback((id: string) => setProjects((prev) => prev.filter((x) => x.id !== id)), []);
+  const persistVideos = useCallback(async (next: Video[]) => {
+    if (isDatabaseConfigured()) {
+      await updateVideosAction(next);
+    } else {
+      save("obom_videos", next);
+    }
+  }, []);
 
-  const addVideo = useCallback((v: Omit<Video, "id">) => setVideos((prev) => [{ ...v, id: uid() }, ...prev]), []);
-  const updateVideo = useCallback((id: string, v: Partial<Video>) => setVideos((prev) => prev.map((x) => (x.id === id ? { ...x, ...v } : x))), []);
-  const deleteVideo = useCallback((id: string) => setVideos((prev) => prev.filter((x) => x.id !== id)), []);
+  const addPost = useCallback(
+    (p: Omit<Post, "id">) => {
+      setPosts((prev) => {
+        const next = [{ ...p, id: uid() }, ...prev];
+        void persistPosts(next);
+        return next;
+      });
+    },
+    [persistPosts]
+  );
 
-  const updateSettings = useCallback((s: Partial<SiteSettings>) => setSettings((prev) => ({ ...prev, ...s })), []);
-  const addDonation = useCallback((d: Omit<Donation, "id">) => setDonations((prev) => [{ ...d, id: uid() }, ...prev]), []);
-  const updateDonation = useCallback((id: string, d: Partial<Donation>) => setDonations((prev) => prev.map((x) => (x.id === id ? { ...x, ...d } : x))), []);
-  const deleteDonation = useCallback((id: string) => setDonations((prev) => prev.filter((x) => x.id !== id)), []);
-  const addAdmin = useCallback((a: Omit<AdminUser, "id">) => setAdmins((prev) => [...prev, { ...a, id: uid() }]), []);
-  const updateAdmin = useCallback((id: string, a: Partial<AdminUser>) => setAdmins((prev) => prev.map((x) => (x.id === id ? { ...x, ...a } : x))), []);
-  const deleteAdmin = useCallback((id: string) => setAdmins((prev) => prev.filter((x) => x.id !== id)), []);
+  const updatePost = useCallback(
+    (id: string, p: Partial<Post>) => {
+      setPosts((prev) => {
+        const next = prev.map((x) => (x.id === id ? { ...x, ...p } : x));
+        void persistPosts(next);
+        return next;
+      });
+    },
+    [persistPosts]
+  );
+
+  const deletePost = useCallback(
+    (id: string) => {
+      setPosts((prev) => {
+        const next = prev.filter((x) => x.id !== id);
+        void persistPosts(next);
+        return next;
+      });
+    },
+    [persistPosts]
+  );
+
+  const addPhoto = useCallback((p: Omit<Photo, "id">) => {
+    setPhotos((prev) => {
+      const next = [{ ...p, id: uid() }, ...prev];
+      save("obom_photos", next);
+      return next;
+    });
+  }, []);
+
+  const updatePhoto = useCallback((id: string, p: Partial<Photo>) => {
+    setPhotos((prev) => {
+      const next = prev.map((x) => (x.id === id ? { ...x, ...p } : x));
+      save("obom_photos", next);
+      return next;
+    });
+  }, []);
+
+  const deletePhoto = useCallback((id: string) => {
+    setPhotos((prev) => {
+      const next = prev.filter((x) => x.id !== id);
+      save("obom_photos", next);
+      return next;
+    });
+  }, []);
+
+  const addProject = useCallback(
+    (p: Omit<Project, "id">) => {
+      setProjects((prev) => {
+        const next = [{ ...p, id: uid() }, ...prev];
+        void persistProjects(next);
+        return next;
+      });
+    },
+    [persistProjects]
+  );
+
+  const updateProject = useCallback(
+    (id: string, p: Partial<Project>) => {
+      setProjects((prev) => {
+        const next = prev.map((x) => (x.id === id ? { ...x, ...p } : x));
+        void persistProjects(next);
+        return next;
+      });
+    },
+    [persistProjects]
+  );
+
+  const deleteProject = useCallback(
+    (id: string) => {
+      setProjects((prev) => {
+        const next = prev.filter((x) => x.id !== id);
+        void persistProjects(next);
+        return next;
+      });
+    },
+    [persistProjects]
+  );
+
+  const addVideo = useCallback(
+    (v: Omit<Video, "id">) => {
+      setVideos((prev) => {
+        const next = [{ ...v, id: uid() }, ...prev];
+        void persistVideos(next);
+        return next;
+      });
+    },
+    [persistVideos]
+  );
+
+  const updateVideo = useCallback(
+    (id: string, v: Partial<Video>) => {
+      setVideos((prev) => {
+        const next = prev.map((x) => (x.id === id ? { ...x, ...v } : x));
+        void persistVideos(next);
+        return next;
+      });
+    },
+    [persistVideos]
+  );
+
+  const deleteVideo = useCallback(
+    (id: string) => {
+      setVideos((prev) => {
+        const next = prev.filter((x) => x.id !== id);
+        void persistVideos(next);
+        return next;
+      });
+    },
+    [persistVideos]
+  );
+
+  const updateSettings = useCallback(async (s: Partial<SiteSettings>) => {
+    setSettings((prev) => {
+      const next = { ...prev, ...s };
+      if (isDatabaseConfigured()) {
+        void updateSettingsAction(next);
+      } else {
+        save("obom_settings", next);
+      }
+      return next;
+    });
+  }, []);
+
+  const updateFinance = useCallback(async (f: FinanceDetails) => {
+    setFinance(f);
+    if (isDatabaseConfigured()) {
+      await updateFinanceAction(f);
+    }
+  }, []);
+
+  const addDonation = useCallback((d: Omit<Donation, "id">) => {
+    if (isDatabaseConfigured()) {
+      void createDonationAction(d).then((row) => {
+        setDonations((prev) => [row, ...prev]);
+      });
+      return;
+    }
+    setDonations((prev) => {
+      const next = [{ ...d, id: uid() }, ...prev];
+      save("obom_donations", next);
+      return next;
+    });
+  }, []);
+
+  const updateDonation = useCallback((id: string, d: Partial<Donation>) => {
+    if (isDatabaseConfigured()) {
+      void updateDonationAction(id, d).then((row) => {
+        setDonations((prev) => prev.map((x) => (x.id === id ? row : x)));
+      });
+      return;
+    }
+    setDonations((prev) => {
+      const next = prev.map((x) => (x.id === id ? { ...x, ...d } : x));
+      save("obom_donations", next);
+      return next;
+    });
+  }, []);
+
+  const deleteDonation = useCallback((id: string) => {
+    if (isDatabaseConfigured()) {
+      void deleteDonationAction(id).then(() => {
+        setDonations((prev) => prev.filter((x) => x.id !== id));
+      });
+      return;
+    }
+    setDonations((prev) => {
+      const next = prev.filter((x) => x.id !== id);
+      save("obom_donations", next);
+      return next;
+    });
+  }, []);
+
+  const addAdmin = useCallback((a: Omit<AdminUser, "id">) => {
+    setAdmins((prev) => {
+      const next = [...prev, { ...a, id: uid() }];
+      save("obom_admins", next);
+      return next;
+    });
+  }, []);
+
+  const updateAdmin = useCallback((id: string, a: Partial<AdminUser>) => {
+    setAdmins((prev) => {
+      const next = prev.map((x) => (x.id === id ? { ...x, ...a } : x));
+      save("obom_admins", next);
+      return next;
+    });
+  }, []);
+
+  const deleteAdmin = useCallback((id: string) => {
+    setAdmins((prev) => {
+      const next = prev.filter((x) => x.id !== id);
+      save("obom_admins", next);
+      return next;
+    });
+  }, []);
 
   return (
     <StoreContext.Provider
@@ -219,6 +379,7 @@ export function SiteStoreProvider({ children }: { children: React.ReactNode }) {
         donations,
         admins,
         settings,
+        finance,
         addPost,
         updatePost,
         deletePost,
@@ -232,6 +393,7 @@ export function SiteStoreProvider({ children }: { children: React.ReactNode }) {
         updateVideo,
         deleteVideo,
         updateSettings,
+        updateFinance,
         addDonation,
         updateDonation,
         deleteDonation,

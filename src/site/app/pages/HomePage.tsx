@@ -9,6 +9,8 @@ import {
   Globe, Quote, Sparkles as SparklesIcon,
 } from "lucide-react";
 import { useSiteMedia } from "@/site/lib/mediaContext";
+import { usePublishedPosts, useSiteContent } from "@/site/lib/siteContentContext";
+import NewsletterSubscribeForm from "../components/shared/NewsletterSubscribeForm";
 import FloatingParticles from "../components/shared/FloatingParticles";
 import {
   WaveDivider, WaveBottom, DotPattern,
@@ -102,7 +104,27 @@ function StatCard({ value, suffix, label, icon: Icon }: { value: number; suffix:
 /* ═══════════════════════════════════════════════════════════ */
 export default function HomePage() {
   const c = useColors();
-  const { brandAssets, homePillars, homeProjects, homeStories, websiteUseImages } = useSiteMedia();
+  const { brandAssets, homePillars, websiteUseImages } = useSiteMedia();
+  const { settings, projects } = useSiteContent();
+  const publishedPosts = usePublishedPosts();
+
+  const PROJECTS = projects.slice(0, 3).map((project) => ({
+    id: project.id,
+    title: project.title,
+    category: project.category,
+    desc: project.desc,
+    img: project.img,
+    status: project.status,
+  }));
+
+  const STORIES = publishedPosts.slice(0, 3).map((post) => ({
+    id: post.id,
+    title: post.title,
+    date: post.date,
+    category: post.category,
+    img: post.img,
+    excerpt: post.excerpt,
+  }));
 
   const PILLARS = [
     { icon: BookOpen, title: "Education", color: "#6E9277", img: homePillars[0].img, desc: "Building schools, training teachers, and equipping every child with the tools they need to flourish." },
@@ -111,18 +133,7 @@ export default function HomePage() {
     { icon: Users, title: "Community Development", color: "#6E9277", img: homePillars[3].img, desc: "Building infrastructure, clean water access, and healthcare systems that lift entire communities." },
   ];
 
-  const PROJECTS = [
-    { id: 1, title: "Rural School Building Initiative", category: "Education", desc: "Constructing classrooms in remote villages to give 200+ children a safe place to learn.", img: homeProjects[0], status: "Active" },
-    { id: 2, title: "Women's Entrepreneurship Cohort", category: "Entrepreneurship", desc: "12-week program empowering 30 women with business training and start-up capital.", img: homeProjects[1], status: "Active" },
-    { id: 3, title: "Village Pastoral Training", category: "Discipleship", desc: "Equipping 15 rural pastors per cohort with theological education and ongoing mentorship.", img: homeProjects[2], status: "Active" },
-  ];
-
-  const STORIES = [
-    { id: 1, title: "How One School Changed a Whole Village", date: "May 28, 2025", category: "Education", img: homeStories[0], excerpt: "When Amara received her first textbook at 11, she said it was the most beautiful thing she'd ever seen. Today she teaches the next generation." },
-    { id: 2, title: "From Despair to Purpose: Jean-Paul's Story", date: "April 14, 2025", category: "Discipleship", img: homeStories[1], excerpt: "One discipleship meeting sparked a revival now reaching five surrounding villages every Sunday morning." },
-    { id: 3, title: "Mamas Building a Future", date: "March 3, 2025", category: "Entrepreneurship", img: homeStories[2], excerpt: "28 women graduated from the Entrepreneurship Cohort, now running businesses that feed their families." },
-  ];
-
+  const heroHeadline = settings.heroHeadline.replace(/\s*One By One\s*$/i, "").trim() || settings.heroHeadline;
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, 120]);
@@ -214,7 +225,8 @@ export default function HomePage() {
             className="mb-7 leading-tight max-w-4xl"
             style={{ fontSize: "clamp(2.25rem, 5.8vw, 4.75rem)", color: c.isDark ? "#ffffff" : c.text }}
           >
-            <WordReveal text="Bringing Hope, Education, and the Love of Christ" delay={0.7} />
+            <WordReveal text={heroHeadline} delay={0.7} />
+            {settings.heroHeadline.toLowerCase().includes("one by one") && (
             <span className="block mt-2">
               <motion.span
                 initial={{ opacity: 0, scale: 0.85 }}
@@ -225,6 +237,7 @@ export default function HomePage() {
                 One By One
               </motion.span>
             </span>
+            )}
           </h1>
 
           {/* Subheadline */}
@@ -235,7 +248,7 @@ export default function HomePage() {
             className="text-lg sm:text-xl mb-12 max-w-3xl leading-relaxed"
             style={{ color: c.isDark ? "rgba(255,255,255,0.8)" : c.muted }}
           >
-            Transforming communities through Education, Entrepreneurship, and Spiritual Discipleship — one person at a time.
+            {settings.heroSubheadline}
           </motion.p>
 
           {/* CTAs */}
@@ -676,22 +689,12 @@ export default function HomePage() {
             <p className="text-xs tracking-[0.2em] uppercase mb-2 text-[#EAC79A]">Stay Connected</p>
             <h3 className="text-2xl text-white mb-2">Join Our Prayer Network</h3>
             <p className="text-sm text-white/55 mb-6">Receive monthly updates, field stories, and prayer requests.</p>
-            <form className="flex flex-col sm:flex-row gap-3" onSubmit={(e) => e.preventDefault()}>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 rounded-lg text-sm text-[#474747] placeholder-[#a09890] focus:outline-none focus:ring-2 ring-[#6E9277] bg-white"
-              />
-              <motion.button
-                whileHover={{ scale: 1.04, backgroundColor: "#5a7d64" }}
-                whileTap={{ scale: 0.97 }}
-                type="submit"
-                className="px-6 py-3 rounded-lg font-semibold text-sm text-white"
-                style={{ backgroundColor: "#6E9277" }}
-              >
-                Subscribe
-              </motion.button>
-            </form>
+            <NewsletterSubscribeForm
+              layout="inline"
+              className="flex flex-col sm:flex-row gap-3 justify-center"
+              inputClassName="flex-1 px-4 py-3 rounded-lg text-sm text-[#474747] placeholder-[#a09890] focus:outline-none focus:ring-2 ring-[#6E9277] bg-white"
+              buttonClassName="px-6 py-3 rounded-lg font-semibold text-sm text-white bg-[#6E9277] hover:bg-[#5a7d64]"
+            />
           </motion.div>
         </div>
       </section>

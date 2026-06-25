@@ -5,88 +5,12 @@ import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { X, ArrowRight, Clock, CheckCircle2 } from "lucide-react";
 import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useSiteContent } from "@/site/lib/siteContentContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
 
 const CATEGORIES = ["All", "Education", "Entrepreneurship", "Discipleship", "Community"];
-
-function buildProjects(projectImages: readonly string[]) {
-  return [
-  {
-    id: 1,
-    title: "Rural School Building Initiative",
-    category: "Education",
-    status: "Active",
-    desc: "Constructing three new classrooms in Kinshasa's peri-urban villages to give 200+ children a safe place to learn. This project includes teacher training, curriculum development, and school supply provision.",
-    img: projectImages[0],
-    location: "Kinshasa Province",
-    year: "2024–2025",
-    impact: "200+ children",
-    fullDesc: "The Rural School Building Initiative is OBOM's flagship education project. Working alongside local masons and community volunteers, we are constructing three permanent classroom buildings in villages that previously relied on makeshift shelters or open-air settings for teaching. Each classroom is equipped with desks, a chalkboard, teaching materials, and solar lighting. Alongside construction, we train community members as teachers and provide an ongoing curriculum review program.",
-  },
-  {
-    id: 2,
-    title: "Women's Entrepreneurship Cohort",
-    category: "Entrepreneurship",
-    status: "Active",
-    desc: "A 12-week skills program empowering 30 women with business training, start-up capital, and peer accountability to launch and sustain small businesses.",
-    img: projectImages[1],
-    location: "Kasai Province",
-    year: "2023–Ongoing",
-    impact: "90+ graduates",
-    fullDesc: "This intensive 12-week cohort equips women with business literacy, financial management, and practical trade skills. Each graduate receives a micro-grant to launch her enterprise, plus 6 months of post-program mentorship. We partner with local women's associations to recruit participants and ensure long-term peer support networks.",
-  },
-  {
-    id: 3,
-    title: "Village Pastoral Training Program",
-    category: "Discipleship",
-    status: "Active",
-    desc: "Equipping 15 rural pastors per cohort with theological education, discipleship resources, and ongoing mentorship to strengthen the local church.",
-    img: projectImages[2],
-    location: "Multiple Provinces",
-    year: "2021–Ongoing",
-    impact: "45+ pastors trained",
-    fullDesc: "In partnership with a network of local churches, OBOM runs quarterly intensives for pastors serving in underserved rural areas. Content covers Biblical hermeneutics, church planting, pastoral care, and community development theology. Each pastor is paired with a mentor and given a study library to take back to their church.",
-  },
-  {
-    id: 4,
-    title: "Clean Water Access Project",
-    category: "Community",
-    status: "Completed",
-    desc: "Drilled five community wells and trained local technicians in maintenance — providing clean water access to 1,200+ community members.",
-    img: projectImages[3],
-    location: "Maniema Province",
-    year: "2022–2023",
-    impact: "1,200+ people",
-    fullDesc: "Working with a local NGO partner and community health volunteers, OBOM financed and managed the drilling of five boreholes across three villages. Each well is maintained by a trained local technician and a water committee of community members. The project also included hygiene education workshops for over 300 families.",
-  },
-  {
-    id: 5,
-    title: "Youth Bible Study Network",
-    category: "Discipleship",
-    status: "Active",
-    desc: "Weekly small groups in 8 villages led by trained youth leaders, discipling the next generation of Christian leaders in the DRC.",
-    img: projectImages[4],
-    location: "Kinshasa & Kasai",
-    year: "2023–Ongoing",
-    impact: "350+ youth",
-    fullDesc: "OBOM's youth discipleship network pairs trained college students with groups of 15-20 secondary school students for weekly Bible study and mentorship. Groups meet in homes, churches, and school premises. The program includes a summer leadership camp and an annual service project.",
-  },
-  {
-    id: 6,
-    title: "Agricultural Skills Training",
-    category: "Entrepreneurship",
-    status: "Active",
-    desc: "Teaching sustainable farming techniques to 40 farming families to improve crop yield, nutrition, and economic independence.",
-    img: projectImages[5],
-    location: "Kasai Province",
-    year: "2024–Ongoing",
-    impact: "40 families",
-    fullDesc: "This program trains farmers in sustainable agriculture techniques — crop rotation, composting, drip irrigation, and seed banking — to increase food security and income. Participants receive a starter kit of seeds and tools. The project includes monthly farm visits from agronomist volunteers and tracks household nutrition outcomes.",
-  },
-  ];
-}
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -95,10 +19,10 @@ const fadeUp: Variants = {
 
 export default function ProjectsPage() {
   const c = useColors();
-  const { projectImages, websiteUseImages } = useSiteMedia();
-  const PROJECTS = buildProjects(projectImages);
+  const { websiteUseImages } = useSiteMedia();
+  const { projects: PROJECTS } = useSiteContent();
   const [activeCategory, setActiveCategory] = useState("All");
-  const [selectedProject, setSelectedProject] = useState<ReturnType<typeof buildProjects>[number] | null>(null);
+  const [selectedProject, setSelectedProject] = useState<(typeof PROJECTS)[number] | null>(null);
 
   const filtered = activeCategory === "All"
     ? PROJECTS

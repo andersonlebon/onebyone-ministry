@@ -6,17 +6,27 @@ import { useRouter } from "next/navigation";
 import { isStaffUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isDemoContentEnabled } from "@/lib/runtime-env";
 import AdminShell from "@/site/app/admin/AdminShell";
 import { SiteStoreProvider } from "@/site/lib/siteStore";
 import { MediaProvider } from "@/site/lib/mediaContext";
 import type { SiteMediaBundle } from "@/lib/media/types";
+import type { Donation, SiteContentBundle } from "@/lib/site-content/types";
+import type { PaymentEnvStatus } from "@/lib/donate/payment-env-types";
+import { ReadinessEnvProvider } from "@/site/lib/readinessEnvContext";
 
 export default function AdminDashboardLayout({
   children,
   initialMedia,
+  initialContent,
+  initialDonations = [],
+  paymentEnv = { stripeKeys: false, stripeWebhook: false },
 }: {
   children: React.ReactNode;
   initialMedia: SiteMediaBundle;
+  initialContent: SiteContentBundle;
+  initialDonations?: Donation[];
+  paymentEnv?: PaymentEnvStatus;
 }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -27,6 +37,14 @@ export default function AdminDashboardLayout({
 
     async function checkAuth() {
       if (!isSupabaseConfigured()) {
+        if (!isDemoContentEnabled()) {
+          if (!cancelled) {
+            setAuthed(false);
+            setReady(true);
+            router.replace("/admin/login");
+          }
+          return;
+        }
         const isAuthed = localStorage.getItem("obom_admin_auth") === "true";
         if (!cancelled) {
           setAuthed(isAuthed);
@@ -91,10 +109,12 @@ export default function AdminDashboardLayout({
   }
 
   return (
-    <MediaProvider media={initialMedia}>
-      <SiteStoreProvider>
-        <AdminShell onLogout={handleLogout}>{children}</AdminShell>
-      </SiteStoreProvider>
-    </MediaProvider>
+    <ReadinessEnvProvider value={paymentEnv}>
+      <MediaProvider media={initialMedia}>
+        <SiteStoreProvider initialData={{ ...initialContent, donations: initialDonations }}>
+          <AdminShell onLogout={handleLogout}>{children}</AdminShell>
+        </SiteStoreProvider>
+      </MediaProvider>
+    </ReadinessEnvProvider>
   );
 }

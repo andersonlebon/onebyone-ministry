@@ -8,10 +8,10 @@ export const defaultSiteSettings = {
     "One By One Ministries is dedicated to rebuilding communities through Education, Entrepreneurship, and Spiritual Discipleship. We seek to change the world one person, one community, and one country at a time through the power of the Holy Spirit and the Word of God.",
   donatePageHeadline: "Give to Change a Life in Congo",
   contactEmail: "contact@onebyoneministries.org",
-  contactPhone: "+1 (555) 555-0100",
-  facebookUrl: "https://facebook.com",
-  instagramUrl: "https://instagram.com",
-  youtubeUrl: "https://youtube.com",
+  contactPhone: "",
+  facebookUrl: "",
+  instagramUrl: "",
+  youtubeUrl: "",
 } as const;
 
 export const defaultPosts = [

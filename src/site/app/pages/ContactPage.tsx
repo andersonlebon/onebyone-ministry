@@ -6,7 +6,10 @@ import { useColors } from "../../lib/themeStore";
 import { useForm } from "react-hook-form";
 import { Mail, MapPin, Phone, Facebook, Instagram, Youtube, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { submitContact } from "@/app/actions/contact";
+import { siteConfig } from "@/lib/site";
 import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useSiteContent } from "@/site/lib/siteContentContext";
+import NewsletterSubscribeForm from "../components/shared/NewsletterSubscribeForm";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
@@ -72,6 +75,14 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 export default function ContactPage() {
   const c = useColors();
   const { localImages } = useSiteMedia();
+  const { settings } = useSiteContent();
+  const email = settings.contactEmail || siteConfig.email;
+  const phone = settings.contactPhone;
+  const socials = [
+    { icon: Facebook, label: "Facebook", href: settings.facebookUrl },
+    { icon: Instagram, label: "Instagram", href: settings.instagramUrl },
+    { icon: Youtube, label: "YouTube", href: settings.youtubeUrl },
+  ].filter((s) => s.href);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
   const { register, handleSubmit, setError, formState: { errors } } = useForm<ContactForm>();
@@ -230,32 +241,32 @@ export default function ContactPage() {
                   <Mail size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#6E9277" }} />
                   <div>
                     <p className="font-semibold text-xs mb-0.5" style={{ color: c.text }}>Email</p>
-                    <a href="mailto:info@onebyone.org" className="text-xs hover:text-[#6E9277] transition-colors" style={{ color: c.muted }}>
-                      info@onebyone.org
+                    <a href={`mailto:${email}`} className="text-xs hover:text-[#6E9277] transition-colors" style={{ color: c.muted }}>
+                      {email}
                     </a>
                   </div>
                 </li>
+                {phone && (
                 <li className="flex gap-3">
                   <Phone size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#6E9277" }} />
                   <div>
                     <p className="font-semibold text-xs mb-0.5" style={{ color: c.text }}>Phone</p>
-                    <a href="tel:+15555550100" className="text-xs hover:text-[#6E9277] transition-colors" style={{ color: c.muted }}>
-                      +1 (555) 555-0100
+                    <a href={`tel:${phone.replace(/[^\d+]/g, "")}`} className="text-xs hover:text-[#6E9277] transition-colors" style={{ color: c.muted }}>
+                      {phone}
                     </a>
                   </div>
                 </li>
+                )}
               </ul>
               <div className="border-t mt-5 pt-4" style={{ borderColor: c.borderLight }}>
                 <p className="text-xs mb-3" style={{ color: c.muted }}>Follow Us</p>
                 <div className="flex gap-3">
-                  {[
-                    { icon: Facebook, label: "Facebook", href: "#" },
-                    { icon: Instagram, label: "Instagram", href: "#" },
-                    { icon: Youtube, label: "YouTube", href: "#" },
-                  ].map(({ icon: Icon, label, href }) => (
+                  {socials.map(({ icon: Icon, label, href }) => (
                     <a
                       key={label}
                       href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       aria-label={label}
                       className="w-8 h-8 rounded flex items-center justify-center transition-colors"
                       style={{ backgroundColor: c.cream, color: "#6E9277" }}
@@ -275,20 +286,10 @@ export default function ContactPage() {
               <p className="text-white/70 text-xs mb-4 leading-relaxed">
                 Receive weekly prayer requests and ministry updates straight from the field in Congo.
               </p>
-              <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-2">
-                <input
-                  type="email"
-                  placeholder="Your email address"
-                  className="px-3 py-2 rounded text-xs bg-white/15 border border-white/25 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
-                />
-                <button
-                  type="submit"
-                  className="py-2 rounded text-xs font-semibold text-[#474747] transition-colors"
-                  style={{ backgroundColor: "#EAC79A" }}
-                >
-                  Subscribe to Updates
-                </button>
-              </form>
+              <NewsletterSubscribeForm
+                inputClassName="px-3 py-2 rounded text-xs bg-white/15 border border-white/25 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
+                buttonClassName="py-2 rounded text-xs font-semibold text-[#474747] bg-[#EAC79A]"
+              />
             </div>
 
             {/* Response time */}

@@ -5,87 +5,13 @@ import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Search, ArrowRight, Calendar, Tag } from "lucide-react";
 import { useSiteMedia } from "@/site/lib/mediaContext";
+import { usePublishedPosts, useSiteContent } from "@/site/lib/siteContentContext";
+import NewsletterSubscribeForm from "../components/shared/NewsletterSubscribeForm";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
 
 const CATEGORIES = ["All", "Education", "Discipleship", "Entrepreneurship", "Community", "Updates"];
-
-function buildStories(storyImages: readonly string[]) {
-  return [
-  {
-    id: 1,
-    title: "How One School Changed a Whole Village",
-    excerpt: "When Amara finally received her first textbook at age 11, she told her mother it was the most beautiful thing she had ever seen. Today she teaches the next generation in the same village — a story of faithfulness and long obedience in the right direction.",
-    body: "The village of Maluku sits 45 kilometers east of Kinshasa, accessible only by a dirt road that becomes impassable in rainy season. For generations, children here walked hours to reach the nearest school, or simply didn't go at all. That changed in 2022 when OBOM partnered with local elders to build two classrooms and train three community teachers.",
-    date: "May 28, 2025",
-    category: "Education",
-    img: storyImages[0],
-    author: "Sarah M.",
-    featured: true,
-  },
-  {
-    id: 2,
-    title: "Pastor Thomas's Testimony of Transformation",
-    excerpt: "A single discipleship meeting in a pastor's home sparked a revival that now reaches five surrounding villages every Sunday morning.",
-    date: "April 14, 2025",
-    category: "Discipleship",
-    img: storyImages[1],
-    author: "Emmanuel T.",
-    featured: false,
-  },
-  {
-    id: 3,
-    title: "Mamas Building a Future for Their Children",
-    excerpt: "The Women's Entrepreneurship Cohort graduated its second class — 28 women who now run businesses that feed their families and fund their children's school fees.",
-    date: "March 3, 2025",
-    category: "Entrepreneurship",
-    img: storyImages[2],
-    author: "Jonathan K.",
-    featured: false,
-  },
-  {
-    id: 4,
-    title: "Clean Water Changes Everything in Maniema",
-    excerpt: "Before the new borehole, women walked two hours each way to collect water for their families. Now they have time, health, and hope.",
-    date: "February 18, 2025",
-    category: "Community",
-    img: storyImages[3],
-    author: "Jonathan K.",
-    featured: false,
-  },
-  {
-    id: 5,
-    title: "Youth Leaders Rising in Kinshasa",
-    excerpt: "Fifteen young men and women completed their discipleship training and are now leading weekly Bible studies in their own neighborhoods.",
-    date: "January 9, 2025",
-    category: "Discipleship",
-    img: storyImages[4],
-    author: "Sarah M.",
-    featured: false,
-  },
-  {
-    id: 6,
-    title: "2024 Year in Review: A Year of Multiplication",
-    excerpt: "From 8 to 18 active communities — 2024 was the year OBOM's work multiplied through faithful partnerships and answered prayers.",
-    date: "December 31, 2024",
-    category: "Updates",
-    img: storyImages[5],
-    author: "Rev. Emmanuel T.",
-    featured: false,
-  },
-  {
-    id: 7,
-    title: "A Farmer's Journey from Scarcity to Abundance",
-    excerpt: "André didn't believe that better farming techniques could change his family's life. Six months after the agricultural training, he has surplus to sell at market.",
-    date: "November 12, 2024",
-    category: "Entrepreneurship",
-    img: storyImages[6],
-    author: "Jonathan K.",
-    featured: false,
-  },
-  ];
-}
 
 const CATEGORY_COLORS: Record<string, string> = {
   Education: "#6E9277",
@@ -102,8 +28,19 @@ const fadeUp: Variants = {
 
 export default function StoriesPage() {
   const c = useColors();
-  const { localImages, storyImages } = useSiteMedia();
-  const STORIES = buildStories(storyImages);
+  const { localImages } = useSiteMedia();
+  const published = usePublishedPosts();
+  const STORIES = published.map((post, index) => ({
+    id: post.id,
+    title: post.title,
+    excerpt: post.excerpt,
+    body: post.body,
+    date: post.date,
+    category: post.category,
+    img: post.img,
+    author: post.author,
+    featured: index === 0,
+  }));
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
 
@@ -311,20 +248,10 @@ export default function StoriesPage() {
               <div className="rounded-xl p-6" style={{ backgroundColor: "#6E9277" }}>
                 <h4 className="text-white text-sm mb-2">Get Stories in Your Inbox</h4>
                 <p className="text-white/70 text-xs mb-4">Subscribe for monthly field updates and prayer requests.</p>
-                <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-2">
-                  <input
-                    type="email"
-                    placeholder="Your email"
-                    className="px-3 py-2 rounded text-xs bg-white/15 border border-white/25 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
-                  />
-                  <button
-                    type="submit"
-                    className="py-2 rounded text-xs font-semibold text-[#474747] transition-colors"
-                    style={{ backgroundColor: "#EAC79A" }}
-                  >
-                    Subscribe
-                  </button>
-                </form>
+                <NewsletterSubscribeForm
+                  inputClassName="px-3 py-2 rounded text-xs bg-white/15 border border-white/25 text-white placeholder-white/50 focus:outline-none focus:border-white/60"
+                  buttonClassName="py-2 rounded text-xs font-semibold text-[#474747] bg-[#EAC79A]"
+                />
               </div>
             </aside>
           </div>

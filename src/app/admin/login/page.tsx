@@ -3,9 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { isAdminUser } from "@/lib/supabase/admin";
+import { isStaffUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isDemoContentEnabled } from "@/lib/runtime-env";
 import AdminLogin from "@/site/app/admin/AdminLogin";
 
 export default function AdminLoginPage() {
@@ -14,7 +15,7 @@ export default function AdminLoginPage() {
   useEffect(() => {
     async function redirectIfAuthed() {
       if (!isSupabaseConfigured()) {
-        if (localStorage.getItem("obom_admin_auth") === "true") {
+        if (isDemoContentEnabled() && localStorage.getItem("obom_admin_auth") === "true") {
           router.replace("/admin/dashboard");
         }
         return;
@@ -25,7 +26,7 @@ export default function AdminLoginPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (isAdminUser(user)) {
+      if (isStaffUser(user)) {
         router.replace("/admin/dashboard");
       }
     }

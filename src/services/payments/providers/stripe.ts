@@ -23,6 +23,8 @@ export function createStripeProvider(secretKey: string): PaymentProvider {
         body.set("line_items[0][price_data][recurring][interval]", "month");
       }
       if (params.email) body.set("customer_email", params.email);
+      if (params.name) body.set("metadata[donor_name]", params.name);
+      body.set("metadata[frequency]", params.frequency);
       body.set("submit_type", recurring ? "auto" : "donate");
 
       try {

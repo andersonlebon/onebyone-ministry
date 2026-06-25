@@ -6,7 +6,7 @@ export const siteConfig = {
     "One By One Ministries is a ministry website sharing mission, projects, stories, galleries, and opportunities to get involved.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onebyoneministries.org",
   email: "contact@onebyoneministries.org",
-  phone: "+1 (000) 000-0000",
+  phone: "",
   location: "United States & Democratic Republic of Congo",
   /** Main logo (dark on light backgrounds). Used for favicon and structured data. */
   logo: "/assets/brand-transparent/6-web.png",

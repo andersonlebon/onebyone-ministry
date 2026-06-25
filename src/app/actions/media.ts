@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import {
   createMediaAsset,
   deleteMediaAssetById,
@@ -54,6 +56,11 @@ export async function createMediaAssetAction(input: {
     alt: input.alt ?? null,
     category: input.category ?? null,
     uploadedBy: user.id,
+  }).then((asset) => {
+    if (input.folder === "photos") {
+      revalidatePath("/", "layout");
+    }
+    return asset;
   });
 }
 
@@ -69,5 +76,9 @@ export async function updateMediaAssetAction(
 export async function deleteMediaAssetAction(id: string): Promise<MediaAsset> {
   assertDatabase();
   await requireAdminUser();
-  return deleteMediaAssetById(id);
+  const asset = await deleteMediaAssetById(id);
+  if (asset.folder === "photos") {
+    revalidatePath("/", "layout");
+  }
+  return asset;
 }

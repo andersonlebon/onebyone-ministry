@@ -20,10 +20,10 @@ export const newsletterSchema = z.object({
 export type NewsletterInput = z.infer<typeof newsletterSchema>;
 
 export const donationSchema = z.object({
-  amount: z.coerce.number().int().positive().min(1).max(1_000_000),
+  amount: z.coerce.number().positive().min(1).max(1_000_000),
   frequency: z.enum(["one-time", "monthly"]).default("one-time"),
-  name: z.string().trim().max(120).optional(),
-  email: z.string().trim().email().optional()
+  name: z.string().trim().min(1, "Name is required.").max(120),
+  email: z.string().trim().email("Valid email is required."),
 });
 
 export type DonationInput = z.infer<typeof donationSchema>;

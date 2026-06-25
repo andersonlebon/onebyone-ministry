@@ -1,4 +1,4 @@
-import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const mediaFolders = ["photos", "projects", "posts", "videos", "brand", "general"] as const;
 export type MediaFolder = (typeof mediaFolders)[number];
@@ -83,3 +83,21 @@ export const contactThreadMessages = pgTable("contact_thread_messages", {
 
 export type ContactThreadMessage = typeof contactThreadMessages.$inferSelect;
 export type NewContactThreadMessage = typeof contactThreadMessages.$inferInsert;
+
+export const donations = pgTable("donations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull().default("USD"),
+  method: text("method").notNull(),
+  status: text("status").notNull(),
+  frequency: text("frequency").notNull(),
+  date: text("date").notNull(),
+  notes: text("notes").notNull().default(""),
+  transactionId: text("transaction_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type DonationRow = typeof donations.$inferSelect;
+export type NewDonationRow = typeof donations.$inferInsert;

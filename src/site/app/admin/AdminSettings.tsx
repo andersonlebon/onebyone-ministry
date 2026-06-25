@@ -8,6 +8,7 @@ import { updateSiteMediaAction } from "@/app/actions/site-media";
 import type { SiteMediaBundle } from "@/lib/media/types";
 import { useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteStore, SiteSettings } from "@/site/lib/siteStore";
+import { isDemoContentEnabled } from "@/lib/runtime-env";
 
 function Field({ label, value, onChange, multiline = false, hint }: {
   label: string; value: string; onChange: (v: string) => void; multiline?: boolean; hint?: string;
@@ -40,9 +41,10 @@ export default function AdminSettings() {
 
   const set = (k: keyof SiteSettings, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  const handleSave = () => {
-    updateSettings(form);
+  const handleSave = async () => {
+    await updateSettings(form);
     setSaved(true);
+    router.refresh();
     setTimeout(() => setSaved(false), 2500);
   };
 
@@ -154,10 +156,10 @@ export default function AdminSettings() {
           </div>
         </div>
 
-        {/* Danger */}
+        {isDemoContentEnabled() && (
         <div className="bg-card rounded-2xl border border-red-100 p-6">
           <h3 className="text-sm font-semibold text-red-500 mb-4 pb-3 border-b border-red-100">Danger Zone</h3>
-          <p className="text-xs text-muted-foreground mb-4">Reset all content to factory defaults. This cannot be undone.</p>
+          <p className="text-xs text-muted-foreground mb-4">Reset all demo content to factory defaults. Development only.</p>
           <button
             onClick={() => {
               if (confirm("Reset ALL content to defaults? This cannot be undone.")) {
@@ -174,6 +176,7 @@ export default function AdminSettings() {
             Reset to Defaults
           </button>
         </div>
+        )}
       </div>
     </div>
   );

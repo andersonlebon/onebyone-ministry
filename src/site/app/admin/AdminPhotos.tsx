@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Plus, Trash2, X, Save, Pencil } from "lucide-react";
 
@@ -15,6 +16,7 @@ import { createClient } from "@/lib/supabase/client";
 import { isSupabaseBackendConfigured } from "@/lib/supabase/backend";
 import { deleteStorageObject } from "@/lib/supabase/storage";
 import AdminImageUpload from "@/site/app/components/admin/AdminImageUpload";
+import { demoModeLabel } from "@/site/lib/demo-ui";
 import { useSiteStore, type Photo } from "@/site/lib/siteStore";
 
 const CATEGORIES = ["All", "Education", "Community", "Worship", "Outreach"];
@@ -136,6 +138,7 @@ function assetToPhoto(asset: MediaAsset): Photo {
 }
 
 export default function AdminPhotos() {
+  const router = useRouter();
   const { photos, addPhoto, updatePhoto, deletePhoto } = useSiteStore();
   const useSupabase = isSupabaseBackendConfigured();
   const [remotePhotos, setRemotePhotos] = useState<Photo[]>([]);
@@ -186,6 +189,7 @@ export default function AdminPhotos() {
         publicUrl: form.src,
       });
       await loadRemotePhotos();
+      router.refresh();
       return;
     }
 
@@ -197,6 +201,7 @@ export default function AdminPhotos() {
       category: form.category,
     });
     await loadRemotePhotos();
+    router.refresh();
   };
 
   const handleDelete = async (photo: Photo) => {
@@ -213,6 +218,7 @@ export default function AdminPhotos() {
     await deleteStorageObject(createClient(), asset.path);
     await deleteMediaAssetAction(asset.id);
     await loadRemotePhotos();
+    router.refresh();
   };
 
   return (
@@ -222,7 +228,7 @@ export default function AdminPhotos() {
           <h1 className="text-2xl text-foreground">Photo Library</h1>
           <p className="text-sm text-muted-foreground">
             {displayPhotos.length} photos
-            {useSupabase ? " · stored in Supabase" : " · local demo storage"}
+            {useSupabase ? " · stored in Supabase" : demoModeLabel() ? ` · ${demoModeLabel()}` : ""}
           </p>
         </div>
         <motion.button

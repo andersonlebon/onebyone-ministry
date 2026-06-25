@@ -5,6 +5,7 @@ import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Play, Youtube } from "lucide-react";
 import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useSiteContent } from "@/site/lib/siteContentContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
@@ -27,15 +28,25 @@ const fadeUp: Variants = {
 
 export default function VideosPage() {
   const c = useColors();
-  const { featuredVideo, ministryVideos, websiteUseImages } = useSiteMedia();
-  const FEATURED = featuredVideo;
-  const VIDEOS = ministryVideos.map((v) => ({
-    id: v.id,
+  const { featuredVideo, websiteUseImages } = useSiteMedia();
+  const { videos: contentVideos } = useSiteContent();
+  const VIDEOS = contentVideos.map((v) => ({
+    id: v.youtubeId,
     title: v.title,
     category: v.category,
     duration: v.duration,
     thumb: v.thumb,
   }));
+  const FEATURED = VIDEOS[0]
+    ? { ...VIDEOS[0], desc: "" }
+    : {
+        id: featuredVideo.id,
+        title: featuredVideo.title,
+        category: featuredVideo.category,
+        duration: featuredVideo.duration,
+        thumb: featuredVideo.thumb,
+        desc: featuredVideo.desc,
+      };
   const [activeCategory, setActiveCategory] = useState("All");
   const [playingId, setPlayingId] = useState<string | null>(null);
 

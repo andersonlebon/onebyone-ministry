@@ -15,6 +15,8 @@ import { applyUrlMapToMediaBundle } from "@/lib/media/resolve-urls";
 import { buildPlaceholderMediaBundle } from "@/lib/media/placeholders";
 import { uploadAllPublicAssets } from "@/lib/media/upload-seed";
 import { SITE_MEDIA_CONTENT_KEY } from "@/lib/media/resolve";
+import { SITE_CONTENT_KEYS } from "@/lib/site-content/keys";
+import { EMPTY_FINANCE } from "@/lib/site-content/types";
 import { MEDIA_BUCKET } from "@/lib/supabase/config";
 
 import { getDb } from "./index";
@@ -58,18 +60,22 @@ export async function seedDefaultSiteData(supabase: SupabaseClient, uploadedBy?:
   await upsertSiteContentValue(SITE_MEDIA_CONTENT_KEY, mediaBundle);
 
   const contentRows = [
-    { key: "settings", value: defaultSiteSettings },
+    { key: SITE_CONTENT_KEYS.settings, value: defaultSiteSettings },
     {
-      key: "posts",
+      key: SITE_CONTENT_KEYS.posts,
       value: resolveSeedRows(defaultPosts, urlMap),
     },
     {
-      key: "projects",
+      key: SITE_CONTENT_KEYS.projects,
       value: resolveSeedRows(defaultProjects, urlMap),
     },
     {
-      key: "videos",
+      key: SITE_CONTENT_KEYS.videos,
       value: resolveSeedRows(defaultVideos, urlMap),
+    },
+    {
+      key: SITE_CONTENT_KEYS.finance,
+      value: { ...EMPTY_FINANCE },
     },
   ] as const;
 

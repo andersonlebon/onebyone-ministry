@@ -8,6 +8,7 @@ import { Lock, Eye, EyeOff, AlertCircle, Sun, Moon } from "lucide-react";
 import { isStaffUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isDemoContentEnabled } from "@/lib/runtime-env";
 import { brandAssets, websiteUseImages } from "@/content/media";
 import { useTheme } from "@/site/lib/themeStore";
 
@@ -31,6 +32,10 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
 
     try {
       if (!supabaseEnabled) {
+        if (!isDemoContentEnabled()) {
+          setError("Admin login requires Supabase. Configure auth env vars for production.");
+          return;
+        }
         await new Promise((resolve) => setTimeout(resolve, 600));
         if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
           localStorage.setItem("obom_admin_auth", "true");
@@ -188,7 +193,9 @@ export default function AdminLogin({ onLogin }: { onLogin: () => void }) {
         <p className="text-xs text-muted-foreground text-center mt-5">
           {supabaseEnabled
             ? "Sign in with your Supabase admin account."
-            : `Demo mode: ${DEMO_EMAIL} / ${DEMO_PASSWORD}. Add Supabase env vars for production auth.`}
+            : isDemoContentEnabled()
+              ? `Development demo: ${DEMO_EMAIL} / ${DEMO_PASSWORD}`
+              : "Supabase auth is required in production."}
         </p>
       </motion.div>
     </div>

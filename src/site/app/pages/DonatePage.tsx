@@ -1,17 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useColors } from "../../lib/themeStore";
 import { motion, AnimatePresence, type Variants } from "motion/react";
-import { useForm } from "react-hook-form";
 import {
-  Heart, Shield, Users, BookOpen, Droplets, CheckCircle2, Quote,
-  CreditCard, Smartphone, Building2, Copy, ExternalLink,
+  Heart, Shield, Users, BookOpen, Droplets, Quote,
+  CreditCard, Smartphone, Building2, Copy, Wallet,
 } from "lucide-react";
 import { WaveDivider, AnimatedBlob, DotPattern, Sparkles } from "../components/shared/SvgDecorators";
 import PageHero from "../components/shared/PageHero";
 import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useSiteContent } from "@/site/lib/siteContentContext";
+import {
+  BankPanel,
+  DonationSuccessBanner,
+  MobilePayPanel,
+  OtherPanel,
+  StripeCheckoutForm,
+  VenmoPanel,
+} from "@/site/app/components/donate/payment-panels";
 import { SECTION_PY } from "../../lib/pageLayout";
 
 const IMPACT_ITEMS = [
@@ -30,8 +39,8 @@ const TESTIMONIALS = (localImages: { testimonialOne: string; testimonialTwo: str
 
 const PAYMENT_TABS = [
   { id: "card", label: "Credit / Debit Card", icon: CreditCard },
-  { id: "paypal", label: "PayPal", icon: ExternalLink },
-  { id: "mobile", label: "Mobile Pay", icon: Smartphone },
+  { id: "venmo", label: "Venmo", icon: Smartphone },
+  { id: "mobile", label: "Cash App / Zelle", icon: Wallet },
   { id: "bank", label: "Bank Transfer", icon: Building2 },
   { id: "other", label: "Other Methods", icon: Copy },
 ];
@@ -43,216 +52,10 @@ const fadeUp: Variants = {
   show: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.09, duration: 0.55, ease: "easeOut" } }),
 };
 
-function CardPaymentForm({ amount, frequency }: { amount: string; frequency: string }) {
+function DonatePageContent() {
   const c = useColors();
-  const { register, handleSubmit, formState: { errors } } = useForm();
-  const [submitted, setSubmitted] = useState(false);
-  const [processing, setProcessing] = useState(false);
-
-  const onSubmit = () => {
-    setProcessing(true);
-    setTimeout(() => { setProcessing(false); setSubmitted(true); }, 2000);
-  };
-
-  if (submitted) return (
-    <div className="text-center py-8">
-      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
-        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: c.cream }}>
-          <CheckCircle2 size={32} style={{ color: "#6E9277" }} />
-        </div>
-      </motion.div>
-      <h3 className="text-xl mb-2" style={{ color: c.text }}>Thank you for your gift!</h3>
-      <p className="text-sm" style={{ color: c.muted }}>Your {frequency} gift of <strong>${amount}</strong> is changing lives in Congo. Confirmation sent to your email.</p>
-    </div>
-  );
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>Card Number</label>
-        <div className="relative">
-          <CreditCard size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: c.muted }} />
-          <input {...register("cardNumber", { required: true })}
-            placeholder="1234 5678 9012 3456"
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
-            style={{ color: c.text, backgroundColor: c.inputBg, borderColor: errors.cardNumber ? "#d4183d" : "rgba(110,146,119,0.3)" }}
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>Expiry Date</label>
-          <input {...register("expiry", { required: true })} placeholder="MM / YY"
-            className="w-full px-3 py-2.5 rounded-lg border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
-            style={{ color: c.text, borderColor: errors.expiry ? "#d4183d" : "rgba(110,146,119,0.3)" }} />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>CVV</label>
-          <input {...register("cvv", { required: true })} placeholder="123"
-            className="w-full px-3 py-2.5 rounded-lg border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
-            style={{ color: c.text, borderColor: errors.cvv ? "#d4183d" : "rgba(110,146,119,0.3)" }} />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>First Name</label>
-          <input {...register("firstName", { required: true })} placeholder="First name"
-            className="w-full px-3 py-2.5 rounded-lg border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
-            style={{ color: c.text, borderColor: errors.firstName ? "#d4183d" : "rgba(110,146,119,0.3)" }} />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>Last Name</label>
-          <input {...register("lastName", { required: true })} placeholder="Last name"
-            className="w-full px-3 py-2.5 rounded-lg border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
-            style={{ color: c.text, borderColor: errors.lastName ? "#d4183d" : "rgba(110,146,119,0.3)" }} />
-        </div>
-      </div>
-      <div>
-        <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>Email</label>
-        <input {...register("email", { required: true, pattern: /^\S+@\S+\.\S+$/ })} type="email" placeholder="your@email.com"
-          className="w-full px-3 py-2.5 rounded-lg border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
-          style={{ color: c.text, borderColor: errors.email ? "#d4183d" : "rgba(110,146,119,0.3)" }} />
-      </div>
-      <motion.button
-        type="submit"
-        disabled={processing}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full py-4 rounded-xl font-semibold text-white text-base flex items-center justify-center gap-2 transition-colors disabled:opacity-70"
-        style={{ backgroundColor: "#6E9277" }}
-      >
-        {processing ? (
-          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
-        ) : (
-          <><Heart size={17} /> Give ${amount || "0"} {frequency === "monthly" ? "/ Month" : ""}</>
-        )}
-      </motion.button>
-      <div className="flex items-center justify-center gap-4 mt-2">
-        {["visa", "mastercard", "amex", "discover"].map((card) => (
-          <div key={card} className="text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider" style={{ color: c.muted, border: `1px solid ${c.borderLight}` }}>{card.slice(0, 4)}</div>
-        ))}
-      </div>
-      <p className="text-xs text-center flex items-center justify-center gap-1" style={{ color: c.muted }}>
-        <Shield size={11} /> 256-bit SSL secured · 100% goes to field · Tax-deductible
-      </p>
-    </form>
-  );
-}
-
-function PayPalPanel({ amount, frequency }: { amount: string; frequency: string }) {
-  const c = useColors();
-  return (
-    <div className="space-y-4">
-      <div className="rounded-xl p-4 text-center" style={{ backgroundColor: c.cream }}>
-        <p className="text-sm mb-1" style={{ color: c.muted }}>You are giving</p>
-        <p className="text-2xl" style={{ color: c.text, fontFamily: "'Francois One', sans-serif" }}>${amount || "0"} {frequency === "monthly" ? "/ mo" : ""}</p>
-      </div>
-      <motion.button
-        whileHover={{ scale: 1.03 }}
-        whileTap={{ scale: 0.97 }}
-        onClick={() => window.open("https://paypal.com", "_blank")}
-        className="w-full py-4 rounded-xl font-bold text-[#003087] text-lg flex items-center justify-center gap-2"
-        style={{ backgroundColor: "#FFD140" }}
-      >
-        <span style={{ color: "#009CDE", fontWeight: 800 }}>Pay</span>
-        <span style={{ color: "#003087", fontWeight: 800 }}>Pal</span>
-      </motion.button>
-      <p className="text-xs text-center" style={{ color: c.muted }}>You'll be redirected to PayPal to complete your secure donation.</p>
-      <p className="text-xs text-center" style={{ color: c.muted }}>PayPal also supports recurring monthly giving.</p>
-    </div>
-  );
-}
-
-function MobilePayPanel({ amount }: { amount: string }) {
-  const c = useColors();
-  return (
-    <div className="space-y-4">
-      <p className="text-sm" style={{ color: c.muted }}>Mobile giving is available for approved donors and partners.</p>
-      {[
-        { name: "Apple Pay", color: "#000000", textColor: "#ffffff", icon: "🍎" },
-        { name: "Google Pay", color: "#ffffff", textColor: "#000000", border: `1px solid ${c.borderLight}`, icon: "G" },
-      ].map((method) => (
-        <motion.button
-          key={method.name}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-3"
-          style={{ backgroundColor: method.color, color: method.textColor, border: (method as any).border }}
-        >
-          <span className="text-lg">{method.icon}</span>
-          {method.name} — ${amount || "0"}
-        </motion.button>
-      ))}
-      <div className="rounded-xl p-4 text-xs mt-2" style={{ border: `1px solid ${c.borderLight}`, color: c.muted }}>
-        <p className="font-semibold mb-1" style={{ color: c.text }}>Mobile transfer details</p>
-        <p>For Cash App, Venmo, or Zelle details, please contact the finance team through the contact page.</p>
-      </div>
-    </div>
-  );
-}
-
-function BankPanel({ amount }: { amount: string }) {
-  const c = useColors();
-  return (
-    <div className="space-y-3">
-      <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: c.cream }}>
-        <p className="text-xs mb-1" style={{ color: c.muted }}>Donation Amount</p>
-        <p className="text-2xl" style={{ color: c.text, fontFamily: "'Francois One', sans-serif" }}>${amount || "0"}</p>
-      </div>
-      <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}`, backgroundColor: c.white }}>
-        <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Bank Transfer</h4>
-        <p className="text-sm leading-relaxed" style={{ color: c.muted }}>
-          ACH and wire instructions are available by request. Please contact the finance team and include your
-          intended donation amount so we can provide the correct instructions and receipt process.
-        </p>
-        <Link href="/contact" className="inline-block mt-4 text-xs font-semibold" style={{ color: "#6E9277" }}>
-          Request bank transfer instructions →
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function OtherPanel() {
-  const c = useColors();
-  return (
-    <div className="space-y-4">
-      <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}` }}>
-        <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Cryptocurrency</h4>
-        <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-          Crypto giving is available by request. Contact our team before sending any funds so we can verify the
-          correct wallet and tax receipt information.
-        </p>
-      </div>
-      <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}` }}>
-        <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Check by Mail</h4>
-        <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-          Check donation instructions are available from our finance team to ensure accurate receipts and mailing
-          details.
-        </p>
-      </div>
-      <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}` }}>
-        <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Donor-Advised Fund (DAF)</h4>
-        <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-          DAF instructions are available by request so we can confirm the right legal name and receipt process.
-        </p>
-      </div>
-      <div className="rounded-xl p-5" style={{ border: `1px solid ${c.borderLight}` }}>
-        <h4 className="text-sm font-semibold mb-2" style={{ color: c.text }}>Stock / Securities</h4>
-        <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-          Stock and securities gifts require coordination with the finance team before transfer.
-        </p>
-      </div>
-      <Link href="/contact" className="inline-block text-xs font-semibold" style={{ color: "#6E9277" }}>
-        Request alternative giving instructions →
-      </Link>
-    </div>
-  );
-}
-
-export default function DonatePage() {
-  const c = useColors();
+  const searchParams = useSearchParams();
+  const { settings, finance } = useSiteContent();
   const { localImages } = useSiteMedia();
   const testimonials = TESTIMONIALS(localImages);
   const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
@@ -261,15 +64,15 @@ export default function DonatePage() {
   const [activeTab, setActiveTab] = useState("card");
 
   const displayAmount = customAmount || selectedAmount;
+  const showSuccess = searchParams.get("status") === "success";
 
   return (
     <div className="overflow-x-hidden pt-20">
-
       <PageHero
         imageSrc={localImages.donateHero}
         imageAlt="Hands together"
         eyebrow="Every Gift Matters"
-        title="Give to Change a Life in Congo"
+        title={settings.donatePageHeadline || "Give to Change a Life in Congo"}
         bottomColor={c.white}
         size="tall"
         animateImage
@@ -292,11 +95,10 @@ export default function DonatePage() {
             fontStyle: "italic",
           }}
         >
-          "Whoever is generous to the poor lends to the Lord, and He will repay him for his deed." — Proverbs 19:17
+          &quot;Whoever is generous to the poor lends to the Lord, and He will repay him for his deed.&quot; — Proverbs 19:17
         </motion.p>
       </PageHero>
 
-      {/* Impact Breakdown */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <AnimatedBlob color="#6E9277" opacity={0.04} size={500} className="-top-20 right-0" />
         <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
@@ -335,136 +137,114 @@ export default function DonatePage() {
         <WaveDivider topColor={c.white} bottomColor={c.cream} />
       </section>
 
-      {/* Donation Form + Sidebar */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <DotPattern color="rgba(110,146,119,0.07)" size={24} />
         <AnimatedBlob color="#EAC79A" opacity={0.07} size={500} className="-bottom-20 right-0" />
 
-        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-5 gap-10 lg:gap-14 items-start relative z-10`}>
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
+          {showSuccess && <DonationSuccessBanner />}
 
-          {/* Form */}
-          <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="lg:col-span-3 rounded-2xl p-8 shadow-sm" style={{ backgroundColor: c.white }}>
-            <h3 className="text-2xl mb-6" style={{ color: c.text }}>Make a Donation</h3>
+          <div className="grid lg:grid-cols-5 gap-10 lg:gap-14 items-start">
+            <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="lg:col-span-3 rounded-2xl p-8 shadow-sm" style={{ backgroundColor: c.white }}>
+              <h3 className="text-2xl mb-6" style={{ color: c.text }}>Make a Donation</h3>
 
-            {/* Frequency toggle */}
-            <div className="flex rounded-xl overflow-hidden mb-6" style={{ border: `1px solid ${c.borderLight}` }}>
-              {(["one-time", "monthly"] as const).map((freq) => (
-                <motion.button key={freq} onClick={() => setFrequency(freq)}
-                  className="flex-1 py-3 text-sm font-semibold transition-all"
-                  animate={{ backgroundColor: frequency === freq ? "#6E9277" : c.white, color: frequency === freq ? "#ffffff" : c.text }}>
-                  {freq === "one-time" ? "One-Time" : "Monthly Recurring"}
-                </motion.button>
-              ))}
-            </div>
-
-            {/* Amount */}
-            <div className="mb-6">
-              <label className="block text-xs font-semibold mb-3" style={{ color: c.text }}>Amount</label>
-              <div className="grid grid-cols-5 gap-2 mb-3">
-                {PRESET_AMOUNTS.map((amt) => (
-                  <motion.button key={amt} onClick={() => { setSelectedAmount(amt); setCustomAmount(""); }}
-                    whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
-                    className="py-2.5 rounded-xl text-sm font-semibold transition-all"
-                    animate={{ backgroundColor: selectedAmount === amt && !customAmount ? "#6E9277" : c.cream, color: selectedAmount === amt && !customAmount ? "#ffffff" : c.text }}>
-                    ${amt}
+              <div className="flex rounded-xl overflow-hidden mb-6" style={{ border: `1px solid ${c.borderLight}` }}>
+                {(["one-time", "monthly"] as const).map((freq) => (
+                  <motion.button key={freq} onClick={() => setFrequency(freq)}
+                    className="flex-1 py-3 text-sm font-semibold transition-all"
+                    animate={{ backgroundColor: frequency === freq ? "#6E9277" : c.white, color: frequency === freq ? "#ffffff" : c.text }}>
+                    {freq === "one-time" ? "One-Time" : "Monthly Recurring"}
                   </motion.button>
                 ))}
               </div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: c.muted }}>$</span>
-                <input type="number" placeholder="Custom amount" value={customAmount}
-                  onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(""); }}
-                  className="w-full pl-7 pr-4 py-2.5 rounded-xl border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
-                  style={{ color: c.text, backgroundColor: c.cream, borderColor: "rgba(110,146,119,0.3)" }} />
-              </div>
-            </div>
 
-            {/* Payment method tabs */}
-            <div className="mb-5">
-              <label className="block text-xs font-semibold mb-3" style={{ color: c.text }}>Payment Method</label>
-              <div className="flex flex-wrap gap-2 mb-5">
-                {PAYMENT_TABS.map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <motion.button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                      whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
-                      animate={{ backgroundColor: activeTab === tab.id ? "#6E9277" : c.cream, color: activeTab === tab.id ? "#ffffff" : c.text }}>
-                      <Icon size={13} /> {tab.label}
+              <div className="mb-6">
+                <label className="block text-xs font-semibold mb-3" style={{ color: c.text }}>Amount</label>
+                <div className="grid grid-cols-5 gap-2 mb-3">
+                  {PRESET_AMOUNTS.map((amt) => (
+                    <motion.button key={amt} onClick={() => { setSelectedAmount(amt); setCustomAmount(""); }}
+                      whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
+                      className="py-2.5 rounded-xl text-sm font-semibold transition-all"
+                      animate={{ backgroundColor: selectedAmount === amt && !customAmount ? "#6E9277" : c.cream, color: selectedAmount === amt && !customAmount ? "#ffffff" : c.text }}>
+                      ${amt}
                     </motion.button>
-                  );
-                })}
+                  ))}
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: c.muted }}>$</span>
+                  <input type="number" min={1} placeholder="Custom amount" value={customAmount}
+                    onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(""); }}
+                    className="w-full pl-7 pr-4 py-2.5 rounded-xl border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
+                    style={{ color: c.text, backgroundColor: c.cream, borderColor: "rgba(110,146,119,0.3)" }} />
+                </div>
               </div>
 
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  {activeTab === "card" && <CardPaymentForm amount={displayAmount} frequency={frequency} />}
-                  {activeTab === "paypal" && <PayPalPanel amount={displayAmount} frequency={frequency} />}
-                  {activeTab === "mobile" && <MobilePayPanel amount={displayAmount} />}
-                  {activeTab === "bank" && <BankPanel amount={displayAmount} />}
-                  {activeTab === "other" && <OtherPanel />}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </motion.div>
-
-          {/* Sidebar */}
-          <motion.div custom={1} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="lg:col-span-2 space-y-6">
-
-            {/* Transparency */}
-            <div className="rounded-2xl p-6 shadow-sm" style={{ backgroundColor: c.white }}>
-              <h4 className="text-sm mb-4 flex items-center gap-2" style={{ color: c.text }}>
-                <Shield size={14} style={{ color: "#6E9277" }} /> Financial Transparency
-              </h4>
-              {[["Direct to Field", "85%"], ["Operations", "10%"], ["Fundraising", "5%"]].map(([label, pct]) => (
-                <div key={label} className="mb-3">
-                  <div className="flex justify-between text-xs mb-1"><span style={{ color: c.text }}>{label}</span><span style={{ color: "#6E9277" }} className="font-semibold">{pct}</span></div>
-                  <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: c.cream }}>
-                    <motion.div className="h-2 rounded-full" style={{ backgroundColor: "#6E9277" }}
-                      initial={{ width: 0 }} whileInView={{ width: pct }} viewport={{ once: true }} transition={{ duration: 1.2, ease: "easeOut" }} />
-                  </div>
+              <div className="mb-5">
+                <label className="block text-xs font-semibold mb-3" style={{ color: c.text }}>Payment Method</label>
+                <div className="flex flex-wrap gap-2 mb-5">
+                  {PAYMENT_TABS.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <motion.button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                        whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                        animate={{ backgroundColor: activeTab === tab.id ? "#6E9277" : c.cream, color: activeTab === tab.id ? "#ffffff" : c.text }}>
+                        <Icon size={13} /> {tab.label}
+                      </motion.button>
+                    );
+                  })}
                 </div>
-              ))}
-              <p className="text-xs mt-4" style={{ color: c.muted }}>Registered nonprofit · Donation receipts provided by the finance team</p>
-            </div>
 
-            {/* Testimonials */}
-            {testimonials.map((t, i) => (
-              <motion.div key={i} whileHover={{ y: -4 }} className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: c.white }}>
-                <Quote size={16} className="mb-2 opacity-30" style={{ color: "#6E9277" }} />
-                <p className="text-sm leading-relaxed mb-3 text-[#5A4749]" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}>{t.quote}</p>
-                <div className="flex items-center gap-2">
-                  <img src={t.img} alt={t.name} className="w-8 h-8 rounded-full object-cover" />
-                  <div><p className="text-xs font-semibold" style={{ color: c.text }}>{t.name}</p><p className="text-xs" style={{ color: c.muted }}>{t.location}</p></div>
-                </div>
-              </motion.div>
-            ))}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                  >
+                    {activeTab === "card" && <StripeCheckoutForm amount={displayAmount} frequency={frequency} />}
+                    {activeTab === "venmo" && <VenmoPanel amount={displayAmount} frequency={frequency} finance={finance} />}
+                    {activeTab === "mobile" && <MobilePayPanel amount={displayAmount} finance={finance} />}
+                    {activeTab === "bank" && <BankPanel amount={displayAmount} finance={finance} />}
+                    {activeTab === "other" && <OtherPanel amount={displayAmount} finance={finance} />}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </motion.div>
 
-            {/* Stats */}
-            <div className="rounded-2xl p-6 overflow-hidden relative" style={{ backgroundColor: "#6E9277" }}>
-              <DotPattern color="rgba(255,255,255,0.08)" size={18} />
-              <AnimatedBlob color="#ffffff" opacity={0.06} size={200} className="-top-10 -right-10" />
-              <div className="relative z-10">
-                <h4 className="text-white text-sm mb-4">Your Impact in 2024</h4>
-                {[["18+", "Communities served"], ["500+", "Families reached"], ["8", "Active education projects"]].map(([num, label]) => (
-                  <div key={label} className="flex items-center gap-3 mb-3">
-                    <span className="text-2xl text-white" style={{ fontFamily: "'Francois One', sans-serif" }}>{num}</span>
-                    <span className="text-white/70 text-sm">{label}</span>
+            <motion.div custom={1} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="lg:col-span-2 space-y-6">
+              <div className="rounded-2xl p-6 shadow-sm" style={{ backgroundColor: c.white }}>
+                <h4 className="text-sm mb-4 flex items-center gap-2" style={{ color: c.text }}>
+                  <Shield size={14} style={{ color: "#6E9277" }} /> Financial Transparency
+                </h4>
+                {[["Direct to Field", "85%"], ["Operations", "10%"], ["Fundraising", "5%"]].map(([label, pct]) => (
+                  <div key={label} className="mb-3">
+                    <div className="flex justify-between text-xs mb-1"><span style={{ color: c.text }}>{label}</span><span style={{ color: "#6E9277" }} className="font-semibold">{pct}</span></div>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: c.cream }}>
+                      <motion.div className="h-2 rounded-full" style={{ backgroundColor: "#6E9277" }}
+                        initial={{ width: 0 }} whileInView={{ width: pct }} viewport={{ once: true }} transition={{ duration: 1.2, ease: "easeOut" }} />
+                    </div>
                   </div>
                 ))}
+                <p className="text-xs mt-4" style={{ color: c.muted }}>Registered nonprofit · Donation receipts provided by the finance team</p>
               </div>
-            </div>
-          </motion.div>
+
+              {testimonials.map((t, i) => (
+                <motion.div key={i} whileHover={{ y: -4 }} className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: c.white }}>
+                  <Quote size={16} className="mb-2 opacity-30" style={{ color: "#6E9277" }} />
+                  <p className="text-sm leading-relaxed mb-3 text-[#5A4749]" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}>{t.quote}</p>
+                  <div className="flex items-center gap-2">
+                    <img src={t.img} alt={t.name} className="w-8 h-8 rounded-full object-cover" />
+                    <div><p className="text-xs font-semibold" style={{ color: c.text }}>{t.name}</p><p className="text-xs" style={{ color: c.muted }}>{t.location}</p></div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* Other Ways */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <div className={`max-w-4xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} text-center`}>
           <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }}>
@@ -488,5 +268,13 @@ export default function DonatePage() {
         </div>
       </section>
     </div>
+  );
+}
+
+export default function DonatePage() {
+  return (
+    <Suspense fallback={null}>
+      <DonatePageContent />
+    </Suspense>
   );
 }
