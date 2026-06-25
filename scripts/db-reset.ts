@@ -23,6 +23,46 @@ function loadEnvFile(path: string) {
   }
 }
 
+async function resetStorageBucket() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    console.warn("Skipping storage reset: missing Supabase env vars");
+    return;
+  }
+
+  const supabase = createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  const bucket = "media";
+  let removed = 0;
+  let offset = 0;
+  const limit = 100;
+
+  while (true) {
+    const { data, error } = await supabase.storage.from(bucket).list("", { limit, offset });
+    if (error) {
+      throw new Error(`Storage list failed: ${error.message}`);
+    }
+    if (!data?.length) break;
+
+    const paths = data.filter((item) => item.name).map((item) => item.name);
+    if (paths.length > 0) {
+      const { error: removeError } = await supabase.storage.from(bucket).remove(paths);
+      if (removeError) {
+        throw new Error(`Storage delete failed: ${removeError.message}`);
+      }
+      removed += paths.length;
+    }
+
+    if (data.length < limit) break;
+    offset += limit;
+  }
+
+  console.log(`Removed ${removed} file(s) from storage bucket "${bucket}".`);
+}
+
 async function resetAllAuthUsers() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -69,13 +109,18 @@ async function main() {
     await sql`DELETE FROM contact_thread_messages`;
     await sql`DELETE FROM contact_threads`;
     await sql`DELETE FROM contact_messages`;
+    await sql`DELETE FROM donations`;
     await sql`DELETE FROM media_assets`;
     await sql`DELETE FROM site_content`;
     await sql`DELETE FROM project_setup`;
-    console.log("Cleared tables: contact_thread_messages, contact_threads, contact_messages, media_assets, site_content, project_setup");
+    console.log(
+      "Cleared tables: contact_thread_messages, contact_threads, contact_messages, donations, media_assets, site_content, project_setup"
+    );
   } finally {
     await sql.end();
   }
+
+  await resetStorageBucket();
 
   if (withAuth) {
     await resetAllAuthUsers();

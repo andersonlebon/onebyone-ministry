@@ -7,6 +7,7 @@ import { isStaffUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
+import { adminDashboardUrl } from "@/lib/site-url";
 import AdminLogin from "@/site/app/admin/AdminLogin";
 
 export default function AdminLoginPage() {
@@ -27,12 +28,18 @@ export default function AdminLoginPage() {
       } = await supabase.auth.getUser();
 
       if (isStaffUser(user)) {
-        router.replace("/admin/dashboard");
+        window.location.assign(adminDashboardUrl(window.location.origin));
       }
     }
 
     void redirectIfAuthed();
   }, [router]);
 
-  return <AdminLogin onLogin={() => router.push("/admin/dashboard")} />;
+  return (
+    <AdminLogin
+      onLogin={() => {
+        window.location.assign(adminDashboardUrl(window.location.origin));
+      }}
+    />
+  );
 }

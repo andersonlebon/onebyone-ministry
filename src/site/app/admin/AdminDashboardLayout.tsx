@@ -58,22 +58,23 @@ export default function AdminDashboardLayout({
 
       const supabase = createClient();
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (!cancelled) {
-        const allowed = isStaffUser(user);
+        const allowed = isStaffUser(session?.user);
         setAuthed(allowed);
         setReady(true);
         if (!allowed) {
           router.replace("/admin/login");
+          return;
         }
       }
 
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        const allowed = isStaffUser(session?.user);
+      } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+        const allowed = isStaffUser(nextSession?.user);
         setAuthed(allowed);
         if (!allowed) {
           router.replace("/admin/login");
