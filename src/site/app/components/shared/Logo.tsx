@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { brandAssets } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 
 /**
  * Official One By One Ministries logos from Brand Transparent zip.
- * Matches figma-make imports/5.png, 6.png, 7.png paths.
  */
 export default function Logo({
   variant = "dark",
@@ -16,14 +15,16 @@ export default function Logo({
   className?: string;
   style?: React.CSSProperties;
 }) {
+  const { brandAssets } = useSiteMedia();
+
   const src =
     variant === "light"
       ? brandAssets.logoWhite
       : variant === "vertical-light"
         ? brandAssets.logoVerticalWhite
-      : variant === "vertical-dark"
-        ? brandAssets.logoVertical
-        : brandAssets.logoDark;
+        : variant === "vertical-dark"
+          ? brandAssets.logoVertical
+          : brandAssets.logoDark;
 
   const isVertical = variant === "vertical-dark" || variant === "vertical-light";
 

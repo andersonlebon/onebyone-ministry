@@ -22,10 +22,13 @@ import {
   Users,
   Landmark,
   Inbox,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 import { getInboxUnreadCountAction } from "@/app/actions/inbox";
-import { brandAssets } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useTheme } from "@/site/lib/themeStore";
 
 const NAV_ITEMS = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/admin/dashboard" },
@@ -52,6 +55,9 @@ function isActive(pathname: string, href: string) {
 
 export default function AdminShell({ children, onLogout }: AdminShellProps) {
   const pathname = usePathname();
+  const { brandAssets } = useSiteMedia();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -99,7 +105,7 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
           return (
             <Link key={item.id} href={item.href} onClick={() => setMobileSidebarOpen(false)}>
               <motion.span
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-left transition-all ${active ? "text-white" : "text-white/55 hover:text-white/90 hover:bg-white/8"}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-left transition-all ${active ? "text-white" : "text-white/55 hover:text-white/90 hover:bg-card/8"}`}
                 style={active ? { backgroundColor: "rgba(255,255,255,0.15)" } : {}}
                 whileHover={{ x: 2 }}
                 whileTap={{ scale: 0.98 }}
@@ -123,7 +129,7 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
           href="/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/55 hover:text-white/90 hover:bg-white/8 transition-all"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/55 hover:text-white/90 hover:bg-card/8 transition-all"
           whileHover={{ x: 2 }}
         >
           <Globe size={17} />
@@ -131,7 +137,7 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
         </motion.a>
         <motion.button
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/55 hover:text-red-400 hover:bg-white/8 transition-all"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/55 hover:text-red-400 hover:bg-card/8 transition-all"
           whileHover={{ x: 2 }}
         >
           <LogOut size={17} />
@@ -142,7 +148,7 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
   );
 
   return (
-    <div className="flex h-screen bg-[#f5f0ea] overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       <motion.aside
         animate={{ width: sidebarOpen ? 220 : 68 }}
         transition={{ duration: 0.25, ease: "easeInOut" }}
@@ -177,26 +183,46 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
       </AnimatePresence>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b border-[#e3d9ce] px-5 h-14 flex items-center justify-between flex-shrink-0 shadow-sm">
+        <header className="bg-card border-b border-muted px-5 h-14 flex items-center justify-between flex-shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
                 setSidebarOpen(!sidebarOpen);
                 setMobileSidebarOpen(!mobileSidebarOpen);
               }}
-              className="p-1.5 rounded-lg hover:bg-[#EFE7DB] transition-colors text-[#474747]"
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors text-foreground"
             >
               <Menu size={18} />
             </button>
             <div>
-              <h2 className="text-sm font-semibold text-[#474747]">{activeItem.label}</h2>
-              <p className="text-xs text-[#7a7068]">One By One Ministries Admin</p>
+              <h2 className="text-sm font-semibold text-foreground">{activeItem.label}</h2>
+              <p className="text-xs text-muted-foreground">One By One Ministries Admin</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <motion.button
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleTheme}
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors text-primary"
+              aria-label="Toggle theme"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={isDark ? "moon" : "sun"}
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 90, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex"
+                >
+                  {isDark ? <Moon size={16} /> : <Sun size={16} />}
+                </motion.span>
+              </AnimatePresence>
+            </motion.button>
             <Link
               href="/admin/inbox"
-              className="p-1.5 rounded-lg hover:bg-[#EFE7DB] transition-colors text-[#7a7068] relative"
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground relative"
               aria-label={`Inbox${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
             >
               <Bell size={16} />

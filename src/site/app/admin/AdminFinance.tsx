@@ -4,8 +4,8 @@ import { financeDetails } from "@/content/finance";
 
 function DetailCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-[#e3d9ce] bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold text-[#474747]">{title}</h3>
+    <section className="rounded-2xl border border-muted bg-card p-6 shadow-sm">
+      <h3 className="mb-4 text-sm font-semibold text-foreground">{title}</h3>
       {children}
     </section>
   );
@@ -15,9 +15,9 @@ function DetailRows({ rows }: { rows: ReadonlyArray<{ label: string; value: stri
   return (
     <div className="space-y-3">
       {rows.map((row) => (
-        <div key={row.label} className="rounded-xl bg-[#EFE7DB] px-4 py-3">
+        <div key={row.label} className="rounded-xl bg-muted px-4 py-3">
           <p className="text-xs uppercase tracking-[0.18em] text-[#6E9277]">{row.label}</p>
-          <p className="mt-1 break-all text-sm font-semibold text-[#474747]">{row.value}</p>
+          <p className="mt-1 break-all text-sm font-semibold text-foreground">{row.value}</p>
         </div>
       ))}
     </div>
@@ -28,8 +28,8 @@ export default function AdminFinance() {
   return (
     <div>
       <div className="mb-7">
-        <h1 className="text-2xl text-[#474747]">Finance Details</h1>
-        <p className="text-sm text-[#7a7068] mt-1">
+        <h1 className="text-2xl text-foreground">Finance Details</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Internal giving instructions for staff. These details are not shown on the public donation page.
         </p>
       </div>
@@ -52,15 +52,15 @@ export default function AdminFinance() {
 
         <DetailCard title="Mobile Giving">
           <DetailRows rows={financeDetails.mobileGiving} />
-          <p className="mt-3 text-xs text-[#7a7068]">Memo: DONATION</p>
+          <p className="mt-3 text-xs text-muted-foreground">Memo: DONATION</p>
         </DetailCard>
 
         <DetailCard title="Cryptocurrency">
           <div className="space-y-3">
             {financeDetails.crypto.map((item) => (
-              <div key={item.coin} className="rounded-xl bg-[#EFE7DB] px-4 py-3">
+              <div key={item.coin} className="rounded-xl bg-muted px-4 py-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-[#6E9277]">{item.coin}</p>
-                <p className="mt-1 break-all font-mono text-xs text-[#474747]">{item.address}</p>
+                <p className="mt-1 break-all font-mono text-xs text-foreground">{item.address}</p>
               </div>
             ))}
           </div>

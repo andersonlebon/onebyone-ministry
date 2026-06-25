@@ -4,27 +4,10 @@ import { useState } from "react";
 import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Play, Youtube } from "lucide-react";
-import { featuredVideo, ministryVideos, websiteUseImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
-
-const FEATURED = {
-  id: featuredVideo.id,
-  title: featuredVideo.title,
-  desc: featuredVideo.desc,
-  duration: featuredVideo.duration,
-  category: featuredVideo.category,
-  thumb: featuredVideo.thumb,
-};
-
-const VIDEOS = ministryVideos.map((v) => ({
-  id: v.id,
-  title: v.title,
-  category: v.category,
-  duration: v.duration,
-  thumb: v.thumb,
-}));
 
 const CATEGORIES = ["All", "Education", "Community"];
 
@@ -44,6 +27,15 @@ const fadeUp: Variants = {
 
 export default function VideosPage() {
   const c = useColors();
+  const { featuredVideo, ministryVideos, websiteUseImages } = useSiteMedia();
+  const FEATURED = featuredVideo;
+  const VIDEOS = ministryVideos.map((v) => ({
+    id: v.id,
+    title: v.title,
+    category: v.category,
+    duration: v.duration,
+    thumb: v.thumb,
+  }));
   const [activeCategory, setActiveCategory] = useState("All");
   const [playingId, setPlayingId] = useState<string | null>(null);
 

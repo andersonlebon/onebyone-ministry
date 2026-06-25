@@ -8,7 +8,7 @@ import {
   BookOpen, Lightbulb, Heart, Users, ArrowRight, ChevronDown,
   Globe, Quote, Sparkles as SparklesIcon,
 } from "lucide-react";
-import { brandAssets, homePillars, homeProjects, homeStories, websiteUseImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import FloatingParticles from "../components/shared/FloatingParticles";
 import {
   WaveDivider, WaveBottom, DotPattern,
@@ -99,29 +99,30 @@ function StatCard({ value, suffix, label, icon: Icon }: { value: number; suffix:
   );
 }
 
-/* ───── Data ───── */
-const PILLARS = [
-  { icon: BookOpen, title: "Education", color: "#6E9277", img: homePillars[0].img, desc: "Building schools, training teachers, and equipping every child with the tools they need to flourish." },
-  { icon: Lightbulb, title: "Entrepreneurship", color: "#EAC79A", img: homePillars[1].img, desc: "Equipping families with skills, micro-grants, and mentorship to build sustainable livelihoods." },
-  { icon: Heart, title: "Spiritual Discipleship", color: "#5A4749", img: homePillars[2].img, desc: "Sharing the Gospel through Bible study, pastoral training, and church partnerships in unreached villages." },
-  { icon: Users, title: "Community Development", color: "#6E9277", img: homePillars[3].img, desc: "Building infrastructure, clean water access, and healthcare systems that lift entire communities." },
-];
-
-const PROJECTS = [
-  { id: 1, title: "Rural School Building Initiative", category: "Education", desc: "Constructing classrooms in remote villages to give 200+ children a safe place to learn.", img: homeProjects[0], status: "Active" },
-  { id: 2, title: "Women's Entrepreneurship Cohort", category: "Entrepreneurship", desc: "12-week program empowering 30 women with business training and start-up capital.", img: homeProjects[1], status: "Active" },
-  { id: 3, title: "Village Pastoral Training", category: "Discipleship", desc: "Equipping 15 rural pastors per cohort with theological education and ongoing mentorship.", img: homeProjects[2], status: "Active" },
-];
-
-const STORIES = [
-  { id: 1, title: "How One School Changed a Whole Village", date: "May 28, 2025", category: "Education", img: homeStories[0], excerpt: "When Amara received her first textbook at 11, she said it was the most beautiful thing she'd ever seen. Today she teaches the next generation." },
-  { id: 2, title: "From Despair to Purpose: Jean-Paul's Story", date: "April 14, 2025", category: "Discipleship", img: homeStories[1], excerpt: "One discipleship meeting sparked a revival now reaching five surrounding villages every Sunday morning." },
-  { id: 3, title: "Mamas Building a Future", date: "March 3, 2025", category: "Entrepreneurship", img: homeStories[2], excerpt: "28 women graduated from the Entrepreneurship Cohort, now running businesses that feed their families." },
-];
-
 /* ═══════════════════════════════════════════════════════════ */
 export default function HomePage() {
   const c = useColors();
+  const { brandAssets, homePillars, homeProjects, homeStories, websiteUseImages } = useSiteMedia();
+
+  const PILLARS = [
+    { icon: BookOpen, title: "Education", color: "#6E9277", img: homePillars[0].img, desc: "Building schools, training teachers, and equipping every child with the tools they need to flourish." },
+    { icon: Lightbulb, title: "Entrepreneurship", color: "#EAC79A", img: homePillars[1].img, desc: "Equipping families with skills, micro-grants, and mentorship to build sustainable livelihoods." },
+    { icon: Heart, title: "Spiritual Discipleship", color: "#5A4749", img: homePillars[2].img, desc: "Sharing the Gospel through Bible study, pastoral training, and church partnerships in unreached villages." },
+    { icon: Users, title: "Community Development", color: "#6E9277", img: homePillars[3].img, desc: "Building infrastructure, clean water access, and healthcare systems that lift entire communities." },
+  ];
+
+  const PROJECTS = [
+    { id: 1, title: "Rural School Building Initiative", category: "Education", desc: "Constructing classrooms in remote villages to give 200+ children a safe place to learn.", img: homeProjects[0], status: "Active" },
+    { id: 2, title: "Women's Entrepreneurship Cohort", category: "Entrepreneurship", desc: "12-week program empowering 30 women with business training and start-up capital.", img: homeProjects[1], status: "Active" },
+    { id: 3, title: "Village Pastoral Training", category: "Discipleship", desc: "Equipping 15 rural pastors per cohort with theological education and ongoing mentorship.", img: homeProjects[2], status: "Active" },
+  ];
+
+  const STORIES = [
+    { id: 1, title: "How One School Changed a Whole Village", date: "May 28, 2025", category: "Education", img: homeStories[0], excerpt: "When Amara received her first textbook at 11, she said it was the most beautiful thing she'd ever seen. Today she teaches the next generation." },
+    { id: 2, title: "From Despair to Purpose: Jean-Paul's Story", date: "April 14, 2025", category: "Discipleship", img: homeStories[1], excerpt: "One discipleship meeting sparked a revival now reaching five surrounding villages every Sunday morning." },
+    { id: 3, title: "Mamas Building a Future", date: "March 3, 2025", category: "Entrepreneurship", img: homeStories[2], excerpt: "28 women graduated from the Entrepreneurship Cohort, now running businesses that feed their families." },
+  ];
+
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, 120]);

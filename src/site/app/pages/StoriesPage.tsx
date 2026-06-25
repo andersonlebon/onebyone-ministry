@@ -4,14 +4,15 @@ import { useState } from "react";
 import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Search, ArrowRight, Calendar, Tag } from "lucide-react";
-import { localImages, storyImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
 
 const CATEGORIES = ["All", "Education", "Discipleship", "Entrepreneurship", "Community", "Updates"];
 
-const STORIES = [
+function buildStories(storyImages: readonly string[]) {
+  return [
   {
     id: 1,
     title: "How One School Changed a Whole Village",
@@ -83,7 +84,8 @@ const STORIES = [
     author: "Jonathan K.",
     featured: false,
   },
-];
+  ];
+}
 
 const CATEGORY_COLORS: Record<string, string> = {
   Education: "#6E9277",
@@ -100,6 +102,8 @@ const fadeUp: Variants = {
 
 export default function StoriesPage() {
   const c = useColors();
+  const { localImages, storyImages } = useSiteMedia();
+  const STORIES = buildStories(storyImages);
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
 

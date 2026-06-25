@@ -4,8 +4,6 @@ import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 
-import { SETUP_SUPER_ADMIN_EMAIL } from "../src/lib/setup/constants";
-
 function loadEnvFile(path: string) {
   if (!existsSync(path)) return;
   for (const line of readFileSync(path, "utf8").split("\n")) {
@@ -25,7 +23,7 @@ function loadEnvFile(path: string) {
   }
 }
 
-async function resetAuthUser() {
+async function resetAllAuthUsers() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
@@ -42,21 +40,16 @@ async function resetAuthUser() {
     throw new Error(`Auth list failed: ${error.message}`);
   }
 
-  const target = data.users.find(
-    (user) => user.email?.trim().toLowerCase() === SETUP_SUPER_ADMIN_EMAIL
-  );
-
-  if (!target) {
-    console.log(`No auth user found for ${SETUP_SUPER_ADMIN_EMAIL}`);
-    return;
+  let deleted = 0;
+  for (const user of data.users) {
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
+    if (deleteError) {
+      throw new Error(`Auth delete failed for ${user.email ?? user.id}: ${deleteError.message}`);
+    }
+    deleted += 1;
   }
 
-  const { error: deleteError } = await supabase.auth.admin.deleteUser(target.id);
-  if (deleteError) {
-    throw new Error(`Auth delete failed: ${deleteError.message}`);
-  }
-
-  console.log(`Deleted auth user: ${SETUP_SUPER_ADMIN_EMAIL}`);
+  console.log(`Deleted ${deleted} auth user(s).`);
 }
 
 async function main() {
@@ -85,9 +78,9 @@ async function main() {
   }
 
   if (withAuth) {
-    await resetAuthUser();
+    await resetAllAuthUsers();
   } else {
-    console.log("Auth users kept. Re-run with --auth to delete the setup super-admin.");
+    console.log("Auth users kept. Re-run with --auth to delete all Supabase auth users.");
   }
 
   console.log("Done. Visit /setup to launch the project again.");

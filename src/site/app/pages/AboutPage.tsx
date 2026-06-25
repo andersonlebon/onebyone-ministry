@@ -6,7 +6,8 @@ import { useColors } from "../../lib/themeStore";
 import { Heart, Globe, BookOpen, Users, Lightbulb, ArrowRight } from "lucide-react";
 import { WaveDivider, AnimatedBlob, DotPattern, CrossPattern, DiagonalStripes, Sparkles } from "../components/shared/SvgDecorators";
 import FoundersTree from "../components/shared/FoundersTree";
-import { aboutStoryImages, localImages, websiteUseImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
+import type { SiteMediaBundle } from "@/lib/media/types";
 import { SECTION_PY } from "../../lib/pageLayout";
 
 const fadeSlide: Variants = {
@@ -22,7 +23,7 @@ const VALUES = [
   { icon: Lightbulb, title: "Empowerment", desc: "We equip, not enable — building local capacity so communities own and sustain their own transformation." },
 ];
 
-const LEADERS = [
+const LEADERS = (localImages: SiteMediaBundle["localImages"]) => [
   { name: "Rev. Emmanuel Tshilobo", role: "Executive Director & Co-Founder", bio: "Born in the DRC, Emmanuel has served in ministry for 20+ years. He holds a Master of Divinity and has a heart for reconciling the church with its community calling.", img: localImages.leaderOne },
   { name: "Grace Tshilobo", role: "Director of Programs & Co-Founder", bio: "Originally from Atlanta, Grace brings expertise in women's development, entrepreneurship education, and cross-cultural program design.", img: localImages.leaderTwo },
   { name: "Jonathan Kalala", role: "Community Development Lead", bio: "A native of Kasai Province, Jonathan builds relationships with village chiefs and local NGOs to ensure every project is community-owned.", img: localImages.leaderThree },
@@ -30,6 +31,7 @@ const LEADERS = [
 
 export default function AboutPage() {
   const c = useColors();
+  const { aboutStoryImages, localImages, websiteUseImages } = useSiteMedia();
   return (
     <div className="overflow-x-hidden">
 
@@ -242,7 +244,7 @@ export default function AboutPage() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
-            {LEADERS.map((leader, i) => (
+            {LEADERS(localImages).map((leader, i) => (
               <motion.div
                 key={leader.name}
                 custom={i}

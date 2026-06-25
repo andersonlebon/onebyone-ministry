@@ -30,8 +30,8 @@ export default function AdminDashboard() {
   return (
     <div>
       <div className="mb-7">
-        <h1 className="text-2xl text-[#474747]">Dashboard Overview</h1>
-        <p className="text-sm text-[#7a7068] mt-1">Welcome back, Admin. Here's what's happening at OBOM.</p>
+        <h1 className="text-2xl text-foreground">Dashboard Overview</h1>
+        <p className="text-sm text-muted-foreground mt-1">Welcome back, Admin. Here's what's happening at OBOM.</p>
       </div>
 
       {/* Stats grid */}
@@ -45,7 +45,7 @@ export default function AdminDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.07, duration: 0.4 }}
               whileHover={{ y: -4, boxShadow: "0 12px 30px rgba(71,71,71,0.1)" }}
-              className="bg-white rounded-2xl p-5 border border-[#e3d9ce] cursor-default"
+              className="bg-card rounded-2xl p-5 border border-muted cursor-default"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: s.color + "18" }}>
@@ -53,9 +53,9 @@ export default function AdminDashboard() {
                 </div>
                 <TrendingUp size={14} style={{ color: "#6E9277" }} />
               </div>
-              <p className="text-2xl text-[#474747] mb-0.5" style={{ fontFamily: "'Francois One', sans-serif" }}>{s.value}</p>
-              <p className="text-sm text-[#474747] font-medium">{s.label}</p>
-              <p className="text-xs text-[#7a7068] mt-0.5">{s.sub}</p>
+              <p className="text-2xl text-foreground mb-0.5" style={{ fontFamily: "'Francois One', sans-serif" }}>{s.value}</p>
+              <p className="text-sm text-foreground font-medium">{s.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{s.sub}</p>
             </motion.div>
           );
         })}
@@ -64,12 +64,12 @@ export default function AdminDashboard() {
       {/* Recent Posts + Activity */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Recent posts */}
-        <div className="bg-white rounded-2xl border border-[#e3d9ce] overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#e3d9ce] flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-[#474747]">Recent Blog Posts</h3>
+        <div className="bg-card rounded-2xl border border-muted overflow-hidden">
+          <div className="px-6 py-4 border-b border-muted flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Recent Blog Posts</h3>
             <Eye size={14} style={{ color: "#7a7068" }} />
           </div>
-          <div className="divide-y divide-[#f5f0ea]">
+          <div className="divide-y divide-muted">
             {posts.slice(0, 4).map((post, i) => (
               <motion.div
                 key={post.id}
@@ -80,10 +80,10 @@ export default function AdminDashboard() {
               >
                 <img src={post.img} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-[#474747] truncate">{post.title}</p>
-                  <p className="text-xs text-[#7a7068]">{post.date} · {post.category}</p>
+                  <p className="text-xs font-semibold text-foreground truncate">{post.title}</p>
+                  <p className="text-xs text-muted-foreground">{post.date} · {post.category}</p>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${post.published ? "text-[#6E9277] bg-[#6E9277]/10" : "text-[#7a7068] bg-[#e3d9ce]"}`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${post.published ? "text-[#6E9277] bg-[#6E9277]/10" : "text-muted-foreground bg-muted"}`}>
                   {post.published ? "Live" : "Draft"}
                 </span>
               </motion.div>
@@ -92,11 +92,11 @@ export default function AdminDashboard() {
         </div>
 
         {/* Activity feed */}
-        <div className="bg-white rounded-2xl border border-[#e3d9ce] overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#e3d9ce]">
-            <h3 className="text-sm font-semibold text-[#474747]">Recent Activity</h3>
+        <div className="bg-card rounded-2xl border border-muted overflow-hidden">
+          <div className="px-6 py-4 border-b border-muted">
+            <h3 className="text-sm font-semibold text-foreground">Recent Activity</h3>
           </div>
-          <div className="divide-y divide-[#f5f0ea]">
+          <div className="divide-y divide-muted">
             {recentActivity.map((item, i) => (
               <motion.div
                 key={i}
@@ -107,10 +107,10 @@ export default function AdminDashboard() {
               >
                 <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: item.color }} />
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-[#474747]">{item.label}</p>
-                  <p className="text-xs text-[#7a7068]">{item.sub}</p>
+                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                  <p className="text-xs text-muted-foreground">{item.sub}</p>
                 </div>
-                <span className="text-xs text-[#a09890] flex-shrink-0">{item.time}</span>
+                <span className="text-xs text-muted-foreground/70 flex-shrink-0">{item.time}</span>
               </motion.div>
             ))}
           </div>

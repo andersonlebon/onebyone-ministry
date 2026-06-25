@@ -4,14 +4,15 @@ import { useState } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { X, ArrowRight, Clock, CheckCircle2 } from "lucide-react";
-import { projectImages, websiteUseImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
 
 const CATEGORIES = ["All", "Education", "Entrepreneurship", "Discipleship", "Community"];
 
-const PROJECTS = [
+function buildProjects(projectImages: readonly string[]) {
+  return [
   {
     id: 1,
     title: "Rural School Building Initiative",
@@ -84,7 +85,8 @@ const PROJECTS = [
     impact: "40 families",
     fullDesc: "This program trains farmers in sustainable agriculture techniques — crop rotation, composting, drip irrigation, and seed banking — to increase food security and income. Participants receive a starter kit of seeds and tools. The project includes monthly farm visits from agronomist volunteers and tracks household nutrition outcomes.",
   },
-];
+  ];
+}
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -93,8 +95,10 @@ const fadeUp: Variants = {
 
 export default function ProjectsPage() {
   const c = useColors();
+  const { projectImages, websiteUseImages } = useSiteMedia();
+  const PROJECTS = buildProjects(projectImages);
   const [activeCategory, setActiveCategory] = useState("All");
-  const [selectedProject, setSelectedProject] = useState<typeof PROJECTS[0] | null>(null);
+  const [selectedProject, setSelectedProject] = useState<ReturnType<typeof buildProjects>[number] | null>(null);
 
   const filtered = activeCategory === "All"
     ? PROJECTS

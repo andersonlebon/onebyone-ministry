@@ -236,8 +236,8 @@ export default function AdminInbox() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl font-semibold text-[#474747]">Contact Inbox</h1>
-          <p className="text-sm text-[#7a7068] mt-0.5">
+          <h1 className="text-xl font-semibold text-foreground">Contact Inbox</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
             {unreadCount > 0
               ? `${unreadCount} unread conversation${unreadCount === 1 ? "" : "s"}`
               : "All conversations read"}
@@ -247,7 +247,7 @@ export default function AdminInbox() {
           <button
             onClick={() => void loadThreads(true, selectedId)}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-[#474747] border border-[#e3d9ce] hover:bg-[#EFE7DB] transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-foreground border border-muted hover:bg-muted transition-colors disabled:opacity-50"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             Refresh
@@ -275,10 +275,10 @@ export default function AdminInbox() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-[#e3d9ce] overflow-hidden flex flex-col lg:flex-row min-h-[560px]">
+      <div className="bg-card rounded-2xl border border-muted overflow-hidden flex flex-col lg:flex-row min-h-[560px]">
         {/* Conversation list */}
-        <div className="lg:w-[340px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-[#e3d9ce]">
-          <div className="flex border-b border-[#e3d9ce]">
+        <div className="lg:w-[340px] flex-shrink-0 border-b lg:border-b-0 lg:border-r border-muted">
+          <div className="flex border-b border-muted">
             {(["all", "unread"] as const).map((f) => (
               <button
                 key={f}
@@ -286,7 +286,7 @@ export default function AdminInbox() {
                 className={`flex-1 py-3 text-xs font-semibold transition-colors ${
                   filter === f
                     ? "text-[#6E9277] bg-[#6E9277]/8"
-                    : "text-[#7a7068] hover:bg-[#EFE7DB]"
+                    : "text-muted-foreground hover:bg-muted"
                 }`}
               >
                 {f === "all" ? "All" : "Unread"}
@@ -301,12 +301,12 @@ export default function AdminInbox() {
 
           <div className="overflow-y-auto max-h-[420px] lg:max-h-[520px]">
             {loading ? (
-              <div className="flex items-center justify-center py-16 text-[#7a7068]">
+              <div className="flex items-center justify-center py-16 text-muted-foreground">
                 <Loader2 size={20} className="animate-spin mr-2" />
                 Loading...
               </div>
             ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-[#7a7068] px-6 text-center">
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground px-6 text-center">
                 <Inbox size={32} className="mb-3 opacity-40" />
                 <p className="text-sm font-medium">
                   {filter === "unread" ? "No unread conversations" : "No conversations yet"}
@@ -321,30 +321,30 @@ export default function AdminInbox() {
                   <button
                     key={thread.id}
                     onClick={() => void handleSelect(thread)}
-                    className={`w-full text-left px-4 py-3.5 border-b border-[#e3d9ce] transition-colors ${
-                      active ? "bg-[#6E9277]/10" : "hover:bg-[#EFE7DB]/60"
+                    className={`w-full text-left px-4 py-3.5 border-b border-muted transition-colors ${
+                      active ? "bg-[#6E9277]/10" : "hover:bg-muted/60"
                     }`}
                   >
                     <div className="flex items-start gap-2">
                       {unread ? (
                         <Mail size={14} className="flex-shrink-0 mt-0.5 text-[#6E9277]" />
                       ) : (
-                        <MailOpen size={14} className="flex-shrink-0 mt-0.5 text-[#7a7068]" />
+                        <MailOpen size={14} className="flex-shrink-0 mt-0.5 text-muted-foreground" />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <span
-                            className={`text-sm truncate ${unread ? "font-semibold text-[#474747]" : "text-[#474747]"}`}
+                            className={`text-sm truncate ${unread ? "font-semibold text-foreground" : "text-foreground"}`}
                           >
                             {thread.visitorName}
                           </span>
-                          <span className="text-[10px] text-[#a09890] flex-shrink-0">
+                          <span className="text-[10px] text-muted-foreground/70 flex-shrink-0">
                             {formatShortDate(thread.lastMessageAt)}
                           </span>
                         </div>
-                        <p className="text-xs text-[#7a7068] truncate mt-0.5">{thread.subject}</p>
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{thread.subject}</p>
                         <div className="flex items-center justify-between gap-2 mt-1">
-                          <p className="text-[11px] text-[#a09890] truncate">
+                          <p className="text-[11px] text-muted-foreground/70 truncate">
                             {previewText(thread.lastMessagePreview)}
                           </p>
                           {unread && (
@@ -364,12 +364,12 @@ export default function AdminInbox() {
         <div className="flex-1 flex flex-col min-h-[320px]">
           {selectedThread ? (
             <>
-              <div className="px-6 py-4 border-b border-[#e3d9ce] flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+              <div className="px-6 py-4 border-b border-muted flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold text-[#474747]">{selectedThread.subject}</h2>
-                  <p className="text-sm text-[#7a7068] mt-1">
+                  <h2 className="text-base font-semibold text-foreground">{selectedThread.subject}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
                     With{" "}
-                    <span className="font-medium text-[#474747]">{selectedThread.visitorName}</span>
+                    <span className="font-medium text-foreground">{selectedThread.visitorName}</span>
                     {" · "}
                     <a
                       href={`mailto:${selectedThread.visitorEmail}`}
@@ -378,7 +378,7 @@ export default function AdminInbox() {
                       {selectedThread.visitorEmail}
                     </a>
                   </p>
-                  <p className="text-xs text-[#a09890] mt-1">
+                  <p className="text-xs text-muted-foreground/70 mt-1">
                     Started {formatDate(selectedThread.createdAt)}
                   </p>
                 </div>
@@ -386,7 +386,7 @@ export default function AdminInbox() {
                   <button
                     onClick={() => void handleMarkUnread()}
                     disabled={actionLoading}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#7a7068] border border-[#e3d9ce] hover:bg-[#EFE7DB] disabled:opacity-50 self-start"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground border border-muted hover:bg-muted disabled:opacity-50 self-start"
                   >
                     <Mail size={13} />
                     Mark unread
@@ -394,14 +394,14 @@ export default function AdminInbox() {
                 )}
               </div>
 
-              <div className="flex-1 px-4 sm:px-6 py-5 overflow-y-auto bg-[#FAF7F2]/40">
+              <div className="flex-1 px-4 sm:px-6 py-5 overflow-y-auto bg-input-background/40">
                 {threadLoading ? (
-                  <div className="flex items-center justify-center py-12 text-[#7a7068]">
+                  <div className="flex items-center justify-center py-12 text-muted-foreground">
                     <Loader2 size={20} className="animate-spin mr-2" />
                     Loading messages...
                   </div>
                 ) : messages.length === 0 ? (
-                  <p className="text-sm text-[#7a7068] text-center py-8">No messages in this thread.</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">No messages in this thread.</p>
                 ) : (
                   <div className="space-y-4">
                     {messages.map((msg) => {
@@ -414,25 +414,25 @@ export default function AdminInbox() {
                           <div
                             className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 ${
                               inbound
-                                ? "bg-white border border-[#e3d9ce] rounded-bl-md"
+                                ? "bg-card border border-muted rounded-bl-md"
                                 : "text-white rounded-br-md"
                             }`}
                             style={inbound ? undefined : { backgroundColor: "#6E9277" }}
                           >
                             <div className="flex items-center justify-between gap-3 mb-1">
                               <span
-                                className={`text-xs font-semibold ${inbound ? "text-[#474747]" : "text-white/90"}`}
+                                className={`text-xs font-semibold ${inbound ? "text-foreground" : "text-white/90"}`}
                               >
                                 {msg.senderName}
                               </span>
                               <span
-                                className={`text-[10px] ${inbound ? "text-[#a09890]" : "text-white/70"}`}
+                                className={`text-[10px] ${inbound ? "text-muted-foreground/70" : "text-white/70"}`}
                               >
                                 {formatDate(msg.createdAt)}
                               </span>
                             </div>
                             <p
-                              className={`text-sm leading-relaxed whitespace-pre-wrap ${inbound ? "text-[#474747]" : "text-white"}`}
+                              className={`text-sm leading-relaxed whitespace-pre-wrap ${inbound ? "text-foreground" : "text-white"}`}
                             >
                               {msg.body}
                             </p>
@@ -451,7 +451,7 @@ export default function AdminInbox() {
                 )}
               </div>
 
-              <div className="px-4 sm:px-6 py-4 border-t border-[#e3d9ce] bg-white">
+              <div className="px-4 sm:px-6 py-4 border-t border-muted bg-card">
                 <label htmlFor="inbox-reply" className="sr-only">
                   Reply to visitor
                 </label>
@@ -463,7 +463,7 @@ export default function AdminInbox() {
                     placeholder="Write a reply…"
                     rows={3}
                     disabled={sending}
-                    className="flex-1 resize-none rounded-xl border border-[#e3d9ce] px-4 py-3 text-sm text-[#474747] placeholder:text-[#a09890] focus:outline-none focus:ring-2 focus:ring-[#6E9277]/30 focus:border-[#6E9277] disabled:opacity-50"
+                    className="flex-1 resize-none rounded-xl border border-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-2 focus:ring-[#6E9277]/30 focus:border-[#6E9277] disabled:opacity-50"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                         e.preventDefault();
@@ -487,13 +487,13 @@ export default function AdminInbox() {
                     Send
                   </motion.button>
                 </div>
-                <p className="text-[11px] text-[#a09890] mt-2">
+                <p className="text-[11px] text-muted-foreground/70 mt-2">
                   Replies are emailed to the visitor. They can reply to reach contact@onebyoneministries.org.
                 </p>
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center flex-1 text-[#7a7068] px-6">
+            <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground px-6">
               <MailOpen size={36} className="mb-3 opacity-40" />
               <p className="text-sm">Select a conversation to view messages</p>
             </div>

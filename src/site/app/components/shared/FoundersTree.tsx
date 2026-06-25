@@ -4,23 +4,34 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform, type Variants } from "motion/react";
 import { useColors } from "../../../lib/themeStore";
 import { Heart, Globe, BookOpen, Users, Star, Leaf } from "lucide-react";
-import { founderTimelineImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import { SECTION_PY } from "../../../lib/pageLayout";
 import { WaveDivider } from "./SvgDecorators";
+
+type Milestone = {
+  year: string;
+  title: string;
+  desc: string;
+  icon: typeof Star;
+  color: string;
+  img: string;
+  side: "left" | "right";
+};
 
 const ROOTS = [
   { side: "left", label: "Emmanuel Tshilobo", sub: "Born in Kinshasa, DRC · 1982", color: "#6E9277" },
   { side: "right", label: "Grace Johnson", sub: "Born in Atlanta, USA · 1985", color: "#EAC79A" },
 ];
 
-const MILESTONES = [
+function buildMilestones(images: readonly string[]): Milestone[] {
+  return [
   {
     year: "2010",
     title: "A Providential Meeting",
     desc: "Emmanuel and Grace meet at an international Christian conference in Nairobi, Kenya. Both were there serving their respective ministry organizations — a divine appointment.",
     icon: Star,
     color: "#EAC79A",
-    img: founderTimelineImages[0],
+    img: images[0],
     side: "left",
   },
   {
@@ -29,7 +40,7 @@ const MILESTONES = [
     desc: "Emmanuel and Grace marry in a beautiful ceremony uniting two continents — a living symbol of the cross-cultural ministry they would one day build together.",
     icon: Heart,
     color: "#5A4749",
-    img: founderTimelineImages[1],
+    img: images[1],
     side: "right",
   },
   {
@@ -38,7 +49,7 @@ const MILESTONES = [
     desc: "Together they travel to rural Congo for the first time as a couple. What they witness — children without schools, families without hope — breaks them open and changes everything.",
     icon: Globe,
     color: "#6E9277",
-    img: founderTimelineImages[2],
+    img: images[2],
     side: "left",
   },
   {
@@ -47,7 +58,7 @@ const MILESTONES = [
     desc: "After months of prayer and planning, Emmanuel and Grace officially incorporate One By One Ministries Inc. The name captures their conviction: transformation happens one person at a time.",
     icon: Leaf,
     color: "#6E9277",
-    img: founderTimelineImages[3],
+    img: images[3],
     side: "right",
   },
   {
@@ -56,7 +67,7 @@ const MILESTONES = [
     desc: "After four years of grassroots fundraising and community partnership, the first OBOM school building opens in a remote village outside Kinshasa — serving 85 children on day one.",
     icon: BookOpen,
     color: "#6E9277",
-    img: founderTimelineImages[4],
+    img: images[4],
     side: "left",
   },
   {
@@ -65,7 +76,7 @@ const MILESTONES = [
     desc: "Grace leads the launch of the Women's Entrepreneurship Cohort — a program she designed from the ground up — empowering 30 women in its first year.",
     icon: Star,
     color: "#EAC79A",
-    img: founderTimelineImages[5],
+    img: images[5],
     side: "right",
   },
   {
@@ -74,7 +85,7 @@ const MILESTONES = [
     desc: "Emmanuel, a trained theologian, launches the Pastoral Training Network — equipping 15 rural pastors in the first cohort across five provinces.",
     icon: Users,
     color: "#5A4749",
-    img: founderTimelineImages[6],
+    img: images[6],
     side: "left",
   },
   {
@@ -83,17 +94,18 @@ const MILESTONES = [
     desc: "Now serving 18+ communities across the DRC, with programs reaching 500+ families, 65+ volunteers, and expanding into Rwanda — the fruit of two lives poured out for the Kingdom.",
     icon: Globe,
     color: "#6E9277",
-    img: founderTimelineImages[7],
+    img: images[7],
     side: "right",
   },
-];
+  ];
+}
 
 const fadeSlide: Variants = {
   hidden: { opacity: 0, y: 28 },
   show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: "easeOut" } },
 };
 
-function TreeNode({ milestone, index }: { milestone: typeof MILESTONES[0]; index: number }) {
+function TreeNode({ milestone, index }: { milestone: Milestone; index: number }) {
   const c = useColors();
   const Icon = milestone.icon;
   const isLeft = milestone.side === "left";
@@ -154,6 +166,8 @@ function TreeNode({ milestone, index }: { milestone: typeof MILESTONES[0]; index
 
 export default function FoundersTree() {
   const c = useColors();
+  const { founderTimelineImages } = useSiteMedia();
+  const MILESTONES = buildMilestones(founderTimelineImages);
   const containerRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start end", "end start"] });
   const trunkHeight = useTransform(scrollYProgress, [0.05, 0.95], ["0%", "100%"]);

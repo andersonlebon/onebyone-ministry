@@ -6,7 +6,7 @@ import { useColors } from "../../lib/themeStore";
 import { useForm } from "react-hook-form";
 import { Mail, MapPin, Phone, Facebook, Instagram, Youtube, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { submitContact } from "@/app/actions/contact";
-import { localImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
@@ -71,6 +71,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 
 export default function ContactPage() {
   const c = useColors();
+  const { localImages } = useSiteMedia();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
   const { register, handleSubmit, setError, formState: { errors } } = useForm<ContactForm>();

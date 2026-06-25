@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { WaveDivider, AnimatedBlob, DotPattern, Sparkles } from "../components/shared/SvgDecorators";
 import PageHero from "../components/shared/PageHero";
-import { localImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import { SECTION_PY } from "../../lib/pageLayout";
 
 const IMPACT_ITEMS = [
@@ -23,7 +23,7 @@ const IMPACT_ITEMS = [
   { amount: 1000, label: "Funds a classroom for a full school year", icon: BookOpen },
 ];
 
-const TESTIMONIALS = [
+const TESTIMONIALS = (localImages: { testimonialOne: string; testimonialTwo: string }) => [
   { quote: "Because of OBOM's support, my daughter has completed three years of school. I never thought I would see this day.", name: "Marie K.", location: "Kinshasa Province, DRC", img: localImages.testimonialOne },
   { quote: "The entrepreneurship training changed everything for my family. I now have a business that provides for my six children.", name: "Solange M.", location: "Kasai Province, DRC", img: localImages.testimonialTwo },
 ];
@@ -253,6 +253,8 @@ function OtherPanel() {
 
 export default function DonatePage() {
   const c = useColors();
+  const { localImages } = useSiteMedia();
+  const testimonials = TESTIMONIALS(localImages);
   const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
   const [selectedAmount, setSelectedAmount] = useState("100");
   const [customAmount, setCustomAmount] = useState("");
@@ -433,7 +435,7 @@ export default function DonatePage() {
             </div>
 
             {/* Testimonials */}
-            {TESTIMONIALS.map((t, i) => (
+            {testimonials.map((t, i) => (
               <motion.div key={i} whileHover={{ y: -4 }} className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: c.white }}>
                 <Quote size={16} className="mb-2 opacity-30" style={{ color: "#6E9277" }} />
                 <p className="text-sm leading-relaxed mb-3 text-[#5A4749]" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}>{t.quote}</p>

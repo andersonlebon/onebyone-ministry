@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
-import { brandAssets } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import { useI18n, LANG_LABELS, Language } from "../../../lib/i18n";
 import { useTheme } from "../../../lib/themeStore";
 
@@ -17,6 +17,7 @@ export default function Navbar() {
   const isHome = pathname === "/";
   const { t, language, setLanguage } = useI18n();
   const { theme, toggleTheme } = useTheme();
+  const { brandAssets } = useSiteMedia();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);

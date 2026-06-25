@@ -164,7 +164,7 @@ export async function runProjectSetupAction(input: {
       userId = created.user.id;
     }
 
-    await seedDefaultSiteData(userId);
+    await seedDefaultSiteData(supabase, userId);
     await markSetupComplete(email, userId);
 
     return {

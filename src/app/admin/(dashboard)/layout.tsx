@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { getPublicMediaBundle } from "@/lib/media/resolve";
 import AdminDashboardLayout from "@/site/app/admin/AdminDashboardLayout";
 
 export const metadata: Metadata = {
@@ -7,6 +8,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminSectionLayout({ children }: { children: React.ReactNode }) {
-  return <AdminDashboardLayout>{children}</AdminDashboardLayout>;
+export default async function AdminSectionLayout({ children }: { children: React.ReactNode }) {
+  const media = await getPublicMediaBundle();
+  return <AdminDashboardLayout initialMedia={media}>{children}</AdminDashboardLayout>;
 }

@@ -3,13 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { isAdminUser } from "@/lib/supabase/admin";
+import { isStaffUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import AdminShell from "@/site/app/admin/AdminShell";
 import { SiteStoreProvider } from "@/site/lib/siteStore";
+import { MediaProvider } from "@/site/lib/mediaContext";
+import type { SiteMediaBundle } from "@/lib/media/types";
 
-export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function AdminDashboardLayout({
+  children,
+  initialMedia,
+}: {
+  children: React.ReactNode;
+  initialMedia: SiteMediaBundle;
+}) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
@@ -36,7 +44,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       } = await supabase.auth.getUser();
 
       if (!cancelled) {
-        const allowed = isAdminUser(user);
+        const allowed = isStaffUser(user);
         setAuthed(allowed);
         setReady(true);
         if (!allowed) {
@@ -47,7 +55,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange((_event, session) => {
-        const allowed = isAdminUser(session?.user);
+        const allowed = isStaffUser(session?.user);
         setAuthed(allowed);
         if (!allowed) {
           router.replace("/admin/login");
@@ -76,15 +84,17 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
 
   if (!ready || !authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f0ea]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-[#6E9277]/30 border-t-[#6E9277] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <SiteStoreProvider>
-      <AdminShell onLogout={handleLogout}>{children}</AdminShell>
-    </SiteStoreProvider>
+    <MediaProvider media={initialMedia}>
+      <SiteStoreProvider>
+        <AdminShell onLogout={handleLogout}>{children}</AdminShell>
+      </SiteStoreProvider>
+    </MediaProvider>
   );
 }

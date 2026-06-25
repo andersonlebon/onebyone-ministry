@@ -5,23 +5,22 @@ import { motion, AnimatePresence } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
-import { galleryPhotos, websiteUseImages } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
 
 const CATEGORIES = ["All", "Education", "Community", "Worship", "Outreach"];
 
-const PHOTOS = galleryPhotos;
-
 export default function PhotosPage() {
   const c = useColors();
+  const { galleryPhotos, websiteUseImages } = useSiteMedia();
   const [activeCategory, setActiveCategory] = useState("All");
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const filtered = activeCategory === "All"
-    ? PHOTOS
-    : PHOTOS.filter((p) => p.category === activeCategory);
+    ? galleryPhotos
+    : galleryPhotos.filter((p) => p.category === activeCategory);
 
   const openLightbox = (i: number) => setLightboxIndex(i);
   const closeLightbox = () => setLightboxIndex(null);

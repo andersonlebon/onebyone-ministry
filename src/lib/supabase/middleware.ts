@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+import { isStaffUser } from "./admin";
 import { getSupabasePublishableKey, getSupabaseUrl, isSupabaseConfigured } from "./config";
+
+const PUBLIC_ADMIN_ROUTES = new Set(["/admin/login", "/admin/accept-invite"]);
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -33,16 +36,23 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAdminRoute = pathname.startsWith("/admin");
-  const isLoginRoute = pathname === "/admin/login";
+  const isPublicAdminRoute = PUBLIC_ADMIN_ROUTES.has(pathname);
 
-  if (isAdminRoute && !isLoginRoute && !user) {
+  if (isAdminRoute && !isPublicAdminRoute && !user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/admin/login";
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLoginRoute && user) {
+  if (isAdminRoute && !isPublicAdminRoute && user && !isStaffUser(user)) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/admin/login";
+    loginUrl.searchParams.set("error", "not-admin");
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (pathname === "/admin/login" && user && isStaffUser(user)) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/admin/dashboard";
     return NextResponse.redirect(dashboardUrl);

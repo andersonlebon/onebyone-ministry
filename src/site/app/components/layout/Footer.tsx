@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useColors } from "../../../lib/themeStore";
 import { Facebook, Instagram, Youtube, Mail, MapPin, Phone, Heart } from "lucide-react";
-import { brandAssets } from "@/content/media";
+import { useSiteMedia } from "@/site/lib/mediaContext";
 
 const QUICK_LINKS = [
   { label: "Home", to: "/" },
@@ -19,6 +19,7 @@ const QUICK_LINKS = [
 
 export default function Footer() {
   const c = useColors();
+  const { brandAssets } = useSiteMedia();
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
 
