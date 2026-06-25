@@ -23,6 +23,14 @@ const ROLE_CONFIG: Record<AdminRole, { label: string; desc: string; color: strin
   viewer: { label: "Viewer", desc: "Read-only access to the admin dashboard", color: "#7a7068" },
 };
 
+function formatActionError(err: unknown) {
+  const message = err instanceof Error ? err.message : "Something went wrong.";
+  if (message.includes("Server Action") && message.includes("was not found")) {
+    return "The site was just updated. Hard refresh this page (Ctrl+Shift+R or Cmd+Shift+R), then try again.";
+  }
+  return message;
+}
+
 function AdminModal({
   admin,
   onInvite,
@@ -55,7 +63,7 @@ function AdminModal({
       }
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(formatActionError(err));
     } finally {
       setSubmitting(false);
     }
