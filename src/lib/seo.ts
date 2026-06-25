@@ -63,6 +63,11 @@ export function organizationJsonLd() {
     url: siteConfig.url,
     email: siteConfig.email,
     description: siteConfig.description,
-    sameAs: siteConfig.socialLinks.map((link) => link.href)
+    logo: {
+      "@type": "ImageObject",
+      url: absoluteUrl(siteConfig.logo),
+    },
+    image: absoluteUrl(siteConfig.ogImage),
+    sameAs: siteConfig.socialLinks.map((link) => link.href),
   };
 }

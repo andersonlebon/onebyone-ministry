@@ -4,10 +4,14 @@ export const siteConfig = {
   tagline: "Restoring hope, building faith, and serving people one life at a time.",
   description:
     "One By One Ministries is a ministry website sharing mission, projects, stories, galleries, and opportunities to get involved.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://onebyoneministries.com",
-  email: "contact@onebyoneministries.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onebyoneministries.org",
+  email: "contact@onebyoneministries.org",
   phone: "+1 (000) 000-0000",
   location: "United States & Democratic Republic of Congo",
+  /** Main logo (dark on light backgrounds). Used for favicon and structured data. */
+  logo: "/assets/brand-transparent/6-web.png",
+  /** Hero photo used for social link previews (Open Graph / Twitter). */
+  ogImage: "/assets/brand/23-hero.jpg",
   socialLinks: [
     { label: "Facebook", href: "https://facebook.com" },
     { label: "Instagram", href: "https://instagram.com" },

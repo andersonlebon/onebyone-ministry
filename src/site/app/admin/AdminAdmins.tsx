@@ -327,7 +327,7 @@ export default function AdminAdmins() {
           <Mail size={12} style={{ color: "#6E9277" }} /> How invitations work
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Public website visitors do not need accounts. Only invited staff receive a branded invitation email with a link to set a password at `/admin/accept-invite`. Requires `EMAIL_PROVIDER=brevo` in production. Super-admin is created once at `/setup` by {`buyananderson@gmail.com`}.
+          Public website visitors do not need accounts. Invitations are sent via Brevo SMTP (`BREVO_SMTP_USER` + `BREVO_SMTP_KEY` in Vercel). Super-admin is created once at `/setup` by {`buyananderson@gmail.com`}.
         </p>
       </div>
 

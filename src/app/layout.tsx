@@ -1,27 +1,35 @@
 import type { Metadata } from "next";
 
 import { Providers } from "@/site/providers";
-import { organizationJsonLd } from "@/lib/seo";
+import { createMetadata, organizationJsonLd } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
 
+const rootMetadata = createMetadata({
+  title: undefined,
+  description: siteConfig.description,
+  path: "/",
+});
+
 export const metadata: Metadata = {
+  ...rootMetadata,
   metadataBase: new URL(siteConfig.url),
   title: {
     default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`
+    template: `%s | ${siteConfig.name}`,
   },
-  description: siteConfig.description,
   applicationName: siteConfig.name,
   authors: [{ name: siteConfig.name }],
   creator: siteConfig.name,
   publisher: siteConfig.name,
   formatDetection: {
-    telephone: false
+    telephone: false,
   },
   icons: {
-    icon: "/icon.svg"
-  }
+    icon: [{ url: siteConfig.logo, type: "image/png" }],
+    apple: [{ url: siteConfig.logo, type: "image/png" }],
+    shortcut: siteConfig.logo,
+  },
 };
 
 // Applies the persisted theme before hydration to avoid a flash of the wrong theme.

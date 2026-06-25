@@ -6,6 +6,7 @@ import type { AdminRole } from "@/lib/supabase/admin";
 import { requireSuperAdminUser, requireStaffUser } from "@/lib/supabase/admin-server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { getEmailProvider } from "@/services/email";
+import { formatEmailSendError } from "@/services/email/errors";
 import { adminInviteEmail } from "@/services/email/templates";
 
 export type AdminListItem = {
@@ -84,7 +85,7 @@ async function sendAdminInvitation(input: {
   if (!result.ok) {
     return {
       ok: false,
-      error: result.error ?? "Invitation was created but the email could not be sent. Try resend.",
+      error: formatEmailSendError(result.error),
     };
   }
 
