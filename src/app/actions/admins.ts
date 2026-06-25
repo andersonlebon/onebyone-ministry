@@ -5,6 +5,8 @@ import { isServiceRoleConfigured } from "@/lib/supabase/service";
 import type { AdminRole } from "@/lib/supabase/admin";
 import { requireSuperAdminUser, requireStaffUser } from "@/lib/supabase/admin-server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getEmailProvider } from "@/services/email";
+import { adminInviteEmail } from "@/services/email/templates";
 
 export type AdminListItem = {
   id: string;
@@ -22,6 +24,74 @@ function normalizeEmail(email: string) {
 
 function getSiteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+}
+
+function getInviteRedirectUrl() {
+  return `${getSiteUrl()}/auth/callback?next=/admin/accept-invite`;
+}
+
+async function sendAdminInvitation(input: {
+  email: string;
+  name: string;
+  role: AdminRole;
+}): Promise<InviteAdminResult> {
+  const supabase = createServiceClient();
+  const email = normalizeEmail(input.email);
+  const redirectTo = getInviteRedirectUrl();
+
+  const { data, error } = await supabase.auth.admin.generateLink({
+    type: "invite",
+    email,
+    options: {
+      redirectTo,
+      data: { name: input.name.trim() },
+    },
+  });
+
+  if (error || !data.user) {
+    return { ok: false, error: error?.message ?? "Could not create invitation link." };
+  }
+
+  const { error: roleError } = await supabase.auth.admin.updateUserById(data.user.id, {
+    app_metadata: { role: input.role },
+    user_metadata: { name: input.name.trim() },
+  });
+
+  if (roleError) {
+    return { ok: false, error: roleError.message };
+  }
+
+  const inviteUrl = data.properties?.action_link;
+  if (!inviteUrl) {
+    return { ok: false, error: "Invitation link was not generated." };
+  }
+
+  const template = adminInviteEmail({
+    name: input.name.trim(),
+    email,
+    role: input.role,
+    inviteUrl,
+  });
+
+  const provider = getEmailProvider();
+  const result = await provider.send({
+    to: email,
+    subject: template.subject,
+    html: template.html,
+    text: template.text,
+  });
+
+  if (!result.ok) {
+    return {
+      ok: false,
+      error: result.error ?? "Invitation was created but the email could not be sent. Try resend.",
+    };
+  }
+
+  return {
+    ok: true,
+    message: `Invitation email sent to ${email}. They can set a password from the link.`,
+  };
 }
 
 function mapAuthUser(user: {
@@ -106,8 +176,6 @@ export async function inviteAdminAction(input: {
   }
 
   const supabase = createServiceClient();
-  const redirectTo = `${getSiteUrl()}/auth/callback?next=/admin/accept-invite`;
-
   const { data: existingUsers } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
   const already = existingUsers?.users.find((u) => normalizeEmail(u.email ?? "") === email);
 
@@ -116,55 +184,9 @@ export async function inviteAdminAction(input: {
     if (existingRole === "super-admin" || existingRole === "admin" || existingRole === "viewer") {
       return { ok: false, error: "This email already has an admin account." };
     }
-
-    const { error: updateError } = await supabase.auth.admin.updateUserById(already.id, {
-      app_metadata: { role: input.role },
-      user_metadata: { name },
-    });
-
-    if (updateError) {
-      return { ok: false, error: updateError.message };
-    }
-
-    const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, {
-      redirectTo,
-      data: { name },
-    });
-
-    if (inviteError) {
-      return { ok: false, error: inviteError.message };
-    }
-
-    return {
-      ok: true,
-      message: `Invitation email sent to ${email}. They can set a password from the link.`,
-    };
   }
 
-  const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo,
-    data: { name },
-  });
-
-  if (error) {
-    return { ok: false, error: error.message };
-  }
-
-  if (data.user) {
-    const { error: roleError } = await supabase.auth.admin.updateUserById(data.user.id, {
-      app_metadata: { role: input.role },
-      user_metadata: { name },
-    });
-
-    if (roleError) {
-      return { ok: false, error: roleError.message };
-    }
-  }
-
-  return {
-    ok: true,
-    message: `Invitation email sent to ${email}. They can set a password from the link.`,
-  };
+  return sendAdminInvitation({ email, name, role: input.role });
 }
 
 export async function updateAdminRoleAction(input: {
@@ -224,14 +246,30 @@ export async function resendAdminInviteAction(email: string): Promise<InviteAdmi
   }
 
   const supabase = createServiceClient();
-  const redirectTo = `${getSiteUrl()}/auth/callback?next=/admin/accept-invite`;
   const normalized = normalizeEmail(email);
+  const { data: users } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const target = users?.users.find((u) => normalizeEmail(u.email ?? "") === normalized);
 
-  const { error } = await supabase.auth.admin.inviteUserByEmail(normalized, { redirectTo });
-
-  if (error) {
-    return { ok: false, error: error.message };
+  if (!target) {
+    return { ok: false, error: "Admin account not found." };
   }
 
+  const role = target.app_metadata?.role;
+  if (role !== "admin" && role !== "viewer") {
+    return { ok: false, error: "This account is not a pending staff invite." };
+  }
+
+  const name =
+    typeof target.user_metadata?.name === "string" && target.user_metadata.name.trim()
+      ? target.user_metadata.name.trim()
+      : normalized.split("@")[0];
+
+  const result = await sendAdminInvitation({
+    email: normalized,
+    name,
+    role,
+  });
+
+  if (!result.ok) return result;
   return { ok: true, message: `Invitation resent to ${normalized}.` };
 }

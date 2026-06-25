@@ -319,7 +319,7 @@ export default function AdminAdmins() {
           <Mail size={12} style={{ color: "#6E9277" }} /> How invitations work
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Public website visitors do not need accounts. Only invited staff receive admin access. Super-admin is created once at `/setup` by {`buyananderson@gmail.com`}. Configure Supabase Auth SMTP (Brevo) so invitation emails are delivered. Invite links land on `/admin/accept-invite` to set a password.
+          Public website visitors do not need accounts. Only invited staff receive a branded invitation email with a link to set a password at `/admin/accept-invite`. Requires `EMAIL_PROVIDER=brevo` in production. Super-admin is created once at `/setup` by {`buyananderson@gmail.com`}.
         </p>
       </div>
 
