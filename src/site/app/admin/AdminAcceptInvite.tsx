@@ -81,7 +81,7 @@ export default function AdminAcceptInvite() {
       const supabase = createClient();
       const { error: updateError } = await supabase.auth.updateUser({
         password,
-        data: { name: name.trim() || undefined },
+        data: { name: name.trim() || undefined, password_set: true },
       });
 
       if (updateError) {

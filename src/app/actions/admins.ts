@@ -1,5 +1,6 @@
 "use server";
 
+import { getCanonicalSiteUrl } from "@/lib/site-url";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isServiceRoleConfigured } from "@/lib/supabase/service";
 import type { AdminRole } from "@/lib/supabase/admin";
@@ -23,12 +24,8 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-function getSiteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-}
-
 function getInviteRedirectUrl() {
-  return `${getSiteUrl()}/auth/callback?next=/admin/accept-invite`;
+  return `${getCanonicalSiteUrl()}/auth/callback?next=/admin/accept-invite`;
 }
 
 async function sendAdminInvitation(input: {
