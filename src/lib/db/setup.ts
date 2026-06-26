@@ -3,7 +3,6 @@ import { eq } from "drizzle-orm";
 
 import {
   defaultGallerySeed,
-  defaultPosts,
   defaultProjectMediaSeed,
   defaultProjects,
   defaultSiteSettings,
@@ -63,7 +62,7 @@ export async function seedDefaultSiteData(supabase: SupabaseClient, uploadedBy?:
     { key: SITE_CONTENT_KEYS.settings, value: defaultSiteSettings },
     {
       key: SITE_CONTENT_KEYS.posts,
-      value: resolveSeedRows(defaultPosts, urlMap),
+      value: [],
     },
     {
       key: SITE_CONTENT_KEYS.projects,

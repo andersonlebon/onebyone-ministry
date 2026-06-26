@@ -58,9 +58,9 @@ type StoreCtx = {
   admins: AdminUser[];
   settings: SiteSettings;
   finance: FinanceDetails;
-  addPost: (p: Omit<Post, "id">) => void;
-  updatePost: (id: string, p: Partial<Post>) => void;
-  deletePost: (id: string) => void;
+  addPost: (p: Omit<Post, "id">) => Promise<void>;
+  updatePost: (id: string, p: Partial<Post>) => Promise<void>;
+  deletePost: (id: string) => Promise<void>;
   addPhoto: (p: Omit<Photo, "id">) => void;
   updatePhoto: (id: string, p: Partial<Photo>) => void;
   deletePhoto: (id: string) => void;
@@ -139,10 +139,10 @@ export function SiteStoreProvider({
 
   const persistPosts = useCallback(async (next: Post[]) => {
     if (isDatabaseConfigured()) {
-      await updatePostsAction(next);
-    } else {
-      save("obom_posts", next);
+      return updatePostsAction(next);
     }
+    save("obom_posts", next);
+    return next;
   }, []);
 
   const persistProjects = useCallback(async (next: Project[]) => {
@@ -162,34 +162,40 @@ export function SiteStoreProvider({
   }, []);
 
   const addPost = useCallback(
-    (p: Omit<Post, "id">) => {
+    async (p: Omit<Post, "id">) => {
+      let saved: Post[] = [];
       setPosts((prev) => {
-        const next = [{ ...p, id: uid() }, ...prev];
-        void persistPosts(next);
-        return next;
+        saved = [{ ...p, id: uid() }, ...prev];
+        return saved;
       });
+      const result = await persistPosts(saved);
+      setPosts(result);
     },
     [persistPosts]
   );
 
   const updatePost = useCallback(
-    (id: string, p: Partial<Post>) => {
+    async (id: string, p: Partial<Post>) => {
+      let saved: Post[] = [];
       setPosts((prev) => {
-        const next = prev.map((x) => (x.id === id ? { ...x, ...p } : x));
-        void persistPosts(next);
-        return next;
+        saved = prev.map((x) => (x.id === id ? { ...x, ...p } : x));
+        return saved;
       });
+      const result = await persistPosts(saved);
+      setPosts(result);
     },
     [persistPosts]
   );
 
   const deletePost = useCallback(
-    (id: string) => {
+    async (id: string) => {
+      let saved: Post[] = [];
       setPosts((prev) => {
-        const next = prev.filter((x) => x.id !== id);
-        void persistPosts(next);
-        return next;
+        saved = prev.filter((x) => x.id !== id);
+        return saved;
       });
+      const result = await persistPosts(saved);
+      setPosts(result);
     },
     [persistPosts]
   );

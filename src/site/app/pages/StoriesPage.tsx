@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
@@ -32,6 +33,7 @@ export default function StoriesPage() {
   const published = usePublishedPosts();
   const STORIES = published.map((post, index) => ({
     id: post.id,
+    slug: post.slug ?? post.id,
     title: post.title,
     excerpt: post.excerpt,
     body: post.body,
@@ -94,9 +96,14 @@ export default function StoriesPage() {
                   </span>
                 </div>
                 <h2 className="text-2xl lg:text-3xl mb-4 leading-tight" style={{ color: c.text }}>{featured.title}</h2>
-                <p className="text-sm leading-relaxed mb-4" style={{ color: c.muted }}>{featured.excerpt}</p>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: c.muted }}>{featured.body}</p>
-                <p className="text-xs" style={{ color: c.muted }}>By {featured.author}</p>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: c.muted }}>{featured.excerpt}</p>
+                <Link
+                  href={`/stories/${featured.slug}`}
+                  className="inline-flex items-center gap-2 text-sm font-semibold hover:opacity-80 transition-opacity"
+                  style={{ color: "#6E9277" }}
+                >
+                  Read full story <ArrowRight size={14} />
+                </Link>
               </div>
             </motion.div>
           </div>
@@ -156,14 +163,14 @@ export default function StoriesPage() {
                     className="rounded-xl overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition-shadow group"
                     style={{ backgroundColor: c.white }}
                   >
-                    <div className="sm:w-48 lg:w-56 flex-shrink-0 h-48 sm:h-auto overflow-hidden" style={{ backgroundColor: c.borderLight }}>
+                    <Link href={`/stories/${story.slug}`} className="sm:w-48 lg:w-56 flex-shrink-0 h-48 sm:h-auto overflow-hidden block" style={{ backgroundColor: c.borderLight }}>
                       <img
                         src={story.img}
                         alt={story.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                    </div>
-                    <div className="p-6 flex flex-col justify-between">
+                    </Link>
+                    <div className="p-6 flex flex-col justify-between flex-1">
                       <div>
                         <div className="flex items-center gap-2 mb-3">
                           <span
@@ -177,16 +184,18 @@ export default function StoriesPage() {
                           </span>
                           <span className="text-xs" style={{ color: c.muted }}>{story.date}</span>
                         </div>
-                        <h3 className="text-base mb-2 leading-snug group-hover:text-[#6E9277] transition-colors" style={{ color: c.text }}>
-                          {story.title}
-                        </h3>
+                        <Link href={`/stories/${story.slug}`}>
+                          <h3 className="text-base mb-2 leading-snug group-hover:text-[#6E9277] transition-colors" style={{ color: c.text }}>
+                            {story.title}
+                          </h3>
+                        </Link>
                         <p className="text-sm leading-relaxed line-clamp-2" style={{ color: c.muted }}>{story.excerpt}</p>
                       </div>
                       <div className="flex items-center justify-between mt-4">
                         <span className="text-xs" style={{ color: c.muted }}>By {story.author}</span>
-                        <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#6E9277" }}>
+                        <Link href={`/stories/${story.slug}`} className="flex items-center gap-1 text-xs font-semibold hover:opacity-80 transition-opacity" style={{ color: "#6E9277" }}>
                           Read <ArrowRight size={11} />
-                        </span>
+                        </Link>
                       </div>
                     </div>
                   </motion.article>
@@ -208,13 +217,13 @@ export default function StoriesPage() {
                 </h4>
                 <div className="space-y-4">
                   {recentPosts.map((post) => (
-                    <div key={post.id} className="flex gap-3 group cursor-pointer">
+                    <Link key={post.id} href={`/stories/${post.slug}`} className="flex gap-3 group">
                       <img src={post.img} alt={post.title} className="w-14 h-14 rounded object-cover flex-shrink-0" />
                       <div>
                         <p className="text-xs group-hover:text-[#6E9277] transition-colors leading-snug" style={{ color: c.text }}>{post.title}</p>
                         <p className="text-xs mt-1" style={{ color: c.muted }}>{post.date}</p>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>

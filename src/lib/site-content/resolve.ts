@@ -1,7 +1,6 @@
 import "server-only";
 
 import {
-  defaultPosts,
   defaultProjects,
   defaultSiteSettings,
   defaultVideos,
@@ -12,6 +11,7 @@ import { isSetupComplete } from "@/lib/db/setup";
 
 import { getDefaultSiteContentBundle } from "./defaults";
 import { SITE_CONTENT_KEYS } from "./keys";
+import { normalizePosts } from "./posts";
 import {
   EMPTY_FINANCE,
   type FinanceDetails,
@@ -45,7 +45,7 @@ export async function getSiteContentBundle(): Promise<SiteContentBundle> {
 
     return {
       settings: settings ?? { ...defaultSiteSettings },
-      posts: posts ?? defaultPosts.map((p) => ({ ...p })),
+      posts: normalizePosts(posts ?? []),
       projects: projects ?? defaultProjects.map((p) => ({ ...p })),
       videos: videos ?? defaultVideos.map((v) => ({ ...v })),
       finance: finance ?? { ...EMPTY_FINANCE },

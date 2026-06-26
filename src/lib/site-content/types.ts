@@ -14,6 +14,7 @@ export type SiteSettings = {
 
 export type Post = {
   id: string;
+  slug?: string;
   title: string;
   excerpt: string;
   body: string;

@@ -3,6 +3,7 @@
 import { createContext, useContext } from "react";
 
 import type { SiteContentBundle } from "@/lib/site-content/types";
+import { getPublishedPosts } from "@/lib/site-content/posts";
 
 const SiteContentContext = createContext<SiteContentBundle | null>(null);
 
@@ -27,5 +28,5 @@ export function useSiteContent() {
 /** Published posts for public pages. */
 export function usePublishedPosts() {
   const { posts } = useSiteContent();
-  return posts.filter((p) => p.published);
+  return getPublishedPosts(posts);
 }

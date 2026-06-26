@@ -6,6 +6,7 @@ import { isDatabaseConfigured } from "@/lib/db/config";
 import { upsertSiteContentValue } from "@/lib/db/site-content";
 import { getSiteContentBundle } from "@/lib/site-content/resolve";
 import { SITE_CONTENT_KEYS } from "@/lib/site-content/keys";
+import { normalizePosts } from "@/lib/site-content/posts";
 import type {
   FinanceDetails,
   Post,
@@ -49,9 +50,11 @@ export async function updateSettingsAction(settings: SiteSettings): Promise<Site
 export async function updatePostsAction(posts: Post[]): Promise<Post[]> {
   if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
   await requireAdminUser();
-  await upsertSiteContentValue(SITE_CONTENT_KEYS.posts, posts);
+  const normalized = normalizePosts(posts);
+  await upsertSiteContentValue(SITE_CONTENT_KEYS.posts, normalized);
   revalidatePublicSite();
-  return posts;
+  revalidatePath("/stories");
+  return normalized;
 }
 
 export async function updateProjectsAction(projects: Project[]): Promise<Project[]> {
