@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
+import { isStaffUser, needsInvitePasswordSetup } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/client";
-import { completeAuthFromUrl, stripAuthParamsFromUrl } from "@/lib/supabase/complete-auth-from-url";
+import {
+  completeAuthFromUrl,
+  resolveAuthNextPath,
+  stripAuthParamsFromUrl,
+} from "@/lib/supabase/complete-auth-from-url";
 
 export default function AuthCallbackPage() {
-  const router = useRouter();
   const [message, setMessage] = useState("Completing sign-in...");
 
   useEffect(() => {
@@ -21,19 +24,32 @@ export default function AuthCallbackPage() {
 
       if (result.status === "success") {
         stripAuthParamsFromUrl();
-        router.replace(result.next);
-        router.refresh();
+        window.location.assign(result.next);
         return;
       }
 
       if (result.status === "error") {
-        setMessage(result.message);
         stripAuthParamsFromUrl();
-        router.replace(`/admin/login?error=auth`);
+        window.location.assign("/admin/login?error=auth");
         return;
       }
 
-      router.replace("/admin/login?error=auth");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (cancelled) return;
+
+      if (session?.user && isStaffUser(session.user)) {
+        const next = needsInvitePasswordSetup(session.user)
+          ? "/admin/accept-invite"
+          : resolveAuthNextPath(window.location.search, window.location.hash);
+        window.location.assign(next);
+        return;
+      }
+
+      setMessage("Could not complete sign-in. Redirecting...");
+      window.location.assign("/admin/login?error=auth");
     }
 
     void run();
@@ -41,7 +57,7 @@ export default function AuthCallbackPage() {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-6">

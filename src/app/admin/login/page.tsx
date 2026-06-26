@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { isStaffUser } from "@/lib/supabase/admin";
+import { isStaffUser, needsInvitePasswordSetup } from "@/lib/supabase/admin";
 import { completeAuthFromUrl, stripAuthParamsFromUrl } from "@/lib/supabase/complete-auth-from-url";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
-import { adminDashboardUrl } from "@/lib/site-url";
+import { adminDashboardUrl, getCanonicalSiteUrl } from "@/lib/site-url";
 import AdminLogin from "@/site/app/admin/AdminLogin";
 
 export default function AdminLoginPage() {
@@ -50,12 +50,8 @@ export default function AdminLoginPage() {
       if (cancelled) return;
 
       if (isStaffUser(user)) {
-        const needsInviteSetup =
-          user?.user_metadata?.password_set !== true &&
-          (user?.app_metadata?.role === "admin" || user?.app_metadata?.role === "viewer");
-
-        if (needsInviteSetup) {
-          router.replace("/admin/accept-invite");
+        if (needsInvitePasswordSetup(user)) {
+          window.location.assign(`${getCanonicalSiteUrl(window.location.origin)}/admin/accept-invite`);
         } else {
           window.location.assign(adminDashboardUrl(window.location.origin));
         }

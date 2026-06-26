@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle2, Sun, Moon } from "lucide-react";
 
-import { isStaffUser } from "@/lib/supabase/admin";
+import { isStaffUser, needsInvitePasswordSetup } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { completeAuthFromUrl, stripAuthParamsFromUrl } from "@/lib/supabase/complete-auth-from-url";
+import { adminDashboardUrl } from "@/lib/site-url";
 import { useTheme } from "@/site/lib/themeStore";
 
 export default function AdminAcceptInvite() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -32,9 +32,16 @@ export default function AdminAcceptInvite() {
       }
 
       const supabase = createClient();
+      const fromUrl = await completeAuthFromUrl(supabase, window.location);
+
+      if (fromUrl.status === "success") {
+        stripAuthParamsFromUrl();
+      }
+
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
 
       if (!user) {
         setError("Invitation link expired or invalid. Ask a super-admin to resend your invite.");
@@ -46,6 +53,11 @@ export default function AdminAcceptInvite() {
         await supabase.auth.signOut();
         setError("This invitation is not for an admin account.");
         setLoading(false);
+        return;
+      }
+
+      if (!needsInvitePasswordSetup(user)) {
+        window.location.assign(adminDashboardUrl(window.location.origin));
         return;
       }
 
@@ -89,8 +101,7 @@ export default function AdminAcceptInvite() {
         return;
       }
 
-      router.replace("/admin/dashboard");
-      router.refresh();
+      window.location.assign(adminDashboardUrl(window.location.origin));
     } finally {
       setSubmitting(false);
     }
@@ -99,7 +110,10 @@ export default function AdminAcceptInvite() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading your invitation...</p>
+        </div>
       </div>
     );
   }

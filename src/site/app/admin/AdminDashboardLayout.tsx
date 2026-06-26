@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { isStaffUser } from "@/lib/supabase/admin";
+import { isStaffUser, needsInvitePasswordSetup } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
@@ -63,12 +63,19 @@ export default function AdminDashboardLayout({
 
       if (!cancelled) {
         const allowed = isStaffUser(session?.user);
-        setAuthed(allowed);
-        setReady(true);
         if (!allowed) {
+          setReady(true);
           router.replace("/admin/login");
           return;
         }
+
+        if (needsInvitePasswordSetup(session?.user)) {
+          window.location.assign("/admin/accept-invite");
+          return;
+        }
+
+        setAuthed(true);
+        setReady(true);
       }
 
       const {
@@ -78,17 +85,25 @@ export default function AdminDashboardLayout({
         setAuthed(allowed);
         if (!allowed) {
           router.replace("/admin/login");
+          return;
+        }
+        if (needsInvitePasswordSetup(nextSession?.user)) {
+          router.replace("/admin/accept-invite");
         }
       });
 
       return () => subscription.unsubscribe();
     }
 
-    const cleanupPromise = checkAuth();
+    let unsubscribe: (() => void) | undefined;
+
+    void checkAuth().then((cleanup) => {
+      unsubscribe = cleanup;
+    });
 
     return () => {
       cancelled = true;
-      void cleanupPromise;
+      unsubscribe?.();
     };
   }, [router]);
 

@@ -121,7 +121,7 @@ export async function runProjectSetupAction(input: {
       email,
       password: input.password,
       email_confirm: true,
-      user_metadata: { name },
+      user_metadata: { name, password_set: true },
       app_metadata: { role: "super-admin" },
     });
 
@@ -151,7 +151,7 @@ export async function runProjectSetupAction(input: {
       const { data: updated, error: updateError } = await supabase.auth.admin.updateUserById(existing.id, {
         password: input.password,
         email_confirm: true,
-        user_metadata: { name },
+        user_metadata: { name, password_set: true },
         app_metadata: { role: "super-admin" },
       });
 

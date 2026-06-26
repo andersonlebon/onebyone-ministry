@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 
 import { getInboxUnreadCountAction } from "@/app/actions/inbox";
+import AdminProfileMenu from "@/site/app/admin/AdminProfileMenu";
 import { useSiteMedia } from "@/site/lib/mediaContext";
 import { useTheme } from "@/site/lib/themeStore";
 
@@ -232,12 +233,7 @@ export default function AdminShell({ children, onLogout }: AdminShellProps) {
                 </span>
               )}
             </Link>
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-              style={{ backgroundColor: "#6E9277" }}
-            >
-              A
-            </div>
+            <AdminProfileMenu onLogout={onLogout} />
           </div>
         </header>
 

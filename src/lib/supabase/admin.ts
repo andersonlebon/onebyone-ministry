@@ -24,3 +24,30 @@ export function isAdminUser(user: User | null | undefined) {
 export function isSuperAdmin(user: User | null | undefined) {
   return getAdminRole(user) === "super-admin";
 }
+
+export function needsInvitePasswordSetup(user: User | null | undefined) {
+  const role = getAdminRole(user);
+  if (role !== "admin" && role !== "viewer") return false;
+  return user?.user_metadata?.password_set !== true;
+}
+
+export function getAdminDisplayName(user: User | null | undefined) {
+  const name = user?.user_metadata?.name;
+  if (typeof name === "string" && name.trim()) return name.trim();
+  return user?.email?.split("@")[0] ?? "Admin";
+}
+
+export function getAdminInitials(user: User | null | undefined) {
+  return getAdminDisplayName(user)
+    .split(/\s+/)
+    .map((part) => part[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "A";
+}
+
+export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
+  "super-admin": "Super Admin",
+  admin: "Admin",
+  viewer: "Viewer",
+};

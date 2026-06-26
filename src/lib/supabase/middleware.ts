@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { isStaffUser } from "./admin";
+import { isStaffUser, needsInvitePasswordSetup } from "./admin";
 import { getSupabasePublishableKey, getSupabaseUrl, isSupabaseConfigured } from "./config";
 
 const PUBLIC_ADMIN_ROUTES = new Set(["/admin/login", "/admin/accept-invite"]);
@@ -52,9 +52,25 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  if (
+    isAdminRoute &&
+    !isPublicAdminRoute &&
+    user &&
+    isStaffUser(user) &&
+    needsInvitePasswordSetup(user) &&
+    pathname !== "/admin/accept-invite"
+  ) {
+    const inviteUrl = request.nextUrl.clone();
+    inviteUrl.pathname = "/admin/accept-invite";
+    inviteUrl.search = "";
+    return NextResponse.redirect(inviteUrl);
+  }
+
   if (pathname === "/admin/login" && user && isStaffUser(user)) {
     const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/admin/dashboard";
+    dashboardUrl.pathname = needsInvitePasswordSetup(user)
+      ? "/admin/accept-invite"
+      : "/admin/dashboard";
     return NextResponse.redirect(dashboardUrl);
   }
 
