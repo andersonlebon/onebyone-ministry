@@ -159,7 +159,7 @@ export default function SetupPage() {
                 Go to admin login
               </Link>
               <p className="text-xs text-[#7a7068] mt-4 leading-relaxed">
-                To run setup again locally:{" "}
+                To run setup again, reset the database first:{" "}
                 <code className="text-[10px] bg-[#FAF7F2] px-1 py-0.5 rounded">npm run db:reset:all</code>
               </p>
             </div>

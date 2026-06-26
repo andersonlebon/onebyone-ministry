@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 
 function loadEnvFile(path: string) {
@@ -23,6 +23,42 @@ function loadEnvFile(path: string) {
   }
 }
 
+type StorageAdminClient = Pick<SupabaseClient, "storage">;
+
+async function listAllStoragePaths(
+  supabase: StorageAdminClient,
+  bucket: string,
+  prefix = ""
+): Promise<string[]> {
+  const paths: string[] = [];
+  let offset = 0;
+  const limit = 100;
+
+  while (true) {
+    const { data, error } = await supabase.storage.from(bucket).list(prefix, { limit, offset });
+    if (error) {
+      throw new Error(`Storage list failed at "${prefix || "/"}": ${error.message}`);
+    }
+    if (!data?.length) break;
+
+    for (const item of data) {
+      const itemPath = prefix ? `${prefix}/${item.name}` : item.name;
+      // Supabase folder entries have no object id.
+      if (item.id === null) {
+        const nested = await listAllStoragePaths(supabase, bucket, itemPath);
+        paths.push(...nested);
+      } else {
+        paths.push(itemPath);
+      }
+    }
+
+    if (data.length < limit) break;
+    offset += limit;
+  }
+
+  return paths;
+}
+
 async function resetStorageBucket() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -36,28 +72,23 @@ async function resetStorageBucket() {
   });
 
   const bucket = "media";
+  const paths = await listAllStoragePaths(supabase, bucket);
+
+  if (paths.length === 0) {
+    console.log(`Storage bucket "${bucket}" is already empty.`);
+    return;
+  }
+
   let removed = 0;
-  let offset = 0;
-  const limit = 100;
+  const batchSize = 100;
 
-  while (true) {
-    const { data, error } = await supabase.storage.from(bucket).list("", { limit, offset });
-    if (error) {
-      throw new Error(`Storage list failed: ${error.message}`);
+  for (let i = 0; i < paths.length; i += batchSize) {
+    const batch = paths.slice(i, i + batchSize);
+    const { error: removeError } = await supabase.storage.from(bucket).remove(batch);
+    if (removeError) {
+      throw new Error(`Storage delete failed: ${removeError.message}`);
     }
-    if (!data?.length) break;
-
-    const paths = data.filter((item) => item.name).map((item) => item.name);
-    if (paths.length > 0) {
-      const { error: removeError } = await supabase.storage.from(bucket).remove(paths);
-      if (removeError) {
-        throw new Error(`Storage delete failed: ${removeError.message}`);
-      }
-      removed += paths.length;
-    }
-
-    if (data.length < limit) break;
-    offset += limit;
+    removed += batch.length;
   }
 
   console.log(`Removed ${removed} file(s) from storage bucket "${bucket}".`);
