@@ -227,8 +227,7 @@ export default function AdminPhotos() {
         <div>
           <h1 className="text-2xl text-foreground">Photo Library</h1>
           <p className="text-sm text-muted-foreground">
-            {displayPhotos.length} photos
-            {useSupabase ? " · stored in Supabase" : demoModeLabel() ? ` · ${demoModeLabel()}` : ""}
+            {displayPhotos.length} photos · shows on the Photos page
           </p>
         </div>
         <motion.button

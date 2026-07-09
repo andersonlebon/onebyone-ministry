@@ -24,6 +24,7 @@ import {
   type ReadinessItem,
 } from "@/site/lib/dashboard-readiness";
 import { useReadinessEnv } from "@/site/lib/readinessEnvContext";
+import AdminContentGuide from "@/site/app/admin/AdminContentGuide";
 
 const statCard = (label: string, value: number | string, icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }>, color: string, sub: string) => ({
   label, value, icon, color, sub,
@@ -117,8 +118,12 @@ export default function AdminDashboard() {
     <div>
       <div className="mb-7">
         <h1 className="text-2xl text-foreground">Dashboard Overview</h1>
-        <p className="text-sm text-muted-foreground mt-1">Welcome back. Manage content here and track what is left before go-live.</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Welcome back. Use the guide below to edit the public website, then track launch items when you are ready.
+        </p>
       </div>
+
+      <AdminContentGuide />
 
       {/* Launch readiness */}
       <div className="bg-card rounded-2xl border border-muted overflow-hidden mb-8">
@@ -128,10 +133,9 @@ export default function AdminDashboard() {
               <ClipboardList size={18} className="text-[#6E9277]" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-foreground">Site launch checklist</h2>
+              <h2 className="text-base font-semibold text-foreground">Launch checklist</h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {summary.done} of {summary.total} core items complete
-                {criticalOpen.length > 0 && ` · ${criticalOpen.length} before launch`}
+                Optional setup reminders · {summary.done} of {summary.total} complete
               </p>
             </div>
           </div>
@@ -178,8 +182,8 @@ export default function AdminDashboard() {
 
         <div className="px-6 py-4 border-t border-muted bg-muted/30">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            <strong className="text-foreground">How editing works:</strong> Posts, projects, videos, settings, and photos save to the database and appear on the public site.
-            Upload photos in Photo Library (original JPEG/PNG/WebP). Newsletter and Stripe need env vars on Vercel (Brevo list ID, Stripe keys).
+            These are reminders, not blockers. Click <strong className="text-foreground">Fix</strong> to open the right admin page.
+            Card donations (Stripe) are configured separately and are still being reviewed.
           </p>
         </div>
       </div>

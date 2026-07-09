@@ -92,7 +92,7 @@ export default function AdminProjects() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl text-foreground">Projects</h1>
-          <p className="text-sm text-muted-foreground">{projects.length} total · {projects.filter(p => p.status === "Active").length} active</p>
+          <p className="text-sm text-muted-foreground">{projects.length} total · {projects.filter(p => p.status === "Active").length} active · shows on the Projects page</p>
         </div>
         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => { setEditing(undefined); setShowModal(true); }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: "#6E9277" }}>

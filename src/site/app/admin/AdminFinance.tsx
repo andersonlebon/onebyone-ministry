@@ -92,7 +92,7 @@ export default function AdminFinance() {
         <div>
           <h1 className="text-2xl text-foreground">Finance Details</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Giving instructions for staff and the public donate page. Changes save to the database and appear on /donate.
+            Venmo, Zelle, bank, check, and other giving details. Shows on the Donate page.
           </p>
           {isDemoContentEnabled() && !hasFinanceConfigured(form) && (
             <p className="text-xs text-amber-600 mt-2">Development mode: fill in real client details before production handoff.</p>

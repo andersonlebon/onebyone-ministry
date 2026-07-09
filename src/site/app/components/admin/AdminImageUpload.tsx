@@ -45,15 +45,15 @@ export default function AdminImageUpload({
 
   return (
     <div>
-      <label className="block text-xs font-semibold text-[#474747] mb-1.5">{label}</label>
+      <label className="block text-xs font-semibold text-foreground mb-1.5">{label}</label>
       <motion.button
         type="button"
         whileHover={{ scale: uploading ? 1 : 1.02 }}
         whileTap={{ scale: uploading ? 1 : 0.98 }}
         disabled={uploading}
         onClick={() => inputRef.current?.click()}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed text-sm font-semibold transition-colors disabled:opacity-60"
-        style={{ borderColor: "rgba(110,146,119,0.4)", color: "#6E9277", backgroundColor: "#FAF8F5" }}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed text-sm font-semibold transition-colors disabled:opacity-60 text-[#6E9277] bg-muted/30 hover:bg-muted/50"
+        style={{ borderColor: "rgba(110,146,119,0.4)" }}
       >
         {uploading ? <Loader2 size={16} className="animate-spin" /> : <ImagePlus size={16} />}
         {uploading ? "Uploading..." : "Choose file from computer"}
@@ -65,7 +65,7 @@ export default function AdminImageUpload({
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
-      <p className="text-xs text-[#7a7068] mt-1.5">JPEG, PNG, or WebP up to 10 MB. Stored in Supabase.</p>
+      <p className="text-xs text-muted-foreground mt-1.5">JPEG, PNG, or WebP up to 10 MB. Stored in Supabase.</p>
       {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
     </div>
   );

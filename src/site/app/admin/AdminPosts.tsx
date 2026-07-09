@@ -253,7 +253,7 @@ export default function AdminPosts() {
         <div>
           <h1 className="text-2xl text-foreground">Blog Posts</h1>
           <p className="text-sm text-muted-foreground">
-            {posts.length} posts · {posts.filter((p) => p.published).length} published · saved to database
+            {posts.length} posts · {posts.filter((p) => p.published).length} published · shows on the Stories page
           </p>
         </div>
         <motion.button

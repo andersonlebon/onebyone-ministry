@@ -6,9 +6,78 @@ import { motion } from "motion/react";
 import { Save, CheckCircle2 } from "lucide-react";
 import { updateSiteMediaAction } from "@/app/actions/site-media";
 import type { SiteMediaBundle } from "@/lib/media/types";
+import type { MediaFolder } from "@/lib/db/schema";
 import { useSiteMedia } from "@/site/lib/mediaContext";
+import AdminMediaSlotField from "@/site/app/components/admin/AdminMediaSlotField";
 import { useSiteStore, SiteSettings } from "@/site/lib/siteStore";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
+
+type MediaSlotConfig = {
+  id: string;
+  label: string;
+  folder: MediaFolder;
+  getValue: (media: SiteMediaBundle) => string;
+  applyValue: (media: SiteMediaBundle, url: string) => SiteMediaBundle;
+};
+
+const MEDIA_SLOTS: MediaSlotConfig[] = [
+  {
+    id: "hero",
+    label: "Homepage hero",
+    folder: "general",
+    getValue: (m) => m.websiteUseImages.hero,
+    applyValue: (m, url) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, hero: url } }),
+  },
+  {
+    id: "about",
+    label: "About page hero",
+    folder: "general",
+    getValue: (m) => m.websiteUseImages.about,
+    applyValue: (m, url) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, about: url } }),
+  },
+  {
+    id: "projects",
+    label: "Projects page hero",
+    folder: "general",
+    getValue: (m) => m.websiteUseImages.projects,
+    applyValue: (m, url) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, projects: url } }),
+  },
+  {
+    id: "contactHero",
+    label: "Contact page hero",
+    folder: "general",
+    getValue: (m) => m.localImages.contactHero,
+    applyValue: (m, url) => ({ ...m, localImages: { ...m.localImages, contactHero: url } }),
+  },
+  {
+    id: "donateHero",
+    label: "Donate page hero",
+    folder: "general",
+    getValue: (m) => m.localImages.donateHero,
+    applyValue: (m, url) => ({ ...m, localImages: { ...m.localImages, donateHero: url } }),
+  },
+  {
+    id: "storyHero",
+    label: "Stories page hero",
+    folder: "general",
+    getValue: (m) => m.localImages.storyHero,
+    applyValue: (m, url) => ({ ...m, localImages: { ...m.localImages, storyHero: url } }),
+  },
+  {
+    id: "logoDark",
+    label: "Logo (dark background)",
+    folder: "brand",
+    getValue: (m) => m.brandAssets.logoDark,
+    applyValue: (m, url) => ({ ...m, brandAssets: { ...m.brandAssets, logoDark: url } }),
+  },
+  {
+    id: "logoWhite",
+    label: "Logo (light background)",
+    folder: "brand",
+    getValue: (m) => m.brandAssets.logoWhite,
+    applyValue: (m, url) => ({ ...m, brandAssets: { ...m.brandAssets, logoWhite: url } }),
+  },
+];
 
 function Field({ label, value, onChange, multiline = false, hint }: {
   label: string; value: string; onChange: (v: string) => void; multiline?: boolean; hint?: string;
@@ -37,7 +106,7 @@ export default function AdminSettings() {
   const [form, setForm] = useState<SiteSettings>(settings);
   const [mediaForm, setMediaForm] = useState<SiteMediaBundle>(siteMedia);
   const [saved, setSaved] = useState(false);
-  const [mediaSaved, setMediaSaved] = useState(false);
+  const [savingMediaSlot, setSavingMediaSlot] = useState<string | null>(null);
 
   const set = (k: keyof SiteSettings, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -48,11 +117,17 @@ export default function AdminSettings() {
     setTimeout(() => setSaved(false), 2500);
   };
 
-  const handleSaveMedia = async () => {
-    await updateSiteMediaAction(mediaForm);
-    setMediaSaved(true);
-    router.refresh();
-    setTimeout(() => setMediaSaved(false), 2500);
+  const handleMediaUpload = async (slot: MediaSlotConfig, publicUrl: string) => {
+    const next = slot.applyValue(mediaForm, publicUrl);
+    setMediaForm(next);
+    setSavingMediaSlot(slot.id);
+
+    try {
+      await updateSiteMediaAction(next);
+      router.refresh();
+    } finally {
+      setSavingMediaSlot(null);
+    }
   };
 
   return (
@@ -60,7 +135,7 @@ export default function AdminSettings() {
       <div className="flex items-center justify-between mb-7">
         <div>
           <h1 className="text-2xl text-foreground">Site Settings</h1>
-          <p className="text-sm text-muted-foreground">Manage website content, copy, and configuration.</p>
+          <p className="text-sm text-muted-foreground">Homepage text, contact info, social links, and hero images. Shows on the home page, footer, and Contact page.</p>
         </div>
         <motion.button
           whileHover={{ scale: 1.03 }}
@@ -121,38 +196,24 @@ export default function AdminSettings() {
 
         {/* Site media */}
         <div className="bg-card rounded-2xl border border-muted p-6">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-muted">
-            <h3 className="text-sm font-semibold text-foreground">Site Media (Supabase URLs)</h3>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => void handleSaveMedia()}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white"
-              style={{ backgroundColor: mediaSaved ? "#5a7d64" : "#6E9277" }}
-            >
-              {mediaSaved ? <><CheckCircle2 size={14} /> Saved!</> : <><Save size={14} /> Save Media</>}
-            </motion.button>
+          <div className="mb-4 pb-3 border-b border-muted">
+            <h3 className="text-sm font-semibold text-foreground">Site Images</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Upload hero images and logos from your computer. Each upload saves automatically and appears on the public site.
+              Gallery photos are managed separately in Photo Library.
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground mb-4">
-            Paste Supabase Storage public URLs. Gallery photos and uploads are managed in Photo Library.
-          </p>
-          <div className="space-y-4">
-            <Field label="Homepage hero" value={mediaForm.websiteUseImages.hero}
-              onChange={(v) => setMediaForm((m) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, hero: v } }))} />
-            <Field label="About page hero" value={mediaForm.websiteUseImages.about}
-              onChange={(v) => setMediaForm((m) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, about: v } }))} />
-            <Field label="Projects page hero" value={mediaForm.websiteUseImages.projects}
-              onChange={(v) => setMediaForm((m) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, projects: v } }))} />
-            <Field label="Contact page hero" value={mediaForm.localImages.contactHero}
-              onChange={(v) => setMediaForm((m) => ({ ...m, localImages: { ...m.localImages, contactHero: v } }))} />
-            <Field label="Donate page hero" value={mediaForm.localImages.donateHero}
-              onChange={(v) => setMediaForm((m) => ({ ...m, localImages: { ...m.localImages, donateHero: v } }))} />
-            <Field label="Stories page hero" value={mediaForm.localImages.storyHero}
-              onChange={(v) => setMediaForm((m) => ({ ...m, localImages: { ...m.localImages, storyHero: v } }))} />
-            <Field label="Logo (dark)" value={mediaForm.brandAssets.logoDark}
-              onChange={(v) => setMediaForm((m) => ({ ...m, brandAssets: { ...m.brandAssets, logoDark: v } }))} />
-            <Field label="Logo (white)" value={mediaForm.brandAssets.logoWhite}
-              onChange={(v) => setMediaForm((m) => ({ ...m, brandAssets: { ...m.brandAssets, logoWhite: v } }))} />
+          <div className="grid gap-4 sm:grid-cols-2">
+            {MEDIA_SLOTS.map((slot) => (
+              <AdminMediaSlotField
+                key={slot.id}
+                label={slot.label}
+                value={slot.getValue(mediaForm)}
+                folder={slot.folder}
+                saving={savingMediaSlot === slot.id}
+                onUploaded={(publicUrl) => void handleMediaUpload(slot, publicUrl)}
+              />
+            ))}
           </div>
         </div>
 

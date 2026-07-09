@@ -68,7 +68,7 @@ export default function AdminVideos() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl text-foreground">Videos</h1>
-          <p className="text-sm text-muted-foreground">{videos.length} videos in library</p>
+          <p className="text-sm text-muted-foreground">{videos.length} videos · shows on the Videos page</p>
         </div>
         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => { setEditing(undefined); setShowModal(true); }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: "#6E9277" }}>
