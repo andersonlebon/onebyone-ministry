@@ -14,7 +14,7 @@ import {
   updateSettingsAction,
   updateVideosAction,
 } from "@/app/actions/site-content";
-import { isDatabaseConfigured } from "@/lib/db/config";
+import { useServerActionsForContent } from "@/lib/db/client-persistence";
 import { getEmptySiteContentBundle } from "@/lib/site-content/defaults";
 import type {
   AdminUser,
@@ -82,8 +82,12 @@ type StoreCtx = {
 
 const StoreContext = createContext<StoreCtx>({} as StoreCtx);
 
+function useLocalDemoStore() {
+  return isDemoContentEnabled() && !useServerActionsForContent();
+}
+
 function load<T>(key: string, fallback: T): T {
-  if (!isDemoContentEnabled() || isDatabaseConfigured()) return fallback;
+  if (!useLocalDemoStore()) return fallback;
   try {
     const v = localStorage.getItem(key);
     return v ? JSON.parse(v) : fallback;
@@ -93,7 +97,7 @@ function load<T>(key: string, fallback: T): T {
 }
 
 function save<T>(key: string, val: T) {
-  if (!isDemoContentEnabled() || isDatabaseConfigured()) return;
+  if (!useLocalDemoStore()) return;
   try {
     localStorage.setItem(key, JSON.stringify(val));
   } catch {
@@ -115,51 +119,52 @@ export function SiteStoreProvider({
 }) {
   const fallback = getEmptySiteContentBundle();
   const seed = initialData ?? fallback;
+  const persistToServer = useServerActionsForContent();
 
   const [posts, setPosts] = useState<Post[]>(() =>
-    isDatabaseConfigured() ? seed.posts : load("obom_posts", seed.posts)
+    persistToServer ? seed.posts : load("obom_posts", seed.posts)
   );
   const [photos, setPhotos] = useState<Photo[]>(() =>
-    isDatabaseConfigured() ? getInitialPhotos() : load("obom_photos", getInitialPhotos())
+    persistToServer ? getInitialPhotos() : load("obom_photos", getInitialPhotos())
   );
   const [projects, setProjects] = useState<Project[]>(() =>
-    isDatabaseConfigured() ? seed.projects : load("obom_projects", seed.projects)
+    persistToServer ? seed.projects : load("obom_projects", seed.projects)
   );
   const [videos, setVideos] = useState<Video[]>(() =>
-    isDatabaseConfigured() ? seed.videos : load("obom_videos", seed.videos)
+    persistToServer ? seed.videos : load("obom_videos", seed.videos)
   );
   const [donations, setDonations] = useState<Donation[]>(() =>
-    isDatabaseConfigured() ? (initialData?.donations ?? []) : load("obom_donations", getInitialDonations())
+    persistToServer ? (initialData?.donations ?? []) : load("obom_donations", getInitialDonations())
   );
   const [admins, setAdmins] = useState<AdminUser[]>(() => load("obom_admins", getInitialAdmins()));
   const [settings, setSettings] = useState<SiteSettings>(() =>
-    isDatabaseConfigured() ? seed.settings : load("obom_settings", seed.settings)
+    persistToServer ? seed.settings : load("obom_settings", seed.settings)
   );
   const [finance, setFinance] = useState<FinanceDetails>(() => seed.finance);
 
   const persistPosts = useCallback(async (next: Post[]) => {
-    if (isDatabaseConfigured()) {
+    if (persistToServer) {
       return updatePostsAction(next);
     }
     save("obom_posts", next);
     return next;
-  }, []);
+  }, [persistToServer]);
 
   const persistProjects = useCallback(async (next: Project[]) => {
-    if (isDatabaseConfigured()) {
+    if (persistToServer) {
       await updateProjectsAction(next);
     } else {
       save("obom_projects", next);
     }
-  }, []);
+  }, [persistToServer]);
 
   const persistVideos = useCallback(async (next: Video[]) => {
-    if (isDatabaseConfigured()) {
+    if (persistToServer) {
       await updateVideosAction(next);
     } else {
       save("obom_videos", next);
     }
-  }, []);
+  }, [persistToServer]);
 
   const addPost = useCallback(
     async (p: Omit<Post, "id">) => {
@@ -284,22 +289,22 @@ export function SiteStoreProvider({
       next = { ...prev, ...s };
       return next;
     });
-    if (isDatabaseConfigured()) {
+    if (persistToServer) {
       await updateSettingsAction(next);
     } else {
       save("obom_settings", next);
     }
-  }, []);
+  }, [persistToServer]);
 
   const updateFinance = useCallback(async (f: FinanceDetails) => {
     setFinance(f);
-    if (isDatabaseConfigured()) {
+    if (persistToServer) {
       await updateFinanceAction(f);
     }
-  }, []);
+  }, [persistToServer]);
 
   const addDonation = useCallback((d: Omit<Donation, "id">) => {
-    if (isDatabaseConfigured()) {
+    if (persistToServer) {
       void createDonationAction(d).then((row) => {
         setDonations((prev) => [row, ...prev]);
       });
@@ -310,10 +315,10 @@ export function SiteStoreProvider({
       save("obom_donations", next);
       return next;
     });
-  }, []);
+  }, [persistToServer]);
 
   const updateDonation = useCallback((id: string, d: Partial<Donation>) => {
-    if (isDatabaseConfigured()) {
+    if (persistToServer) {
       void updateDonationAction(id, d).then((row) => {
         setDonations((prev) => prev.map((x) => (x.id === id ? row : x)));
       });
@@ -324,10 +329,10 @@ export function SiteStoreProvider({
       save("obom_donations", next);
       return next;
     });
-  }, []);
+  }, [persistToServer]);
 
   const deleteDonation = useCallback((id: string) => {
-    if (isDatabaseConfigured()) {
+    if (persistToServer) {
       void deleteDonationAction(id).then(() => {
         setDonations((prev) => prev.filter((x) => x.id !== id));
       });
@@ -338,7 +343,7 @@ export function SiteStoreProvider({
       save("obom_donations", next);
       return next;
     });
-  }, []);
+  }, [persistToServer]);
 
   const addAdmin = useCallback((a: Omit<AdminUser, "id">) => {
     setAdmins((prev) => {
