@@ -3,7 +3,6 @@ import "server-only";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import { listMediaAssets } from "@/lib/db/media";
 import { getSiteContentValue } from "@/lib/db/site-content";
-import { isSetupComplete } from "@/lib/db/setup";
 import { PLACEHOLDER_MEDIA, buildPlaceholderMediaBundle } from "@/lib/media/placeholders";
 import type { GalleryPhoto, SiteMediaBundle } from "@/lib/media/types";
 
@@ -15,11 +14,6 @@ export async function getPublicMediaBundle(): Promise<SiteMediaBundle> {
   }
 
   try {
-    const setupDone = await isSetupComplete();
-    if (!setupDone) {
-      return PLACEHOLDER_MEDIA;
-    }
-
     const stored = await getSiteContentValue<SiteMediaBundle>(SITE_MEDIA_CONTENT_KEY);
     const base = stored ?? buildPlaceholderMediaBundle();
 

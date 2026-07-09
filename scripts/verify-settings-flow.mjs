@@ -59,14 +59,30 @@ async function main() {
   const original = await headline.inputValue();
 
   await headline.fill(marker);
+  console.log("Filled value:", await headline.inputValue());
   await adminPage.locator('button:has-text("Save Changes")').click();
-  await adminPage.waitForTimeout(5000);
+  await adminPage.waitForTimeout(1500);
+  const savedUi = await adminPage.locator('button:has-text("Saved")').count();
+  console.log("Save confirmation visible:", savedUi > 0);
+  await adminPage.waitForTimeout(4000);
+
+  await gotoWithRetry(adminPage, `${BASE}/admin/settings`);
+  const savedInAdmin = await (await getHeadlineInput(adminPage)).inputValue();
+  console.log("Admin stored value:", savedInAdmin.slice(0, 80));
+  if (!savedInAdmin.includes(marker)) {
+    console.error("FAIL: Admin settings did not persist the headline.");
+    process.exitCode = 1;
+    await browser.close();
+    return;
+  }
 
   console.log("Checking public homepage...");
   await gotoWithRetry(publicPage, `${BASE}/`);
+  await publicPage.waitForTimeout(6000);
+  const bodyText = await publicPage.locator("body").innerText();
   const html = await publicPage.content();
 
-  if (!html.includes(marker)) {
+  if (!bodyText.includes(marker) && !html.includes(marker)) {
     console.error("FAIL: Public homepage does not include updated hero headline.");
     console.error("Marker:", marker);
     process.exitCode = 1;

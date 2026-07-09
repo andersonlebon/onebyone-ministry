@@ -7,8 +7,6 @@ import {
 } from "@/content/site-defaults";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import { getSiteContentValue } from "@/lib/db/site-content";
-import { isSetupComplete } from "@/lib/db/setup";
-
 import { getDefaultSiteContentBundle } from "./defaults";
 import { SITE_CONTENT_KEYS } from "./keys";
 import { normalizePosts } from "./posts";
@@ -30,11 +28,6 @@ export async function getSiteContentBundle(): Promise<SiteContentBundle> {
   }
 
   try {
-    const setupDone = await isSetupComplete();
-    if (!setupDone) {
-      return defaults;
-    }
-
     const [settings, posts, projects, videos, finance] = await Promise.all([
       getSiteContentValue<SiteSettings>(SITE_CONTENT_KEYS.settings),
       getSiteContentValue<Post[]>(SITE_CONTENT_KEYS.posts),

@@ -279,14 +279,17 @@ export function SiteStoreProvider({
   );
 
   const updateSettings = useCallback(async (s: Partial<SiteSettings>) => {
-    const next = { ...settings, ...s };
-    setSettings(next);
+    let next!: SiteSettings;
+    setSettings((prev) => {
+      next = { ...prev, ...s };
+      return next;
+    });
     if (isDatabaseConfigured()) {
       await updateSettingsAction(next);
     } else {
       save("obom_settings", next);
     }
-  }, [settings]);
+  }, []);
 
   const updateFinance = useCallback(async (f: FinanceDetails) => {
     setFinance(f);
