@@ -7,8 +7,9 @@ import { useSiteStore, Video } from "@/site/lib/siteStore";
 
 const CATEGORIES = ["Education", "Entrepreneurship", "Discipleship", "Community", "Documentary", "Report"];
 
-function VideoModal({ video, onSave, onClose }: { video?: Video; onSave: (v: Omit<Video, "id">) => void; onClose: () => void }) {
+function VideoModal({ video, onSave, onClose }: { video?: Video; onSave: (v: Omit<Video, "id">) => Promise<void>; onClose: () => void }) {
   const [form, setForm] = useState<Omit<Video, "id">>(video ?? { youtubeId: "", title: "", category: "Documentary", duration: "", thumb: "" });
+  const [saving, setSaving] = useState(false);
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={onClose}>
@@ -48,9 +49,20 @@ function VideoModal({ video, onSave, onClose }: { video?: Video; onSave: (v: Omi
         </div>
         <div className="px-6 py-4 border-t border-muted flex gap-3 justify-end">
           <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-foreground border border-muted hover:bg-muted">Cancel</button>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => { onSave(form); onClose(); }}
-            className="px-4 py-2 rounded-xl text-sm font-semibold text-white flex items-center gap-1.5" style={{ backgroundColor: "#6E9277" }}>
-            <Save size={13} /> Save
+          <motion.button whileHover={{ scale: saving ? 1 : 1.03 }} whileTap={{ scale: saving ? 1 : 0.97 }} disabled={saving}
+            onClick={() => {
+              void (async () => {
+                setSaving(true);
+                try {
+                  await onSave(form);
+                  onClose();
+                } finally {
+                  setSaving(false);
+                }
+              })();
+            }}
+            className="px-4 py-2 rounded-xl text-sm font-semibold text-white flex items-center gap-1.5 disabled:opacity-70" style={{ backgroundColor: "#6E9277" }}>
+            <Save size={13} /> {saving ? "Saving..." : "Save"}
           </motion.button>
         </div>
       </motion.div>
@@ -110,7 +122,7 @@ export default function AdminVideos() {
       </div>
 
       <AnimatePresence>
-        {showModal && <VideoModal video={editing} onSave={(f) => editing ? updateVideo(editing.id, f) : addVideo(f)} onClose={() => setShowModal(false)} />}
+        {showModal && <VideoModal video={editing} onSave={async (f) => editing ? updateVideo(editing.id, f) : addVideo(f)} onClose={() => setShowModal(false)} />}
       </AnimatePresence>
     </div>
   );

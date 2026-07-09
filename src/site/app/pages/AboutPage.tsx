@@ -7,6 +7,7 @@ import { Heart, Globe, BookOpen, Users, Lightbulb, ArrowRight } from "lucide-rea
 import { WaveDivider, AnimatedBlob, DotPattern, CrossPattern, DiagonalStripes, Sparkles } from "../components/shared/SvgDecorators";
 import FoundersTree from "../components/shared/FoundersTree";
 import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useSiteContent } from "@/site/lib/siteContentContext";
 import type { SiteMediaBundle } from "@/lib/media/types";
 import { SECTION_PY } from "../../lib/pageLayout";
 
@@ -31,6 +32,7 @@ const LEADERS = (localImages: SiteMediaBundle["localImages"]) => [
 
 export default function AboutPage() {
   const c = useColors();
+  const { settings } = useSiteContent();
   const { aboutStoryImages, localImages, websiteUseImages } = useSiteMedia();
   return (
     <div className="overflow-x-hidden">
@@ -92,6 +94,14 @@ export default function AboutPage() {
             <p className="leading-relaxed mb-4" style={{ color: c.muted }}>
               The name says it all. We believe transformation doesn't happen in sweeping programs. It happens one person at a time, one family at a time — through patient, faithful work of love, discipleship, and service.
             </p>
+            {settings.missionStatement ? (
+              <p
+                className="text-base text-[#5A4749] leading-relaxed mb-4 border-l-4 pl-4"
+                style={{ borderColor: "#6E9277", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}
+              >
+                {settings.missionStatement}
+              </p>
+            ) : null}
             <p
               className="text-lg text-[#5A4749] leading-relaxed mb-7 border-l-4 pl-4"
               style={{ borderColor: "#EAC79A", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}

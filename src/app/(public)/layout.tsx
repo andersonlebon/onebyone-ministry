@@ -6,6 +6,9 @@ import { getSiteContentBundle } from "@/lib/site-content/resolve";
 import { MediaProvider } from "@/site/lib/mediaContext";
 import { SiteContentProvider } from "@/site/lib/siteContentContext";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const [media, content] = await Promise.all([getPublicMediaBundle(), getSiteContentBundle()]);
 

@@ -8,10 +8,11 @@ import { useSiteStore, Project } from "@/site/lib/siteStore";
 const CATEGORIES = ["Education", "Entrepreneurship", "Discipleship", "Community"];
 const STATUSES = ["Active", "Completed", "Planned"] as const;
 
-function ProjectModal({ project, onSave, onClose }: { project?: Project; onSave: (p: Omit<Project, "id">) => void; onClose: () => void }) {
+function ProjectModal({ project, onSave, onClose }: { project?: Project; onSave: (p: Omit<Project, "id">) => Promise<void>; onClose: () => void }) {
   const [form, setForm] = useState<Omit<Project, "id">>(project ?? {
     title: "", category: "Education", status: "Active", desc: "", fullDesc: "", img: "", location: "", year: "", impact: "",
   });
+  const [saving, setSaving] = useState(false);
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={onClose}>
@@ -70,9 +71,20 @@ function ProjectModal({ project, onSave, onClose }: { project?: Project; onSave:
         </div>
         <div className="px-6 py-4 border-t border-muted flex gap-3 justify-end">
           <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-foreground border border-muted hover:bg-muted">Cancel</button>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => { onSave(form); onClose(); }}
-            className="px-4 py-2 rounded-xl text-sm font-semibold text-white flex items-center gap-1.5" style={{ backgroundColor: "#6E9277" }}>
-            <Save size={13} /> Save
+          <motion.button whileHover={{ scale: saving ? 1 : 1.03 }} whileTap={{ scale: saving ? 1 : 0.97 }} disabled={saving}
+            onClick={() => {
+              void (async () => {
+                setSaving(true);
+                try {
+                  await onSave(form);
+                  onClose();
+                } finally {
+                  setSaving(false);
+                }
+              })();
+            }}
+            className="px-4 py-2 rounded-xl text-sm font-semibold text-white flex items-center gap-1.5 disabled:opacity-70" style={{ backgroundColor: "#6E9277" }}>
+            <Save size={13} /> {saving ? "Saving..." : "Save"}
           </motion.button>
         </div>
       </motion.div>
@@ -124,7 +136,7 @@ export default function AdminProjects() {
       </div>
 
       <AnimatePresence>
-        {showModal && <ProjectModal project={editing} onSave={(f) => editing ? updateProject(editing.id, f) : addProject(f)} onClose={() => setShowModal(false)} />}
+        {showModal && <ProjectModal project={editing} onSave={async (f) => editing ? updateProject(editing.id, f) : addProject(f)} onClose={() => setShowModal(false)} />}
       </AnimatePresence>
     </div>
   );

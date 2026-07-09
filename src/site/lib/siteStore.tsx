@@ -225,82 +225,68 @@ export function SiteStoreProvider({
   }, []);
 
   const addProject = useCallback(
-    (p: Omit<Project, "id">) => {
-      setProjects((prev) => {
-        const next = [{ ...p, id: uid() }, ...prev];
-        void persistProjects(next);
-        return next;
-      });
+    async (p: Omit<Project, "id">) => {
+      const next = [{ ...p, id: uid() }, ...projects];
+      setProjects(next);
+      await persistProjects(next);
     },
-    [persistProjects]
+    [projects, persistProjects]
   );
 
   const updateProject = useCallback(
-    (id: string, p: Partial<Project>) => {
-      setProjects((prev) => {
-        const next = prev.map((x) => (x.id === id ? { ...x, ...p } : x));
-        void persistProjects(next);
-        return next;
-      });
+    async (id: string, p: Partial<Project>) => {
+      const next = projects.map((x) => (x.id === id ? { ...x, ...p } : x));
+      setProjects(next);
+      await persistProjects(next);
     },
-    [persistProjects]
+    [projects, persistProjects]
   );
 
   const deleteProject = useCallback(
-    (id: string) => {
-      setProjects((prev) => {
-        const next = prev.filter((x) => x.id !== id);
-        void persistProjects(next);
-        return next;
-      });
+    async (id: string) => {
+      const next = projects.filter((x) => x.id !== id);
+      setProjects(next);
+      await persistProjects(next);
     },
-    [persistProjects]
+    [projects, persistProjects]
   );
 
   const addVideo = useCallback(
-    (v: Omit<Video, "id">) => {
-      setVideos((prev) => {
-        const next = [{ ...v, id: uid() }, ...prev];
-        void persistVideos(next);
-        return next;
-      });
+    async (v: Omit<Video, "id">) => {
+      const next = [{ ...v, id: uid() }, ...videos];
+      setVideos(next);
+      await persistVideos(next);
     },
-    [persistVideos]
+    [videos, persistVideos]
   );
 
   const updateVideo = useCallback(
-    (id: string, v: Partial<Video>) => {
-      setVideos((prev) => {
-        const next = prev.map((x) => (x.id === id ? { ...x, ...v } : x));
-        void persistVideos(next);
-        return next;
-      });
+    async (id: string, v: Partial<Video>) => {
+      const next = videos.map((x) => (x.id === id ? { ...x, ...v } : x));
+      setVideos(next);
+      await persistVideos(next);
     },
-    [persistVideos]
+    [videos, persistVideos]
   );
 
   const deleteVideo = useCallback(
-    (id: string) => {
-      setVideos((prev) => {
-        const next = prev.filter((x) => x.id !== id);
-        void persistVideos(next);
-        return next;
-      });
+    async (id: string) => {
+      const next = videos.filter((x) => x.id !== id);
+      setVideos(next);
+      await persistVideos(next);
     },
-    [persistVideos]
+    [videos, persistVideos]
   );
 
   const updateSettings = useCallback(async (s: Partial<SiteSettings>) => {
-    setSettings((prev) => {
-      const next = { ...prev, ...s };
-      if (isDatabaseConfigured()) {
-        void updateSettingsAction(next);
-      } else {
-        save("obom_settings", next);
-      }
-      return next;
-    });
-  }, []);
+    const next = { ...settings, ...s };
+    setSettings(next);
+    if (isDatabaseConfigured()) {
+      await updateSettingsAction(next);
+    } else {
+      save("obom_settings", next);
+    }
+  }, [settings]);
 
   const updateFinance = useCallback(async (f: FinanceDetails) => {
     setFinance(f);

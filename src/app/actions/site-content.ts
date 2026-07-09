@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import { upsertSiteContentValue } from "@/lib/db/site-content";
 import { getSiteContentBundle } from "@/lib/site-content/resolve";
+import { revalidatePublicSite } from "@/lib/site-content/revalidate";
 import { SITE_CONTENT_KEYS } from "@/lib/site-content/keys";
 import { normalizePosts } from "@/lib/site-content/posts";
 import type {
@@ -29,10 +30,6 @@ async function requireAdminUser() {
   }
 
   return user;
-}
-
-function revalidatePublicSite() {
-  revalidatePath("/", "layout");
 }
 
 export async function getSiteContentAction(): Promise<SiteContentBundle> {

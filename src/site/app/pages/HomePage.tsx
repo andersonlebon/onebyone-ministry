@@ -391,7 +391,7 @@ export default function HomePage() {
               className="text-xl lg:text-2xl text-[#5A4749] leading-relaxed mb-6 px-4"
               style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}
             >
-              "One By One Ministries is dedicated to rebuilding communities through Education, Entrepreneurship, and Spiritual Discipleship. We seek to change the world one person, one community, and one country at a time through the power of the Holy Spirit and the Word of God."
+              {settings.missionStatement || "Your mission statement will appear here."}
             </motion.blockquote>
             <motion.p
               initial={{ opacity: 0 }}

@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import {
   createMediaAsset,
   deleteMediaAssetById,
@@ -10,6 +8,7 @@ import {
 } from "@/lib/db/media";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import type { MediaAsset, MediaFolder } from "@/lib/db/schema";
+import { revalidatePublicSite } from "@/lib/site-content/revalidate";
 import { MEDIA_BUCKET } from "@/lib/supabase/config";
 import { isAdminUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -57,9 +56,7 @@ export async function createMediaAssetAction(input: {
     category: input.category ?? null,
     uploadedBy: user.id,
   }).then((asset) => {
-    if (input.folder === "photos") {
-      revalidatePath("/", "layout");
-    }
+    revalidatePublicSite();
     return asset;
   });
 }
@@ -70,15 +67,15 @@ export async function updateMediaAssetAction(
 ): Promise<MediaAsset> {
   assertDatabase();
   await requireAdminUser();
-  return updateMediaAsset(id, input);
+  const asset = await updateMediaAsset(id, input);
+  revalidatePublicSite();
+  return asset;
 }
 
 export async function deleteMediaAssetAction(id: string): Promise<MediaAsset> {
   assertDatabase();
   await requireAdminUser();
   const asset = await deleteMediaAssetById(id);
-  if (asset.folder === "photos") {
-    revalidatePath("/", "layout");
-  }
+  revalidatePublicSite();
   return asset;
 }
