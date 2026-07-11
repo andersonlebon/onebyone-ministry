@@ -15,7 +15,7 @@ const GUIDE_ITEMS = [
     href: "/admin/settings",
     icon: Settings,
     title: "Site Settings",
-    edits: "Homepage headline, mission text, contact info, social links, and page hero images",
+    edits: "Main title on the home page, mission text, contact info, social links, and banner images for each page",
     showsOn: "Home page, footer, Contact page",
     color: "#6E9277",
   },
