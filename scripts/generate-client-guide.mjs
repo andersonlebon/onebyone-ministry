@@ -43,9 +43,9 @@ const PAGES = [
   {
     id: "03-settings",
     path: "/admin/settings",
-    title: "Site Settings — text, contact, and live preview",
+    title: "Site Settings — text, contact, and preview",
     caption:
-      "Edit the main title on the home page, mission statement, contact info, and social links on the left. The Live preview panel on the right shows what will appear on the public site. Click Save Changes at the top when you finish editing text.",
+      "Edit the main title on the home page, mission statement, contact info, and social links. Click Preview this section for a full-screen preview of what visitors will see. Click Save Changes when you finish editing text.",
     auth: true,
   },
   {
@@ -285,7 +285,7 @@ async function buildHtml(logoB64) {
       Open a section, make your changes, save, then check the live website. Changes appear on the public site right away.
     </p>
     <ul>
-      <li><strong>Site Settings</strong> — home page text, contact info, social links, banner images for each page (with live preview)</li>
+      <li><strong>Site Settings</strong> — home page text, contact info, social links, banner images for each page (with full-screen preview)</li>
       <li><strong>Blog Posts</strong> — stories on the Stories page</li>
       <li><strong>Projects</strong> — ministry projects</li>
       <li><strong>Photo Library</strong> — gallery photos</li>
@@ -301,7 +301,7 @@ async function buildHtml(logoB64) {
     <ul>
       <li>Always click <strong>Save Changes</strong> after editing text in Site Settings or Finance Details.</li>
       <li>Banner images in Site Settings save automatically when you upload a file.</li>
-      <li>Use the <strong>Live preview</strong> panel on Site Settings to see what you are changing.</li>
+      <li>On Site Settings, click <strong>Preview this section</strong> to open a full-screen preview before you save.</li>
       <li>Use <strong>View public website</strong> on the dashboard to confirm your changes on the live site.</li>
       <li>Need help? Contact your site administrator.</li>
     </ul>

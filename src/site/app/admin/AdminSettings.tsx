@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
-import { Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Save, CheckCircle2, AlertCircle, ExternalLink, Eye, X } from "lucide-react";
 import { updateSiteMediaAction } from "@/app/actions/site-media";
 import type { SiteMediaBundle } from "@/lib/media/types";
 import type { MediaFolder } from "@/lib/db/schema";
 import { useSiteMedia } from "@/site/lib/mediaContext";
 import AdminMediaSlotField from "@/site/app/components/admin/AdminMediaSlotField";
-import AdminSettingsPreview, { type SettingsPreviewSection } from "@/site/app/admin/AdminSettingsPreview";
+import AdminSettingsPreview, { SECTION_LABELS, type SettingsPreviewSection } from "@/site/app/admin/AdminSettingsPreview";
 import { useSiteStore, SiteSettings } from "@/site/lib/siteStore";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
 
@@ -130,19 +130,40 @@ export default function AdminSettings() {
   const [saved, setSaved] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [liveSiteUrl, setLiveSiteUrl] = useState<string | null>(null);
   const [savingMediaSlot, setSavingMediaSlot] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<SettingsPreviewSection>("homepage");
   const [activeImageSlot, setActiveImageSlot] = useState<MediaSlotConfig>(MEDIA_SLOTS[0]);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     setForm(settings);
   }, [settings]);
 
   useEffect(() => {
+    if (savingMediaSlot) return;
     setMediaForm(siteMedia);
-  }, [siteMedia]);
+  }, [siteMedia, savingMediaSlot]);
+
+  useEffect(() => {
+    if (!previewOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreviewOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [previewOpen]);
 
   const set = (k: keyof SiteSettings, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  const isDirty = useMemo(
+    () => JSON.stringify(form) !== JSON.stringify(settings),
+    [form, settings]
+  );
 
   const handleSave = async () => {
     setSaveError("");
@@ -150,8 +171,9 @@ export default function AdminSettings() {
     try {
       await updateSettings(form);
       setSaved(true);
+      setLiveSiteUrl(`/?v=${Date.now()}`);
       router.refresh();
-      setTimeout(() => setSaved(false), 2500);
+      setTimeout(() => setSaved(false), 4000);
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "Could not save settings. Try again.");
     } finally {
@@ -182,20 +204,66 @@ export default function AdminSettings() {
         <div>
           <h1 className="text-2xl text-foreground">Site Settings</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
-            Edit homepage text, contact details, social links, and page hero images. Changes save to the live website.
+            Edit homepage text, contact details, social links, and page hero images. Text changes need Save Changes. Image uploads save automatically.
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: saving ? 1 : 1.03 }}
-          whileTap={{ scale: saving ? 1 : 0.97 }}
-          onClick={() => void handleSave()}
-          disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-70"
-          style={{ backgroundColor: saved ? "#5a7d64" : "#6E9277" }}
-        >
-          {saved ? <><CheckCircle2 size={15} /> Saved!</> : saving ? "Saving..." : <><Save size={15} /> Save Changes</>}
-        </motion.button>
+        <div className="flex flex-col items-end gap-2">
+          {isDirty && (
+            <p className="text-xs font-medium text-amber-700">Unsaved text changes</p>
+          )}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setPreviewOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#6E9277] border transition-colors hover:bg-[#6E9277]/10"
+              style={{ borderColor: "rgba(110,146,119,0.4)" }}
+            >
+              <Eye size={15} />
+              Preview this section
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: saving ? 1 : 1.03 }}
+              whileTap={{ scale: saving ? 1 : 0.97 }}
+              onClick={() => void handleSave()}
+              disabled={saving || !isDirty}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-70"
+              style={{
+                backgroundColor: saved ? "#5a7d64" : isDirty ? "#6E9277" : "#9ca3af",
+              }}
+            >
+              {saved ? <><CheckCircle2 size={15} /> Saved!</> : saving ? "Saving..." : <><Save size={15} /> Save Changes</>}
+            </motion.button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Previewing: {SECTION_LABELS[activeSection]}
+          </p>
+        </div>
       </div>
+
+      {isDirty && (
+        <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
+          <p>
+            You have unsaved text changes. The preview shows your draft, not the live website.
+            Click <strong>Save Changes</strong> to publish updates.
+          </p>
+        </div>
+      )}
+
+      {saved && liveSiteUrl && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#6E9277]/30 bg-[#6E9277]/10 px-4 py-3 text-sm text-foreground">
+          <p>Settings saved to the live website.</p>
+          <a
+            href={liveSiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-semibold text-[#6E9277] hover:underline"
+          >
+            View live website <ExternalLink size={14} />
+          </a>
+        </div>
+      )}
 
       {saveError && (
         <div className="mb-6 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -204,8 +272,7 @@ export default function AdminSettings() {
         </div>
       )}
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px] items-start">
-        <div className="space-y-6 min-w-0">
+      <div className="space-y-6 max-w-4xl">
           <SectionCard title="Homepage Content" section="homepage" activeSection={activeSection} onActivate={setActiveSection}>
             <div className="space-y-4">
               <Field label="Hero Headline" value={form.heroHeadline} onChange={(v) => set("heroHeadline", v)}
@@ -296,18 +363,51 @@ export default function AdminSettings() {
               </button>
             </div>
           )}
-        </div>
-
-        <aside className="xl:sticky xl:top-24">
-          <AdminSettingsPreview
-            form={form}
-            mediaForm={mediaForm}
-            activeSection={activeSection}
-            activeImageLabel={activeImageSlot.label}
-            activeImageUrl={activeImageSlot.getValue(mediaForm)}
-          />
-        </aside>
       </div>
+
+      <AnimatePresence>
+        {previewOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col bg-background"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 border-b border-muted bg-card">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Full screen preview</h2>
+                <p className="text-sm text-muted-foreground">{SECTION_LABELS[activeSection]}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                {isDirty && activeSection !== "images" && (
+                  <p className="text-xs font-medium text-amber-700">
+                    Unsaved changes. Click Save Changes to publish.
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(false)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-foreground border border-muted hover:bg-muted transition-colors"
+                >
+                  <X size={16} />
+                  Close preview
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 md:p-10">
+              <AdminSettingsPreview
+                form={form}
+                mediaForm={mediaForm}
+                activeSection={activeSection}
+                isDirty={isDirty}
+                fullScreen
+                activeImageLabel={activeImageSlot.label}
+                activeImageUrl={activeImageSlot.getValue(mediaForm)}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

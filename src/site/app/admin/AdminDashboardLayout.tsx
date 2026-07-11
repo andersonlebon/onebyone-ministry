@@ -18,12 +18,14 @@ import { ReadinessEnvProvider } from "@/site/lib/readinessEnvContext";
 export default function AdminDashboardLayout({
   children,
   initialMedia,
+  initialMediaVersion = null,
   initialContent,
   initialDonations = [],
   paymentEnv = { stripeKeys: false, stripeWebhook: false },
 }: {
   children: React.ReactNode;
   initialMedia: SiteMediaBundle;
+  initialMediaVersion?: number | null;
   initialContent: SiteContentBundle;
   initialDonations?: Donation[];
   paymentEnv?: PaymentEnvStatus;
@@ -126,7 +128,7 @@ export default function AdminDashboardLayout({
 
   return (
     <ReadinessEnvProvider value={paymentEnv}>
-      <MediaProvider media={initialMedia}>
+      <MediaProvider media={initialMedia} version={initialMediaVersion}>
         <SiteStoreProvider initialData={{ ...initialContent, donations: initialDonations }}>
           <AdminShell onLogout={handleLogout}>{children}</AdminShell>
         </SiteStoreProvider>

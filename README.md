@@ -49,3 +49,7 @@ Replace placeholder SVGs in `public/images/gallery` with approved ministry photo
 3. Set `NEXT_PUBLIC_SITE_URL` to `https://www.onebyoneministries.org`.
 4. Configure `CONTACT_FORM_WEBHOOK_URL` if using the built-in form endpoint.
 5. Connect the custom domain, then verify Google Search Console and analytics.
+
+## Database reset (development only)
+
+`npm run db:reset` and `npm run db:reset:all` wipe tables, media storage, and optionally auth users. **Never run these against production** without a backup. Production targets are blocked by default; see [scripts/PRODUCTION.md](scripts/PRODUCTION.md).

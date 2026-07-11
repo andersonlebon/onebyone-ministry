@@ -8,7 +8,7 @@ import {
   BookOpen, Lightbulb, Heart, Users, ArrowRight, ChevronDown,
   Globe, Quote, Sparkles as SparklesIcon,
 } from "lucide-react";
-import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useSiteMedia, useMediaUrl } from "@/site/lib/mediaContext";
 import { usePublishedPosts, useSiteContent } from "@/site/lib/siteContentContext";
 import NewsletterSubscribeForm from "../components/shared/NewsletterSubscribeForm";
 import FloatingParticles from "../components/shared/FloatingParticles";
@@ -105,6 +105,7 @@ function StatCard({ value, suffix, label, icon: Icon }: { value: number; suffix:
 export default function HomePage() {
   const c = useColors();
   const { brandAssets, homePillars, websiteUseImages } = useSiteMedia();
+  const heroBackground = useMediaUrl(websiteUseImages.hero);
   const { settings, projects } = useSiteContent();
   const publishedPosts = usePublishedPosts();
 
@@ -150,7 +151,7 @@ export default function HomePage() {
         <motion.div className="absolute inset-0 overflow-hidden" style={{ y: parallaxSmooth }}>
           <div className="absolute inset-0" style={{ backgroundColor: c.isDark ? c.heroBg : c.cream }} />
           <img
-            src={websiteUseImages.hero}
+            src={heroBackground}
             alt="One By One Ministries community"
             className="absolute left-0 w-full object-cover"
             style={{

@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/((?!_next/static|_next/image|assets/|favicon.ico|opengraph-image).*)",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+      {
         source: "/setup",
         headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
       },

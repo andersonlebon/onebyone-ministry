@@ -92,7 +92,10 @@ export default function AdminFinance() {
         <div>
           <h1 className="text-2xl text-foreground">Finance Details</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Venmo, Zelle, bank, check, and other giving details. Shows on the Donate page.
+            Venmo, Zelle, bank, check, and other giving details. These appear publicly on the Donate page.
+          </p>
+          <p className="text-xs text-muted-foreground mt-2 max-w-2xl leading-relaxed">
+            Only enter information you are comfortable sharing with donors (account and routing numbers for incoming gifts, not online banking passwords or PINs).
           </p>
           {isDemoContentEnabled() && !hasFinanceConfigured(form) && (
             <p className="text-xs text-amber-600 mt-2">Development mode: fill in real client details before production handoff.</p>
@@ -112,7 +115,7 @@ export default function AdminFinance() {
       {!hasFinanceConfigured(form) && (
         <div className="rounded-2xl border border-muted bg-card p-6 mb-6 max-w-2xl">
           <p className="text-sm text-muted-foreground">
-            Add your real EIN, bank details, and giving instructions below. These are stored securely in the database for staff reference.
+            Add your EIN, bank details, and giving instructions below. Donors will see this information on the public Donate page.
           </p>
         </div>
       )}

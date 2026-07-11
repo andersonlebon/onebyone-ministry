@@ -4,6 +4,88 @@ import { resolve } from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import postgres from "postgres";
 
+const DELETED_TABLES = [
+  "contact_thread_messages",
+  "contact_threads",
+  "contact_messages",
+  "donations",
+  "media_assets",
+  "site_content",
+  "project_setup",
+] as const;
+
+function normalizeDatabaseUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.password = "";
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+function supabaseProjectRef(url: string | undefined): string | null {
+  if (!url) return null;
+  try {
+    const host = new URL(url).hostname;
+    const match = host.match(/^([a-z0-9]+)\.supabase\.co$/i);
+    return match?.[1]?.toLowerCase() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function isProductionDatabaseTarget(databaseUrl: string): boolean {
+  if (process.env.NODE_ENV === "production") return true;
+
+  const productionDatabaseUrl = process.env.PRODUCTION_DATABASE_URL?.trim();
+  if (productionDatabaseUrl && databaseUrl === productionDatabaseUrl) return true;
+
+  const dbRef = supabaseProjectRef(databaseUrl);
+  const supabaseRef = supabaseProjectRef(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  if (dbRef && supabaseRef && dbRef === supabaseRef) return true;
+
+  return false;
+}
+
+function hasProductionResetOverride(argv: string[]): boolean {
+  return (
+    process.env.ALLOW_PRODUCTION_DB_RESET === "1" ||
+    argv.includes("--force-production")
+  );
+}
+
+function printProductionResetWarning(databaseUrl: string, withAuth: boolean) {
+  const red = "\x1b[31m";
+  const bold = "\x1b[1m";
+  const reset = "\x1b[0m";
+
+  console.error(
+    `${red}${bold}
+╔══════════════════════════════════════════════════════════════════╗
+║  DANGER: PRODUCTION DATABASE RESET BLOCKED                       ║
+╚══════════════════════════════════════════════════════════════════╝${reset}`
+  );
+  console.error("");
+  console.error("This command would permanently delete production data:");
+  for (const table of DELETED_TABLES) {
+    console.error(`  - ${table}`);
+  }
+  console.error("  - All files in Supabase storage bucket: media");
+  if (withAuth) {
+    console.error("  - All Supabase auth users (admin accounts)");
+  }
+  console.error("");
+  console.error(`Target database: ${normalizeDatabaseUrl(databaseUrl)}`);
+  console.error("");
+  console.error("Take a Supabase backup before any production reset.");
+  console.error("See scripts/PRODUCTION.md for the safe workflow.");
+  console.error("");
+  console.error("To override (emergency only):");
+  console.error("  ALLOW_PRODUCTION_DB_RESET=1 npm run db:reset");
+  console.error("  npm run db:reset -- --force-production");
+}
+
 function loadEnvFile(path: string) {
   if (!existsSync(path)) return;
   for (const line of readFileSync(path, "utf8").split("\n")) {
@@ -132,7 +214,30 @@ async function main() {
     process.exit(1);
   }
 
-  const withAuth = process.argv.includes("--auth");
+  const argv = process.argv.slice(2);
+  const withAuth = argv.includes("--auth");
+
+  if (isProductionDatabaseTarget(databaseUrl) && !hasProductionResetOverride(argv)) {
+    printProductionResetWarning(databaseUrl, withAuth);
+    process.exit(1);
+  }
+
+  if (isProductionDatabaseTarget(databaseUrl) && hasProductionResetOverride(argv)) {
+    const red = "\x1b[31m";
+    const bold = "\x1b[1m";
+    const reset = "\x1b[0m";
+    console.warn(
+      `${red}${bold}WARNING: Production reset override enabled. Data will be deleted.${reset}`
+    );
+    for (const table of DELETED_TABLES) {
+      console.warn(`  - ${table}`);
+    }
+    console.warn("  - Supabase storage bucket: media");
+    if (withAuth) console.warn("  - All Supabase auth users");
+    console.warn(`Target: ${normalizeDatabaseUrl(databaseUrl)}`);
+    console.warn("Continuing in 5 seconds. Press Ctrl+C to abort.");
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
 
   const sql = postgres(databaseUrl, { prepare: false, max: 1 });
 
@@ -144,9 +249,7 @@ async function main() {
     await sql`DELETE FROM media_assets`;
     await sql`DELETE FROM site_content`;
     await sql`DELETE FROM project_setup`;
-    console.log(
-      "Cleared tables: contact_thread_messages, contact_threads, contact_messages, donations, media_assets, site_content, project_setup"
-    );
+    console.log(`Cleared tables: ${DELETED_TABLES.join(", ")}`);
   } finally {
     await sql.end();
   }

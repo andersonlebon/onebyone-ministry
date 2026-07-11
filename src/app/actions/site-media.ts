@@ -22,7 +22,8 @@ async function requireAdminUser() {
 }
 
 export async function getPublicMediaAction(): Promise<SiteMediaBundle> {
-  return getPublicMediaBundle();
+  const { media } = await getPublicMediaBundle();
+  return media;
 }
 
 export async function updateSiteMediaAction(media: SiteMediaBundle): Promise<SiteMediaBundle> {

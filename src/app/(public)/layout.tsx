@@ -9,11 +9,17 @@ import { SiteContentProvider } from "@/site/lib/siteContentContext";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+export async function headers() {
+  return {
+    "Cache-Control": "no-store, must-revalidate",
+  };
+}
+
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const [media, content] = await Promise.all([getPublicMediaBundle(), getSiteContentBundle()]);
+  const [{ media, version }, content] = await Promise.all([getPublicMediaBundle(), getSiteContentBundle()]);
 
   return (
-    <MediaProvider media={media}>
+    <MediaProvider media={media} version={version}>
       <SiteContentProvider content={content}>
         <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
           <Navbar />
