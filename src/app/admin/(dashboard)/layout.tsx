@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { listDonations } from "@/lib/db/donations";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import { getPaymentEnvStatus } from "@/lib/donate/payment-env";
-import { getPublicMediaBundle } from "@/lib/media/resolve";
+import { getPublicMediaBundle, getPlaceholderMediaBundle } from "@/lib/media/resolve";
 import { getDefaultSiteContentBundle } from "@/lib/site-content/defaults";
 import { getSiteContentBundle } from "@/lib/site-content/resolve";
 import { withTimeout } from "@/lib/server/with-timeout";
@@ -20,9 +20,10 @@ export const metadata: Metadata = {
 
 export default async function AdminSectionLayout({ children }: { children: React.ReactNode }) {
   const contentFallback = getDefaultSiteContentBundle();
+  const mediaFallback = { media: getPlaceholderMediaBundle(), version: null };
 
   const [{ media, version }, content, donations, paymentEnv] = await Promise.all([
-    getPublicMediaBundle(),
+    withTimeout(getPublicMediaBundle(), 8_000, mediaFallback),
     withTimeout(getSiteContentBundle(), 8_000, contentFallback),
     isDatabaseConfigured()
       ? withTimeout(listDonations().catch(() => []), 5_000, [])

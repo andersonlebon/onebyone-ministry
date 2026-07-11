@@ -4,7 +4,7 @@
  * Usage: ADMIN_EMAIL=... ADMIN_PASSWORD=... node scripts/verify-production.mjs
  */
 
-import { chromium } from "playwright";
+import { firefox } from "playwright";
 
 const BASE = process.env.SITE_URL ?? process.env.BASE ?? "https://www.onebyoneministries.org";
 const EMAIL = process.env.ADMIN_EMAIL;
@@ -40,8 +40,8 @@ async function getHeadlineInput(page) {
 async function gotoWithRetry(page, url) {
   for (let i = 0; i < 3; i++) {
     try {
-      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90_000 });
-      await page.waitForTimeout(2000);
+      await page.goto(url, { waitUntil: "networkidle", timeout: 90_000 });
+      await page.waitForTimeout(1500);
       return;
     } catch (err) {
       if (i === 2) throw err;
@@ -53,15 +53,17 @@ async function gotoWithRetry(page, url) {
 async function verifyLogin(adminPage) {
   console.log("\n[1/3] Admin login");
   await gotoWithRetry(adminPage, `${BASE}/admin/login`);
+  await adminPage.waitForSelector('button[type="submit"]:not([disabled])', { timeout: 30_000 });
   await adminPage.fill('input[type="email"]', EMAIL);
   await adminPage.fill('input[type="password"]', PASSWORD);
-  await adminPage.click('button[type="submit"]');
-  await adminPage.waitForFunction(() => !window.location.pathname.endsWith("/admin/login"), null, {
-    timeout: 90_000,
-  });
+  await Promise.all([
+    adminPage.waitForURL(/\/admin\/(dashboard|accept-invite)/, { timeout: 45_000 }),
+    adminPage.click('button[type="submit"]'),
+  ]);
+
   const url = adminPage.url();
   if (url.includes("/admin/login")) {
-    throw new Error("Still on login page after submit");
+    throw new Error(`Login failed (url: ${url})`);
   }
   console.log("PASS: Logged in, landed at", url);
 }
@@ -74,7 +76,7 @@ async function verifySettingsTextSync(adminPage, publicPage) {
   const headline = await getHeadlineInput(adminPage);
   const original = await headline.inputValue();
   await headline.fill(marker);
-  await adminPage.locator('button:has-text("Save Changes")').click();
+  await adminPage.locator('button:has-text("Save Changes")').click({ force: true });
   await adminPage.waitForTimeout(4000);
 
   const savedInAdmin = await (await getHeadlineInput(adminPage)).inputValue();
@@ -92,7 +94,7 @@ async function verifySettingsTextSync(adminPage, publicPage) {
 
   await gotoWithRetry(adminPage, `${BASE}/admin/settings`);
   await (await getHeadlineInput(adminPage)).fill(original);
-  await adminPage.locator('button:has-text("Save Changes")').click();
+  await adminPage.locator('button:has-text("Save Changes")').click({ force: true });
   await adminPage.waitForTimeout(3000);
   console.log("Restored original headline");
 }
@@ -139,11 +141,10 @@ async function verifyHomepageBannerImage(adminPage, publicPage) {
 }
 
 async function main() {
-  const browser = await chromium.launch({ headless: true });
-  const adminPage = await browser.newPage();
-  const publicPage = await browser.newPage();
+  const browser = await firefox.launch({ headless: true });
   const failures = [];
 
+  const adminPage = await browser.newPage();
   try {
     await verifyLogin(adminPage);
   } catch (err) {
@@ -151,21 +152,24 @@ async function main() {
   }
 
   if (failures.length === 0) {
+    const publicPage = await browser.newPage();
     try {
       await verifySettingsTextSync(adminPage, publicPage);
     } catch (err) {
       failures.push(`Settings sync: ${err instanceof Error ? err.message : err}`);
     }
-  }
 
-  if (failures.length === 0) {
-    try {
-      await verifyHomepageBannerImage(adminPage, publicPage);
-    } catch (err) {
-      failures.push(`Banner image: ${err instanceof Error ? err.message : err}`);
+    if (failures.length === 0) {
+      try {
+        await verifyHomepageBannerImage(adminPage, publicPage);
+      } catch (err) {
+        failures.push(`Banner image: ${err instanceof Error ? err.message : err}`);
+      }
     }
+    await publicPage.close();
   }
 
+  await adminPage.close();
   await browser.close();
 
   if (failures.length) {
