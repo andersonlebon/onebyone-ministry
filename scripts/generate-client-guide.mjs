@@ -4,7 +4,7 @@
  * Usage: ADMIN_EMAIL=... ADMIN_PASSWORD=... node scripts/generate-client-guide.mjs
  */
 
-import { chromium } from "playwright";
+import { chromium, firefox } from "playwright";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -103,7 +103,7 @@ async function gotoWithRetry(page, url, attempts = 3) {
   let lastError;
   for (let i = 0; i < attempts; i++) {
     try {
-      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90_000 });
+      await page.goto(url, { waitUntil: "load", timeout: 90_000 });
       await page.waitForTimeout(2500);
       return;
     } catch (err) {
@@ -127,7 +127,7 @@ async function fetchLogoBase64() {
 async function captureScreenshots() {
   await mkdir(SHOTS_DIR, { recursive: true });
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await firefox.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 1,
@@ -141,8 +141,10 @@ async function captureScreenshots() {
   // Authenticate
   await page.fill('input[type="email"]', EMAIL);
   await page.fill('input[type="password"]', PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForFunction(() => !window.location.pathname.endsWith("/admin/login"), null, { timeout: 90_000 });
+  await Promise.all([
+    page.waitForURL(/\/admin\/(dashboard|accept-invite)/, { timeout: 90_000 }),
+    page.click('button[type="submit"]'),
+  ]);
 
   if (page.url().includes("accept-invite")) {
     throw new Error("Account needs invite password setup. Complete that flow first.");

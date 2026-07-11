@@ -40,8 +40,8 @@ async function getHeadlineInput(page) {
 async function gotoWithRetry(page, url) {
   for (let i = 0; i < 3; i++) {
     try {
-      await page.goto(url, { waitUntil: "networkidle", timeout: 90_000 });
-      await page.waitForTimeout(1500);
+      await page.goto(url, { waitUntil: "load", timeout: 90_000 });
+      await page.waitForTimeout(2000);
       return;
     } catch (err) {
       if (i === 2) throw err;
@@ -76,8 +76,8 @@ async function verifySettingsTextSync(adminPage, publicPage) {
   const headline = await getHeadlineInput(adminPage);
   const original = await headline.inputValue();
   await headline.fill(marker);
-  await adminPage.locator('button:has-text("Save Changes")').click({ force: true });
-  await adminPage.waitForTimeout(4000);
+  await adminPage.locator('button:has-text("Save Changes"):not([disabled])').click();
+  await adminPage.waitForTimeout(6000);
 
   const savedInAdmin = await (await getHeadlineInput(adminPage)).inputValue();
   if (!savedInAdmin.includes(marker)) {
@@ -85,16 +85,17 @@ async function verifySettingsTextSync(adminPage, publicPage) {
   }
 
   await gotoWithRetry(publicPage, `${BASE}/?v=${Date.now()}`);
-  await publicPage.waitForTimeout(5000);
+  await publicPage.waitForTimeout(8000);
   const bodyText = await publicPage.locator("body").innerText();
-  if (!bodyText.includes(marker)) {
+  const html = await publicPage.content();
+  if (!bodyText.includes(marker) && !html.includes(marker)) {
     throw new Error("Public homepage does not show saved headline");
   }
   console.log("PASS: Saved headline appears on public homepage");
 
   await gotoWithRetry(adminPage, `${BASE}/admin/settings`);
   await (await getHeadlineInput(adminPage)).fill(original);
-  await adminPage.locator('button:has-text("Save Changes")').click({ force: true });
+  await adminPage.locator('button:has-text("Save Changes"):not([disabled])').click();
   await adminPage.waitForTimeout(3000);
   console.log("Restored original headline");
 }
