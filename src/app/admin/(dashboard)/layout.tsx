@@ -20,9 +20,9 @@ export const metadata: Metadata = {
 
 export default async function AdminSectionLayout({ children }: { children: React.ReactNode }) {
   const contentFallback = getDefaultSiteContentBundle();
-  const mediaFallback = { media: getPlaceholderMediaBundle(), version: null };
+  const mediaFallback = { media: getPlaceholderMediaBundle(), version: null, albums: [] };
 
-  const [{ media, version }, content, donations, paymentEnv] = await Promise.all([
+  const [{ media, version, albums }, content, donations, paymentEnv] = await Promise.all([
     withTimeout(getPublicMediaBundle(), 8_000, mediaFallback),
     withTimeout(getSiteContentBundle(), 8_000, contentFallback),
     isDatabaseConfigured()
@@ -35,6 +35,7 @@ export default async function AdminSectionLayout({ children }: { children: React
     <AdminDashboardLayout
       initialMedia={media}
       initialMediaVersion={version}
+      initialAlbums={albums}
       initialContent={content}
       initialDonations={donations}
       paymentEnv={paymentEnv}

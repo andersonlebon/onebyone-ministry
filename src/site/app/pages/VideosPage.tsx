@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Play, Youtube } from "lucide-react";
-import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
-
-const CATEGORIES = ["All", "Education", "Community"];
 
 const CATEGORY_COLORS: Record<string, string> = {
   Education: "#6E9277",
@@ -29,6 +27,7 @@ const fadeUp: Variants = {
 export default function VideosPage() {
   const c = useColors();
   const { featuredVideo, websiteUseImages } = useSiteMedia();
+  const bannerSrc = useMediaUrl(websiteUseImages.outreach);
   const { videos: contentVideos } = useSiteContent();
   const VIDEOS = contentVideos.map((v) => ({
     id: v.youtubeId,
@@ -50,6 +49,11 @@ export default function VideosPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [playingId, setPlayingId] = useState<string | null>(null);
 
+  const categories = useMemo(() => {
+    const used = Array.from(new Set(VIDEOS.map((v) => v.category).filter(Boolean)));
+    return used.length > 1 ? ["All", ...used] : [];
+  }, [VIDEOS]);
+
   const filtered = activeCategory === "All"
     ? VIDEOS
     : VIDEOS.filter((v) => v.category === activeCategory);
@@ -57,7 +61,7 @@ export default function VideosPage() {
   return (
     <div className="pt-20">
       <PageHero
-        imageSrc={websiteUseImages.outreach}
+        imageSrc={bannerSrc}
         imageAlt="Ministry videos"
         eyebrow="Watch & Be Moved"
         title="Video Library"
@@ -139,9 +143,9 @@ export default function VideosPage() {
             <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>Browse the Collection</h2>
           </motion.div>
 
-          {/* Filters */}
+          {categories.length > 0 ? (
           <div className="flex flex-wrap gap-2 mb-10">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -156,6 +160,7 @@ export default function VideosPage() {
               </button>
             ))}
           </div>
+          ) : null}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filtered.map((video, i) => (

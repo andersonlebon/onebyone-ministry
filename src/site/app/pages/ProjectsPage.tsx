@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { X, ArrowRight, Clock, CheckCircle2 } from "lucide-react";
-import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
-
-const CATEGORIES = ["All", "Education", "Entrepreneurship", "Discipleship", "Community"];
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -20,9 +18,15 @@ const fadeUp: Variants = {
 export default function ProjectsPage() {
   const c = useColors();
   const { websiteUseImages } = useSiteMedia();
+  const bannerSrc = useMediaUrl(websiteUseImages.projects);
   const { projects: PROJECTS } = useSiteContent();
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProject, setSelectedProject] = useState<(typeof PROJECTS)[number] | null>(null);
+
+  const categories = useMemo(() => {
+    const used = Array.from(new Set(PROJECTS.map((p) => p.category).filter(Boolean)));
+    return used.length > 1 ? ["All", ...used] : [];
+  }, [PROJECTS]);
 
   const filtered = activeCategory === "All"
     ? PROJECTS
@@ -31,7 +35,7 @@ export default function ProjectsPage() {
   return (
     <div className="overflow-x-hidden">
       <PageHero
-        imageSrc={websiteUseImages.projects}
+        imageSrc={bannerSrc}
         imageAlt="Projects in the DRC"
         eyebrow="On the Ground"
         title="Our Projects"
@@ -42,9 +46,9 @@ export default function ProjectsPage() {
       {/* Filter + Grid */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
-          {/* Category Filter */}
+          {categories.length > 0 ? (
           <div className="flex flex-wrap gap-2.5 mb-12">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -59,6 +63,7 @@ export default function ProjectsPage() {
               </button>
             ))}
           </div>
+          ) : null}
 
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">

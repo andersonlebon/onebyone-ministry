@@ -16,10 +16,13 @@ export async function headers() {
 }
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const [{ media, version }, content] = await Promise.all([getPublicMediaBundle(), getSiteContentBundle()]);
+  const [{ media, version, albums }, content] = await Promise.all([
+    getPublicMediaBundle(),
+    getSiteContentBundle(),
+  ]);
 
   return (
-    <MediaProvider media={media} version={version}>
+    <MediaProvider media={media} version={version} albums={albums}>
       <SiteContentProvider content={content}>
         <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
           <Navbar />

@@ -30,6 +30,8 @@ export type Photo = {
   src: string;
   alt: string;
   category: string;
+  albumId?: string | null;
+  albumName?: string | null;
 };
 
 export type Project = {

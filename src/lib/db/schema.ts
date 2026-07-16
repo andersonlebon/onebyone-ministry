@@ -3,6 +3,18 @@ import { integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-c
 export const mediaFolders = ["photos", "projects", "posts", "videos", "brand", "general"] as const;
 export type MediaFolder = (typeof mediaFolders)[number];
 
+/** Custom photo albums (admin-created names for the public gallery). */
+export const photoAlbums = pgTable("photo_albums", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type PhotoAlbum = typeof photoAlbums.$inferSelect;
+export type NewPhotoAlbum = typeof photoAlbums.$inferInsert;
+
 export const mediaAssets = pgTable("media_assets", {
   id: uuid("id").defaultRandom().primaryKey(),
   bucket: text("bucket").notNull().default("media"),
@@ -10,6 +22,7 @@ export const mediaAssets = pgTable("media_assets", {
   publicUrl: text("public_url").notNull(),
   alt: text("alt"),
   category: text("category"),
+  albumId: uuid("album_id").references(() => photoAlbums.id, { onDelete: "set null" }),
   folder: text("folder").notNull().default("photos"),
   uploadedBy: uuid("uploaded_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

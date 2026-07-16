@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { Save, CheckCircle2, AlertCircle, ExternalLink, Eye, X } from "lucide-react";
-import { updateSiteMediaAction } from "@/app/actions/site-media";
+import { updateSiteMediaSlotAction, type SiteMediaSlotPath } from "@/app/actions/site-media";
 import type { SiteMediaBundle } from "@/lib/media/types";
 import type { MediaFolder } from "@/lib/db/schema";
 import { useSiteMedia } from "@/site/lib/mediaContext";
@@ -17,7 +17,9 @@ type MediaSlotConfig = {
   id: string;
   label: string;
   previewLabel: string;
+  viewUrl: string;
   folder: MediaFolder;
+  path: SiteMediaSlotPath;
   getValue: (media: SiteMediaBundle) => string;
   applyValue: (media: SiteMediaBundle, url: string) => SiteMediaBundle;
 };
@@ -25,49 +27,81 @@ type MediaSlotConfig = {
 const MEDIA_SLOTS: MediaSlotConfig[] = [
   {
     id: "hero",
-    label: "Homepage hero",
-    previewLabel: "Shows on the home page hero",
+    label: "Home page top image",
+    previewLabel: "Background image at the top of the Home page (/).",
+    viewUrl: "/",
     folder: "general",
+    path: ["websiteUseImages", "hero"],
     getValue: (m) => m.websiteUseImages.hero,
     applyValue: (m, url) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, hero: url } }),
   },
   {
     id: "about",
-    label: "About page hero",
-    previewLabel: "Shows on the About page header",
+    label: "About page top image",
+    previewLabel: "Top banner on the About page (/about).",
+    viewUrl: "/about",
     folder: "general",
+    path: ["websiteUseImages", "about"],
     getValue: (m) => m.websiteUseImages.about,
     applyValue: (m, url) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, about: url } }),
   },
   {
     id: "projects",
-    label: "Projects page hero",
-    previewLabel: "Shows on the Projects page header",
+    label: "Projects page top image",
+    previewLabel: "Top banner on the Projects page (/projects).",
+    viewUrl: "/projects",
     folder: "general",
+    path: ["websiteUseImages", "projects"],
     getValue: (m) => m.websiteUseImages.projects,
     applyValue: (m, url) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, projects: url } }),
   },
   {
-    id: "contactHero",
-    label: "Contact page hero",
-    previewLabel: "Shows on the Contact page header",
+    id: "photos",
+    label: "Photos page top image",
+    previewLabel: "Top banner on the Photos page (/photos). Gallery photos are managed in Photo Library.",
+    viewUrl: "/photos",
     folder: "general",
+    path: ["websiteUseImages", "community"],
+    getValue: (m) => m.websiteUseImages.community,
+    applyValue: (m, url) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, community: url } }),
+  },
+  {
+    id: "videos",
+    label: "Videos page top image",
+    previewLabel: "Top banner on the Videos page (/videos).",
+    viewUrl: "/videos",
+    folder: "general",
+    path: ["websiteUseImages", "outreach"],
+    getValue: (m) => m.websiteUseImages.outreach,
+    applyValue: (m, url) => ({ ...m, websiteUseImages: { ...m.websiteUseImages, outreach: url } }),
+  },
+  {
+    id: "contactHero",
+    label: "Contact page top image",
+    previewLabel: "Top banner on the Contact page (/contact).",
+    viewUrl: "/contact",
+    folder: "general",
+    path: ["localImages", "contactHero"],
     getValue: (m) => m.localImages.contactHero,
     applyValue: (m, url) => ({ ...m, localImages: { ...m.localImages, contactHero: url } }),
   },
   {
     id: "donateHero",
-    label: "Donate page hero",
-    previewLabel: "Shows on the Donate page header",
+    label: "Donate page top image",
+    previewLabel: "Top banner on the Donate page (/donate).",
+    viewUrl: "/donate",
     folder: "general",
+    path: ["localImages", "donateHero"],
     getValue: (m) => m.localImages.donateHero,
     applyValue: (m, url) => ({ ...m, localImages: { ...m.localImages, donateHero: url } }),
   },
   {
     id: "storyHero",
-    label: "Stories page hero",
-    previewLabel: "Shows on the Stories page header",
+    label: "Stories page top image",
+    previewLabel: "Top banner on the Stories page (/stories).",
+    viewUrl: "/stories",
     folder: "general",
+    path: ["localImages", "storyHero"],
     getValue: (m) => m.localImages.storyHero,
     applyValue: (m, url) => ({ ...m, localImages: { ...m.localImages, storyHero: url } }),
   },
@@ -187,12 +221,15 @@ export default function AdminSettings() {
     setActiveSection("images");
     setActiveImageSlot(slot);
     setSavingMediaSlot(slot.id);
+    setSaveError("");
 
     try {
-      await updateSiteMediaAction(next);
+      const savedBundle = await updateSiteMediaSlotAction(slot.path, publicUrl);
+      setMediaForm(savedBundle);
+      setLiveSiteUrl(`${slot.viewUrl}?v=${Date.now()}`);
       router.refresh();
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Image upload saved locally but failed to sync.");
+      setSaveError(err instanceof Error ? err.message : "Image upload failed to sync to the live site.");
     } finally {
       setSavingMediaSlot(null);
     }
@@ -204,7 +241,8 @@ export default function AdminSettings() {
         <div>
           <h1 className="text-2xl text-foreground">Site Settings</h1>
           <p className="text-sm text-muted-foreground max-w-2xl">
-            Edit homepage text, contact details, social links, and page hero images. Text changes need Save Changes. Image uploads save automatically.
+            Edit homepage text, contact details, social links, and each page&apos;s top banner image.
+            Text needs Save Changes. Banner uploads save automatically. Gallery photos are in Photo Library.
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -251,16 +289,16 @@ export default function AdminSettings() {
         </div>
       )}
 
-      {saved && liveSiteUrl && (
+      {(saved || liveSiteUrl) && liveSiteUrl && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#6E9277]/30 bg-[#6E9277]/10 px-4 py-3 text-sm text-foreground">
-          <p>Settings saved to the live website.</p>
+          <p>{saved ? "Settings saved to the live website." : "Banner image saved. Open the page to confirm (refresh if needed)."}</p>
           <a
             href={liveSiteUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 font-semibold text-[#6E9277] hover:underline"
           >
-            View live website <ExternalLink size={14} />
+            View that page <ExternalLink size={14} />
           </a>
         </div>
       )}
@@ -311,9 +349,10 @@ export default function AdminSettings() {
             onMouseEnter={() => setActiveSection("images")}
           >
             <div className="mb-4 pb-3 border-b border-muted">
-              <h3 className="text-sm font-semibold text-foreground">Page Hero Images</h3>
+              <h3 className="text-sm font-semibold text-foreground">Page top banner images</h3>
               <p className="text-xs text-muted-foreground mt-1">
-                Upload a photo for each page header. Each upload saves automatically. Logos are fixed and cannot be changed here.
+                These change the large image at the top of each public page. Each upload saves automatically.
+                Logos cannot be changed here. To add gallery photos, use Photo Library (not this section).
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -337,6 +376,14 @@ export default function AdminSettings() {
                     onUploaded={(publicUrl) => void handleMediaUpload(slot, publicUrl)}
                   />
                   <p className="text-[11px] text-muted-foreground mt-2">{slot.previewLabel}</p>
+                  <a
+                    href={`${slot.viewUrl}?v=${Date.now()}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#6E9277] hover:underline mt-1"
+                  >
+                    Open that page <ExternalLink size={11} />
+                  </a>
                 </div>
               ))}
             </div>

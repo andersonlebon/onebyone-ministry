@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { WaveDivider, AnimatedBlob, DotPattern, Sparkles } from "../components/shared/SvgDecorators";
 import PageHero from "../components/shared/PageHero";
-import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import {
   BankPanel,
@@ -57,6 +57,7 @@ function DonatePageContent() {
   const searchParams = useSearchParams();
   const { settings, finance } = useSiteContent();
   const { localImages } = useSiteMedia();
+  const donateBanner = useMediaUrl(localImages.donateHero);
   const testimonials = TESTIMONIALS(localImages);
   const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
   const [selectedAmount, setSelectedAmount] = useState("100");
@@ -69,7 +70,7 @@ function DonatePageContent() {
   return (
     <div className="overflow-x-hidden pt-20">
       <PageHero
-        imageSrc={localImages.donateHero}
+        imageSrc={donateBanner}
         imageAlt="Hands together"
         eyebrow="Every Gift Matters"
         title={settings.donatePageHeadline || "Give to Change a Life in Congo"}

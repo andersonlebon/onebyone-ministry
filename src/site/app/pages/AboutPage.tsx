@@ -6,7 +6,7 @@ import { useColors } from "../../lib/themeStore";
 import { Heart, Globe, BookOpen, Users, Lightbulb, ArrowRight } from "lucide-react";
 import { WaveDivider, AnimatedBlob, DotPattern, CrossPattern, DiagonalStripes, Sparkles } from "../components/shared/SvgDecorators";
 import FoundersTree from "../components/shared/FoundersTree";
-import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import type { SiteMediaBundle } from "@/lib/media/types";
 import { SECTION_PY } from "../../lib/pageLayout";
@@ -34,6 +34,7 @@ export default function AboutPage() {
   const c = useColors();
   const { settings } = useSiteContent();
   const { aboutStoryImages, localImages, websiteUseImages } = useSiteMedia();
+  const aboutBanner = useMediaUrl(websiteUseImages.about);
   return (
     <div className="overflow-x-hidden">
 
@@ -43,7 +44,7 @@ export default function AboutPage() {
           style={{ width: "calc(100% + 200px)", left: "50%", transform: "translateX(-50%)" }}
         >
           <motion.img
-            src={websiteUseImages.about}
+            src={aboutBanner}
             alt="Community gathering"
             className="absolute inset-0 w-full h-full object-cover"
             style={{ opacity: c.isDark ? 0.26 : 0.38 }}
