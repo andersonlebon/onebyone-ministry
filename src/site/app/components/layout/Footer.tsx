@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useColors } from "../../../lib/themeStore";
 import { Facebook, Instagram, Youtube, Mail, MapPin, Phone, Heart } from "lucide-react";
@@ -45,13 +44,11 @@ export default function Footer() {
             <img
               src={brandAssets.logoWhite}
               alt="One By One Ministries"
-              className="h-24 w-auto object-contain mb-4"
+              className="h-24 w-auto object-contain mb-5"
             />
-            <p className="text-white/70 text-sm leading-relaxed mb-5">
-              {settings.missionStatement}
-            </p>
-            {socials.length > 0 && (
-              <div className="flex gap-3">
+            <p className="text-white text-sm font-semibold mb-3 tracking-wide">Follow us</p>
+            {socials.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
                 {socials.map(({ href, icon: Icon, label }) => (
                   <a
                     key={label}
@@ -59,12 +56,17 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="w-9 h-9 rounded flex items-center justify-center bg-white/10 hover:bg-[#6E9277] transition-colors"
+                    title={label}
+                    className="w-14 h-14 rounded-xl flex items-center justify-center bg-white/10 hover:bg-[#6E9277] transition-colors"
                   >
-                    <Icon size={16} />
+                    <Icon size={28} strokeWidth={1.75} />
                   </a>
                 ))}
               </div>
+            ) : (
+              <p className="text-white/50 text-xs leading-relaxed">
+                Add Facebook, Instagram, and YouTube links in Site Settings to show them here.
+              </p>
             )}
           </div>
 
