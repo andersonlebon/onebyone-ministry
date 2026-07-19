@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 
@@ -28,6 +29,7 @@ export function InlineProjectsEditor({
   title?: string;
 }) {
   const canEdit = useCanInlineEdit();
+  const router = useRouter();
   const { projects } = useSiteContent();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Project | undefined>();
@@ -39,7 +41,9 @@ export function InlineProjectsEditor({
 
   const persist = async (next: Project[]) => {
     await updateProjectsAction(next);
-    window.location.reload();
+    setOpen(false);
+    setShowForm(false);
+    router.refresh();
   };
 
   const saveProject = async (form: ProjectFormValues) => {
