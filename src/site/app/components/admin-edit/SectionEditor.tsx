@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { Pencil, X, Save, Upload, Loader2 } from "lucide-react";
 import { useCanInlineEdit } from "@/site/lib/adminEditContext";
 import { createClient } from "@/lib/supabase/client";
@@ -24,6 +25,7 @@ export function SectionEditor({
   children: ReactNode;
 }) {
   const canEdit = useCanInlineEdit();
+  const router = useRouter();
   const { settings } = useSiteContent();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Partial<SiteSettings>>({});
@@ -51,7 +53,8 @@ export function SectionEditor({
     try {
       await updateSettingsAction({ ...settings, ...draft } as SiteSettings);
       setSaved(true);
-      window.location.reload();
+      setOpen(false);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save.");
     } finally {
@@ -69,7 +72,8 @@ export function SectionEditor({
       void storagePath;
       await updateSiteMediaSlotAction(path, publicUrl);
       setSaved(true);
-      window.location.reload();
+      setOpen(false);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
