@@ -15,8 +15,8 @@ const GUIDE_ITEMS = [
     href: "/admin/settings",
     icon: Settings,
     title: "Site Settings",
-    edits: "Main title on the home page, mission text, contact info, social links, and banner images for each page",
-    showsOn: "Home page, footer, Contact page",
+    edits: "Home page title, mission text, contact info, social links, and top banner image for each page",
+    showsOn: "Home, About, Projects, Photos, Videos, Stories, Donate, Contact top banners",
     color: "#6E9277",
   },
   {
@@ -39,8 +39,8 @@ const GUIDE_ITEMS = [
     href: "/admin/photos",
     icon: ImageIcon,
     title: "Photo Library",
-    edits: "Upload and manage gallery photos",
-    showsOn: "Photos page (/photos)",
+    edits: "Gallery photos and custom albums (not page top banners)",
+    showsOn: "Photos gallery grid (/photos)",
     color: "#EAC79A",
   },
   {

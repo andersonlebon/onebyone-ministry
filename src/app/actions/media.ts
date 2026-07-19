@@ -43,6 +43,7 @@ export async function createMediaAssetAction(input: {
   folder: MediaFolder;
   alt?: string;
   category?: string;
+  albumId?: string | null;
 }): Promise<MediaAsset> {
   assertDatabase();
   const user = await requireAdminUser();
@@ -54,6 +55,7 @@ export async function createMediaAssetAction(input: {
     folder: input.folder,
     alt: input.alt ?? null,
     category: input.category ?? null,
+    albumId: input.albumId ?? null,
     uploadedBy: user.id,
   }).then((asset) => {
     revalidatePublicSite();
@@ -63,7 +65,12 @@ export async function createMediaAssetAction(input: {
 
 export async function updateMediaAssetAction(
   id: string,
-  input: { alt: string; category: string; publicUrl: string }
+  input: {
+    alt: string;
+    category: string;
+    publicUrl: string;
+    albumId?: string | null;
+  }
 ): Promise<MediaAsset> {
   assertDatabase();
   await requireAdminUser();

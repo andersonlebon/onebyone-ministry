@@ -9,7 +9,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
 import AdminShell from "@/site/app/admin/AdminShell";
 import { SiteStoreProvider } from "@/site/lib/siteStore";
-import { MediaProvider } from "@/site/lib/mediaContext";
+import { MediaProvider, type PublicAlbum } from "@/site/lib/mediaContext";
 import type { SiteMediaBundle } from "@/lib/media/types";
 import type { Donation, SiteContentBundle } from "@/lib/site-content/types";
 import type { PaymentEnvStatus } from "@/lib/donate/payment-env-types";
@@ -19,6 +19,7 @@ export default function AdminDashboardLayout({
   children,
   initialMedia,
   initialMediaVersion = null,
+  initialAlbums = [],
   initialContent,
   initialDonations = [],
   paymentEnv = { stripeKeys: false, stripeWebhook: false },
@@ -26,6 +27,7 @@ export default function AdminDashboardLayout({
   children: React.ReactNode;
   initialMedia: SiteMediaBundle;
   initialMediaVersion?: number | null;
+  initialAlbums?: PublicAlbum[];
   initialContent: SiteContentBundle;
   initialDonations?: Donation[];
   paymentEnv?: PaymentEnvStatus;
@@ -128,7 +130,7 @@ export default function AdminDashboardLayout({
 
   return (
     <ReadinessEnvProvider value={paymentEnv}>
-      <MediaProvider media={initialMedia} version={initialMediaVersion}>
+      <MediaProvider media={initialMedia} version={initialMediaVersion} albums={initialAlbums}>
         <SiteStoreProvider initialData={{ ...initialContent, donations: initialDonations }}>
           <AdminShell onLogout={handleLogout}>{children}</AdminShell>
         </SiteStoreProvider>

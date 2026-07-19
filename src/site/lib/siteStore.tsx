@@ -231,56 +231,74 @@ export function SiteStoreProvider({
 
   const addProject = useCallback(
     async (p: Omit<Project, "id">) => {
-      const next = [{ ...p, id: uid() }, ...projects];
-      setProjects(next);
+      let next: Project[] = [];
+      setProjects((prev) => {
+        next = [{ ...p, id: uid() }, ...prev];
+        return next;
+      });
       await persistProjects(next);
     },
-    [projects, persistProjects]
+    [persistProjects]
   );
 
   const updateProject = useCallback(
     async (id: string, p: Partial<Project>) => {
-      const next = projects.map((x) => (x.id === id ? { ...x, ...p } : x));
-      setProjects(next);
+      let next: Project[] = [];
+      setProjects((prev) => {
+        next = prev.map((x) => (x.id === id ? { ...x, ...p } : x));
+        return next;
+      });
       await persistProjects(next);
     },
-    [projects, persistProjects]
+    [persistProjects]
   );
 
   const deleteProject = useCallback(
     async (id: string) => {
-      const next = projects.filter((x) => x.id !== id);
-      setProjects(next);
+      let next: Project[] = [];
+      setProjects((prev) => {
+        next = prev.filter((x) => x.id !== id);
+        return next;
+      });
       await persistProjects(next);
     },
-    [projects, persistProjects]
+    [persistProjects]
   );
 
   const addVideo = useCallback(
     async (v: Omit<Video, "id">) => {
-      const next = [{ ...v, id: uid() }, ...videos];
-      setVideos(next);
+      let next: Video[] = [];
+      setVideos((prev) => {
+        next = [{ ...v, id: uid() }, ...prev];
+        return next;
+      });
       await persistVideos(next);
     },
-    [videos, persistVideos]
+    [persistVideos]
   );
 
   const updateVideo = useCallback(
     async (id: string, v: Partial<Video>) => {
-      const next = videos.map((x) => (x.id === id ? { ...x, ...v } : x));
-      setVideos(next);
+      let next: Video[] = [];
+      setVideos((prev) => {
+        next = prev.map((x) => (x.id === id ? { ...x, ...v } : x));
+        return next;
+      });
       await persistVideos(next);
     },
-    [videos, persistVideos]
+    [persistVideos]
   );
 
   const deleteVideo = useCallback(
     async (id: string) => {
-      const next = videos.filter((x) => x.id !== id);
-      setVideos(next);
+      let next: Video[] = [];
+      setVideos((prev) => {
+        next = prev.filter((x) => x.id !== id);
+        return next;
+      });
       await persistVideos(next);
     },
-    [videos, persistVideos]
+    [persistVideos]
   );
 
   const updateSettings = useCallback(async (s: Partial<SiteSettings>) => {

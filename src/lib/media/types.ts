@@ -2,7 +2,10 @@ export type GalleryPhoto = {
   id: number;
   src: string;
   alt: string;
-  category: "Education" | "Community" | "Worship" | "Outreach";
+  /** Legacy category label; public gallery filters by album now. */
+  category: string;
+  albumId?: string | null;
+  albumName?: string | null;
   h: number;
 };
 

@@ -28,7 +28,7 @@ export async function createMediaAsset(input: NewMediaAsset): Promise<MediaAsset
 
 export async function updateMediaAsset(
   id: string,
-  input: Partial<Pick<MediaAsset, "alt" | "category" | "publicUrl">>
+  input: Partial<Pick<MediaAsset, "alt" | "category" | "publicUrl" | "albumId">>
 ): Promise<MediaAsset> {
   const db = getDb();
   const [row] = await db

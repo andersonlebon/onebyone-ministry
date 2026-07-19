@@ -467,6 +467,7 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ FEATURED PROJECTS ══════════ */}
+      {PROJECTS.length > 0 ? (
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <AnimatedBlob color="#6E9277" opacity={0.05} size={500} className="top-20 -left-40" />
 
@@ -530,6 +531,9 @@ export default function HomePage() {
         </div>
         <WaveDivider topColor={c.white} bottomColor="#5A4749" />
       </section>
+      ) : (
+        <WaveDivider topColor={c.cream} bottomColor="#5A4749" />
+      )}
 
       {/* ══════════ VERSE BREAK ══════════ */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#5A4749" }}>

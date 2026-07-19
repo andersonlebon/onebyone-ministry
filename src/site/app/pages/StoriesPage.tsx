@@ -1,18 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { Search, ArrowRight, Calendar, Tag } from "lucide-react";
-import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { usePublishedPosts, useSiteContent } from "@/site/lib/siteContentContext";
 import NewsletterSubscribeForm from "../components/shared/NewsletterSubscribeForm";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
-
-const CATEGORIES = ["All", "Education", "Discipleship", "Entrepreneurship", "Community", "Updates"];
 
 const CATEGORY_COLORS: Record<string, string> = {
   Education: "#6E9277",
@@ -30,6 +28,7 @@ const fadeUp: Variants = {
 export default function StoriesPage() {
   const c = useColors();
   const { localImages } = useSiteMedia();
+  const bannerSrc = useMediaUrl(localImages.storyHero);
   const published = usePublishedPosts();
   const STORIES = published.map((post, index) => ({
     id: post.id,
@@ -49,6 +48,11 @@ export default function StoriesPage() {
   const featured = STORIES.find((s) => s.featured);
   const rest = STORIES.filter((s) => !s.featured);
 
+  const categories = useMemo(() => {
+    const used = Array.from(new Set(STORIES.map((s) => s.category).filter(Boolean)));
+    return used.length > 1 ? ["All", ...used] : [];
+  }, [STORIES]);
+
   const filtered = rest.filter((s) => {
     const matchesCat = activeCategory === "All" || s.category === activeCategory;
     const matchesSearch = s.title.toLowerCase().includes(search.toLowerCase()) || s.excerpt.toLowerCase().includes(search.toLowerCase());
@@ -60,7 +64,7 @@ export default function StoriesPage() {
   return (
     <div className="overflow-x-hidden">
       <PageHero
-        imageSrc={localImages.storyHero}
+        imageSrc={bannerSrc}
         imageAlt="Ministry stories"
         eyebrow="From the Field"
         title="Stories & Updates"
@@ -132,9 +136,9 @@ export default function StoriesPage() {
                 </div>
               </div>
 
-              {/* Category pills */}
+              {categories.length > 0 ? (
               <div className="flex flex-wrap gap-2 mb-8">
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
@@ -149,6 +153,7 @@ export default function StoriesPage() {
                   </button>
                 ))}
               </div>
+              ) : null}
 
               {/* Story Cards */}
               <div className="space-y-6 lg:space-y-8">
@@ -228,13 +233,13 @@ export default function StoriesPage() {
                 </div>
               </div>
 
-              {/* Categories */}
+              {categories.filter((cat) => cat !== "All").length > 0 ? (
               <div className="rounded-xl p-6" style={{ backgroundColor: c.white }}>
                 <h4 className="text-sm mb-5 flex items-center gap-2" style={{ color: c.text }}>
                   <Tag size={14} style={{ color: "#6E9277" }} /> Categories
                 </h4>
                 <div className="space-y-2">
-                  {CATEGORIES.filter(c => c !== "All").map((cat) => {
+                  {categories.filter((cat) => cat !== "All").map((cat) => {
                     const count = STORIES.filter(s => s.category === cat).length;
                     return (
                       <button
@@ -252,6 +257,7 @@ export default function StoriesPage() {
                   })}
                 </div>
               </div>
+              ) : null}
 
               {/* Newsletter */}
               <div className="rounded-xl p-6" style={{ backgroundColor: "#6E9277" }}>

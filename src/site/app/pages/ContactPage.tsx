@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { Mail, MapPin, Phone, Facebook, Instagram, Youtube, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { submitContact } from "@/app/actions/contact";
 import { siteConfig } from "@/lib/site";
-import { useSiteMedia } from "@/site/lib/mediaContext";
+import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import NewsletterSubscribeForm from "../components/shared/NewsletterSubscribeForm";
 import PageHero from "../components/shared/PageHero";
@@ -75,6 +75,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 export default function ContactPage() {
   const c = useColors();
   const { localImages } = useSiteMedia();
+  const contactBanner = useMediaUrl(localImages.contactHero);
   const { settings } = useSiteContent();
   const email = settings.contactEmail || siteConfig.email;
   const phone = settings.contactPhone;
@@ -115,7 +116,7 @@ export default function ContactPage() {
   return (
     <div className="overflow-x-hidden">
       <PageHero
-        imageSrc={localImages.contactHero}
+        imageSrc={contactBanner}
         imageAlt="Connect with us"
         eyebrow="Get in Touch"
         title="Contact Us"
