@@ -1,10 +1,5 @@
 import { galleryPhotos } from "@/content/media";
-import {
-  defaultPosts,
-  defaultProjects,
-  defaultSiteSettings,
-  defaultVideos,
-} from "@/content/site-defaults";
+import { defaultSiteSettings } from "@/content/site-defaults";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
 
 import type { AdminUser, Donation, Photo, Post, Project, SiteSettings, Video } from "@/lib/site-content/types";
@@ -24,18 +19,6 @@ const DEMO_ADMINS: AdminUser[] = [
   { id: "a1", name: "Emmanuel Tshilobo", email: "admin@obom.org", role: "super-admin", addedDate: "January 1, 2015", addedBy: "System", lastLogin: "Today" },
 ];
 
-const PRODUCTION_SETTINGS: SiteSettings = {
-  heroHeadline: defaultSiteSettings.heroHeadline,
-  heroSubheadline: defaultSiteSettings.heroSubheadline,
-  missionStatement: defaultSiteSettings.missionStatement,
-  donatePageHeadline: defaultSiteSettings.donatePageHeadline,
-  contactEmail: defaultSiteSettings.contactEmail,
-  contactPhone: "",
-  facebookUrl: "",
-  instagramUrl: "",
-  youtubeUrl: "",
-};
-
 export const DEMO_MONTHLY_ANALYTICS = [
   { month: "Jan", amount: 3200, donors: 8 },
   { month: "Feb", amount: 4800, donors: 12 },
@@ -46,11 +29,11 @@ export const DEMO_MONTHLY_ANALYTICS = [
 ];
 
 export function getInitialSiteSettings(): SiteSettings {
-  return isDemoContentEnabled() ? { ...defaultSiteSettings } : { ...PRODUCTION_SETTINGS };
+  return { ...defaultSiteSettings };
 }
 
 export function getInitialPosts(): Post[] {
-  return isDemoContentEnabled() ? defaultPosts.map((p) => ({ ...p })) : [];
+  return [];
 }
 
 export function getInitialPhotos(): Photo[] {
@@ -64,11 +47,11 @@ export function getInitialPhotos(): Photo[] {
 }
 
 export function getInitialProjects(): Project[] {
-  return isDemoContentEnabled() ? defaultProjects.map((p) => ({ ...p })) : [];
+  return [];
 }
 
 export function getInitialVideos(): Video[] {
-  return isDemoContentEnabled() ? defaultVideos.map((v) => ({ ...v })) : [];
+  return [];
 }
 
 export function getInitialDonations(): Donation[] {

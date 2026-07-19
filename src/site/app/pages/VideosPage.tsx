@@ -9,6 +9,7 @@ import { useSiteContent } from "@/site/lib/siteContentContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
+import { SectionEditor } from "../components/admin-edit/SectionEditor";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Education: "#6E9277",
@@ -58,22 +59,39 @@ export default function VideosPage() {
     ? VIDEOS
     : VIDEOS.filter((v) => v.category === activeCategory);
 
+  const hasFeatured = Boolean(FEATURED.id);
+
   return (
     <div className="pt-20">
-      <PageHero
-        imageSrc={bannerSrc}
-        imageAlt="Ministry videos"
-        eyebrow="Watch & Be Moved"
-        title="Video Library"
-        bottomColor={c.white}
-        variant="cinematic"
-      />
-      {/* Featured Video */}
+      <SectionEditor
+        title="Videos page banner"
+        fields={[
+          {
+            kind: "image",
+            path: ["websiteUseImages", "outreach"],
+            label: "Top photo on Videos page",
+            help: "Find this under Site Settings too. Upload here to change the banner.",
+          },
+        ]}
+      >
+        <PageHero
+          imageSrc={bannerSrc}
+          imageAlt="Ministry videos"
+          eyebrow="Watch & Be Moved"
+          title="Video Library"
+          bottomColor={c.white}
+          variant="cinematic"
+        />
+      </SectionEditor>
+
+      {hasFeatured ? (
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
           <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-8">
             <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: "#6E9277" }}>Featured</p>
-            <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>Mission Documentary</h2>
+            <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>
+              {FEATURED.title || "Featured video"}
+            </h2>
           </motion.div>
           <div className="grid lg:grid-cols-5 gap-8 items-start">
             <motion.div
@@ -134,6 +152,7 @@ export default function VideosPage() {
         </div>
         <WaveDivider topColor={c.white} bottomColor={c.cream} />
       </section>
+      ) : null}
 
       {/* Video Library */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
@@ -142,6 +161,12 @@ export default function VideosPage() {
             <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: "#6E9277" }}>All Videos</p>
             <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>Browse the Collection</h2>
           </motion.div>
+
+          {VIDEOS.length === 0 ? (
+            <p className="text-center text-sm py-12" style={{ color: c.muted }}>
+              Videos will appear here once they are added in the admin dashboard.
+            </p>
+          ) : null}
 
           {categories.length > 0 ? (
           <div className="flex flex-wrap gap-2 mb-10">

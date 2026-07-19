@@ -14,8 +14,9 @@ import NewsletterSubscribeForm from "../components/shared/NewsletterSubscribeFor
 import FloatingParticles from "../components/shared/FloatingParticles";
 import {
   WaveDivider, WaveBottom, DotPattern,
-  AnimatedBlob, CrossPattern, DiagonalStripes, PulsingRing, Sparkles, OrnamentalRule,
+  AnimatedBlob, CrossPattern, DiagonalStripes, PulsingRing, Sparkles,
 } from "../components/shared/SvgDecorators";
+import { SectionEditor } from "../components/admin-edit/SectionEditor";
 
 /* ───── Animated Counter ───── */
 function useAnimatedCounter(target: number, duration = 2400) {
@@ -42,6 +43,12 @@ function useAnimatedCounter(target: number, duration = 2400) {
     return () => observer.disconnect();
   }, [target, duration]);
   return { count, ref };
+}
+
+function parseStat(value: string): { n: number; suffix: string } {
+  const match = value.trim().match(/^(\d+)(.*)$/);
+  if (!match) return { n: 0, suffix: value };
+  return { n: Number(match[1]), suffix: match[2] ?? "" };
 }
 
 /* ───── Word-by-word reveal ───── */
@@ -131,7 +138,7 @@ export default function HomePage() {
   const PILLARS = [
     { icon: BookOpen, title: "Education", color: "#6E9277", img: homePillars[0].img, desc: "Building schools, training teachers, and equipping every child with the tools they need to flourish." },
     { icon: Lightbulb, title: "Entrepreneurship", color: "#EAC79A", img: homePillars[1].img, desc: "Equipping families with skills, micro-grants, and mentorship to build sustainable livelihoods." },
-    { icon: Heart, title: "Spiritual Discipleship", color: "#5A4749", img: homePillars[2].img, desc: "Sharing the Gospel through Bible study, pastoral training, and church partnerships in unreached villages." },
+    { icon: Heart, title: "Spiritual Discipleship", color: "#6E9277", img: homePillars[2].img, desc: "Sharing the Gospel through Bible study, pastoral training, and church partnerships in unreached villages." },
     { icon: Users, title: "Community Development", color: "#6E9277", img: homePillars[3].img, desc: "Building infrastructure, clean water access, and healthcare systems that lift entire communities." },
   ];
 
@@ -211,16 +218,6 @@ export default function HomePage() {
             }}
           />
 
-          {/* Eyebrow */}
-          <motion.p
-            initial={{ opacity: 0, letterSpacing: "0.1em" }}
-            animate={{ opacity: 1, letterSpacing: "0.22em" }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-            className="text-xs tracking-[0.22em] uppercase mb-6"
-            style={{ color: c.isDark ? "#EAC79A" : "#6E9277" }}
-          >
-            Rebuilding Lives · Democratic Republic of Congo
-          </motion.p>
 
           {/* Main headline */}
           <h1
@@ -311,20 +308,54 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ IMPACT STATS ══════════ */}
+      <SectionEditor
+        title="Homepage stats"
+        fields={[
+          { kind: "text", key: "statCommunities", label: "Villages number (e.g. 3)" },
+          { kind: "text", key: "statCommunitiesLabel", label: "Villages label" },
+          { kind: "text", key: "statFamilies", label: "Families number (e.g. 200+)" },
+          { kind: "text", key: "statFamiliesLabel", label: "Families label" },
+          { kind: "text", key: "statProjects", label: "Projects number (e.g. 4)" },
+          { kind: "text", key: "statProjectsLabel", label: "Projects label" },
+          { kind: "text", key: "statTeam", label: "Team number (e.g. 10)" },
+          { kind: "text", key: "statTeamLabel", label: "Team label" },
+        ]}
+      >
       <section className="relative -mt-px" style={{ backgroundColor: c.cream }}>
         <DotPattern color="rgba(110,146,119,0.06)" size={24} />
         <div className="max-w-5xl mx-auto px-5 sm:px-8 lg:px-10 py-14 lg:py-20 relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            <StatCard value={18} suffix="+" label="Communities Served" icon={Globe} />
-            <StatCard value={500} suffix="+" label="Families Reached" icon={Users} />
-            <StatCard value={8} suffix="" label="Education Projects" icon={BookOpen} />
-            <StatCard value={65} suffix="+" label="Volunteers" icon={Heart} />
+            {([
+              { raw: settings.statCommunities || "3", label: settings.statCommunitiesLabel || "Villages Served", icon: Globe },
+              { raw: settings.statFamilies || "200+", label: settings.statFamiliesLabel || "Families Reached", icon: Users },
+              { raw: settings.statProjects || "4", label: settings.statProjectsLabel || "Projects", icon: BookOpen },
+              { raw: settings.statTeam || "10", label: settings.statTeamLabel || "Team in Congo", icon: Heart },
+            ] as const).map((stat) => {
+              const parsed = parseStat(stat.raw);
+              return (
+                <StatCard
+                  key={stat.label}
+                  value={parsed.n}
+                  suffix={parsed.suffix}
+                  label={stat.label}
+                  icon={stat.icon}
+                />
+              );
+            })}
           </div>
         </div>
         <WaveDivider topColor={c.cream} bottomColor={c.white} />
       </section>
+      </SectionEditor>
 
       {/* ══════════ MISSION STATEMENT ══════════ */}
+      <SectionEditor
+        title="Mission statement"
+        fields={[
+          { kind: "text", key: "missionStatement", label: "Mission statement", multiline: true },
+          { kind: "image", path: ["websiteUseImages", "hero"], label: "Homepage hero photo", help: "This is the large photo at the top of the homepage." },
+        ]}
+      >
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <CrossPattern color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.05} size={700} className="-top-60 -left-60" />
@@ -367,12 +398,11 @@ export default function HomePage() {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true }}
-              className="text-xs tracking-[0.22em] uppercase mb-5"
+              className="text-sm tracking-[0.22em] uppercase mb-6 font-semibold"
               style={{ color: "#6E9277" }}
             >
               Our Mission
             </motion.p>
-            <OrnamentalRule color="#6E9277" />
             <motion.h2
               variants={fadeSlide}
               initial="hidden"
@@ -389,25 +419,16 @@ export default function HomePage() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-xl lg:text-2xl text-[#5A4749] leading-relaxed mb-6 px-4"
-              style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}
+              className="text-xl lg:text-2xl leading-relaxed mb-6 px-4"
+              style={{ color: c.text, fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}
             >
               {settings.missionStatement || "Your mission statement will appear here."}
             </motion.blockquote>
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.5 }}
-              className="text-base"
-              style={{ color: c.muted, fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}
-            >
-              — Matthew 28:19 · "Go and make disciples of all nations"
-            </motion.p>
           </motion.div>
         </div>
         <WaveDivider topColor={c.white} bottomColor={c.cream} />
       </section>
+      </SectionEditor>
 
       {/* ══════════ CORE PILLARS ══════════ */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
@@ -529,18 +550,23 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        <WaveDivider topColor={c.white} bottomColor="#5A4749" />
+        <WaveDivider topColor={c.white} bottomColor="#6E9277" />
       </section>
       ) : (
-        <WaveDivider topColor={c.cream} bottomColor="#5A4749" />
+        <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
       )}
 
       {/* ══════════ VERSE BREAK ══════════ */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: "#5A4749" }}>
-        <DotPattern color="rgba(234,199,154,0.12)" size={22} />
-        <AnimatedBlob color="#EAC79A" opacity={0.08} size={500} className="-top-20 right-0" />
-        <AnimatedBlob color="#6E9277" opacity={0.1} size={400} className="-bottom-10 left-10" />
-        <Sparkles count={12} color="#EAC79A" className="inset-0" />
+      <SectionEditor
+        title="Homepage verse"
+        fields={[
+          { kind: "text", key: "verseText", label: "Verse text", multiline: true },
+          { kind: "text", key: "verseReference", label: "Reference (e.g. Ephesians 3:19–20)" },
+        ]}
+      >
+      <section className="relative overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
+        <DotPattern color="rgba(255,255,255,0.12)" size={22} />
+        <AnimatedBlob color="#ffffff" opacity={0.08} size={500} className="-top-20 right-0" />
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-14 lg:py-20 text-center relative z-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -548,32 +574,34 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <Quote size={36} className="mx-auto mb-6 opacity-40 text-[#EAC79A]" />
+            <Quote size={36} className="mx-auto mb-6 opacity-40 text-white" />
           </motion.div>
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-2xl lg:text-4xl text-white/90 leading-relaxed mb-5"
+            className="text-2xl lg:text-4xl text-white/95 leading-relaxed mb-5"
             style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}
           >
-            "He who began a good work in you will carry it on to completion until the day of Christ Jesus."
+            “{settings.verseText || "…that you may be filled with all the fullness of God. Now to him who is able to do far more abundantly than all that we ask or think…"}”
           </motion.p>
           <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.5 }}
-            className="text-[#EAC79A] text-sm tracking-widest"
+            className="text-white/80 text-sm tracking-widest"
           >
-            — Philippians 1:6
+            — {settings.verseReference || "Ephesians 3:19–20"}
           </motion.p>
         </div>
-        <WaveDivider topColor="#5A4749" bottomColor={c.cream} />
+        <WaveDivider topColor="#6E9277" bottomColor={c.cream} />
       </section>
+      </SectionEditor>
 
       {/* ══════════ STORIES ══════════ */}
+      {STORIES.length > 0 ? (
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <CrossPattern color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.05} size={450} className="top-0 right-0" />
@@ -630,6 +658,9 @@ export default function HomePage() {
         </div>
         <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
       </section>
+      ) : (
+        <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
+      )}
 
       {/* ══════════ DONATE CTA ══════════ */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
@@ -654,12 +685,12 @@ export default function HomePage() {
             >
               <SparklesIcon size={20} className="text-[#EAC79A]" />
             </motion.div>
-            <p className="text-white/70 text-xs tracking-[0.2em] uppercase mb-4">Every Gift Matters</p>
+            <p className="text-white/70 text-xs tracking-[0.2em] uppercase mb-4">Partner With Us</p>
             <h2 className="text-4xl lg:text-6xl text-white mb-5 leading-tight">
-              Your Gift Changes Lives in Congo
+              Give Here
             </h2>
             <p className="text-white/80 text-lg mb-10 leading-relaxed">
-              $25 feeds a family · $50 puts a child in school · $100 funds a month of village ministry
+              Every dollar helps. Every gift goes to the field in Congo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/donate">
@@ -669,7 +700,7 @@ export default function HomePage() {
                   className="flex items-center gap-2 px-10 py-4 rounded-xl font-semibold text-base"
                   style={{ backgroundColor: "#EAC79A", color: c.text }}
                 >
-                  <Heart size={17} /> Give Now
+                  <Heart size={17} /> Donate
                 </motion.button>
               </Link>
               <Link href="/about">

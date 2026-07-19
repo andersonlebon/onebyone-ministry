@@ -15,6 +15,9 @@ const MIME: Record<string, string> = {
   ".gif": "image/gif",
 };
 
+/** Only design/brand folders are uploaded at setup. Content photos are client-added. */
+const DESIGN_TOP_FOLDERS = new Set(["brand", "brand-transparent", "website-use"]);
+
 function walkFiles(dir: string): string[] {
   const entries = readdirSync(dir);
   const files: string[] = [];
@@ -33,9 +36,6 @@ function walkFiles(dir: string): string[] {
 
 function inferFolder(relativePath: string): MediaFolder {
   const top = relativePath.split(/[/\\]/)[0]?.toLowerCase() ?? "";
-
-  if (top === "photos" || top.startsWith("distribution")) return "photos";
-  if (top === "video-thumbs") return "videos";
   if (top === "brand" || top === "brand-transparent" || top === "website-use") return "brand";
   return "general";
 }
@@ -49,7 +49,10 @@ export type UploadedAssetRecord = {
   folder: MediaFolder;
 };
 
-/** Upload every file under public/assets to Supabase Storage during /setup. */
+/**
+ * Upload design assets only (logos + layout backgrounds) during /setup.
+ * Does not seed gallery photos, distributions, or video thumbs.
+ */
 export async function uploadAllPublicAssets(
   supabase: SupabaseClient
 ): Promise<{ urlMap: Record<string, string>; records: UploadedAssetRecord[] }> {
@@ -59,7 +62,12 @@ export async function uploadAllPublicAssets(
     throw new Error("public/assets folder not found.");
   }
 
-  const files = walkFiles(assetsRoot);
+  const files = walkFiles(assetsRoot).filter((absolutePath) => {
+    const relativePath = relative(assetsRoot, absolutePath).replace(/\\/g, "/");
+    const top = relativePath.split("/")[0]?.toLowerCase() ?? "";
+    return DESIGN_TOP_FOLDERS.has(top);
+  });
+
   const urlMap: Record<string, string> = {};
   const records: UploadedAssetRecord[] = [];
 
@@ -92,7 +100,7 @@ export async function uploadAllPublicAssets(
       storagePath,
       publicUrl,
       alt: fileName.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "),
-      category: folder === "photos" ? "Community" : "General",
+      category: "General",
       folder,
     });
   }

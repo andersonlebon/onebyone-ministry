@@ -18,9 +18,7 @@ import {
   renamePhotoAlbumAction,
 } from "@/app/actions/photo-albums";
 import type { MediaAsset, PhotoAlbum } from "@/lib/db/schema";
-import { createClient } from "@/lib/supabase/client";
 import { isSupabaseBackendConfigured } from "@/lib/supabase/backend";
-import { deleteStorageObject } from "@/lib/supabase/storage";
 import AdminImageUpload from "@/site/app/components/admin/AdminImageUpload";
 import { useSiteStore, type Photo } from "@/site/lib/siteStore";
 
@@ -290,7 +288,7 @@ export default function AdminPhotos() {
   };
 
   const handleDelete = async (photo: Photo) => {
-    if (!confirm("Delete photo?")) return;
+    if (!confirm("Delete this photo? It will be removed from the live gallery.")) return;
 
     if (!useSupabase) {
       deletePhoto(photo.id);
@@ -300,10 +298,14 @@ export default function AdminPhotos() {
     const asset = remoteAssets.find((a) => a.id === photo.id);
     if (!asset) return;
 
-    await deleteStorageObject(createClient(), asset.path);
-    await deleteMediaAssetAction(asset.id);
-    await loadRemotePhotos();
-    router.refresh();
+    try {
+      // Server action deletes storage + DB row together (more reliable than client storage delete).
+      await deleteMediaAssetAction(asset.id);
+      await loadRemotePhotos();
+      router.refresh();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Could not delete photo. Please try again.");
+    }
   };
 
   return (

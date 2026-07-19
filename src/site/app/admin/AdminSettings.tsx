@@ -10,6 +10,7 @@ import type { MediaFolder } from "@/lib/db/schema";
 import { useSiteMedia } from "@/site/lib/mediaContext";
 import AdminMediaSlotField from "@/site/app/components/admin/AdminMediaSlotField";
 import AdminSettingsPreview, { SECTION_LABELS, type SettingsPreviewSection } from "@/site/app/admin/AdminSettingsPreview";
+import { defaultSiteSettings } from "@/content/site-defaults";
 import { useSiteStore, SiteSettings } from "@/site/lib/siteStore";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
 
@@ -171,7 +172,7 @@ export default function AdminSettings() {
   const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
-    setForm(settings);
+    setForm({ ...defaultSiteSettings, ...settings });
   }, [settings]);
 
   useEffect(() => {
@@ -325,14 +326,35 @@ export default function AdminSettings() {
               hint="Shown in the mission section on the home page and in the site footer." />
           </SectionCard>
 
+          <SectionCard title="Homepage Stats & Verse" section="stats" activeSection={activeSection} onActivate={setActiveSection}>
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Villages number" value={form.statCommunities ?? ""} onChange={(v) => set("statCommunities", v)} />
+                <Field label="Villages label" value={form.statCommunitiesLabel ?? ""} onChange={(v) => set("statCommunitiesLabel", v)} />
+                <Field label="Families number" value={form.statFamilies ?? ""} onChange={(v) => set("statFamilies", v)} />
+                <Field label="Families label" value={form.statFamiliesLabel ?? ""} onChange={(v) => set("statFamiliesLabel", v)} />
+                <Field label="Projects number" value={form.statProjects ?? ""} onChange={(v) => set("statProjects", v)} />
+                <Field label="Projects label" value={form.statProjectsLabel ?? ""} onChange={(v) => set("statProjectsLabel", v)} />
+                <Field label="Team number" value={form.statTeam ?? ""} onChange={(v) => set("statTeam", v)} />
+                <Field label="Team label" value={form.statTeamLabel ?? ""} onChange={(v) => set("statTeamLabel", v)} />
+              </div>
+              <Field label="Verse text" value={form.verseText ?? ""} onChange={(v) => set("verseText", v)} multiline />
+              <Field label="Verse reference" value={form.verseReference ?? ""} onChange={(v) => set("verseReference", v)} />
+            </div>
+          </SectionCard>
+
           <SectionCard title="Donate Page" section="donate" activeSection={activeSection} onActivate={setActiveSection}>
-            <Field label="Donate Page Headline" value={form.donatePageHeadline} onChange={(v) => set("donatePageHeadline", v)} />
+            <Field label="Donate Page Headline" value={form.donatePageHeadline} onChange={(v) => set("donatePageHeadline", v)}
+              hint='Simple is best, e.g. "Partner With Us".' />
           </SectionCard>
 
           <SectionCard title="Contact Information" section="contact" activeSection={activeSection} onActivate={setActiveSection}>
             <div className="space-y-4">
               <Field label="Email Address" value={form.contactEmail} onChange={(v) => set("contactEmail", v)} />
               <Field label="Phone Number" value={form.contactPhone} onChange={(v) => set("contactPhone", v)} />
+              <Field label="USA address" value={form.usaAddress ?? ""} onChange={(v) => set("usaAddress", v)} multiline
+                hint="Leave blank to hide on the Contact page until you add it." />
+              <Field label="Congo / DRC address" value={form.congoAddress ?? ""} onChange={(v) => set("congoAddress", v)} multiline />
             </div>
           </SectionCard>
 

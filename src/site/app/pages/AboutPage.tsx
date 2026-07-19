@@ -3,339 +3,194 @@
 import { motion, type Variants } from "motion/react";
 import Link from "next/link";
 import { useColors } from "../../lib/themeStore";
-import { Heart, Globe, BookOpen, Users, Lightbulb, ArrowRight } from "lucide-react";
-import { WaveDivider, AnimatedBlob, DotPattern, CrossPattern, DiagonalStripes, Sparkles } from "../components/shared/SvgDecorators";
-import FoundersTree from "../components/shared/FoundersTree";
+import { ArrowRight } from "lucide-react";
+import { WaveDivider, AnimatedBlob, DotPattern, CrossPattern } from "../components/shared/SvgDecorators";
 import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import type { SiteMediaBundle } from "@/lib/media/types";
 import { SECTION_PY } from "../../lib/pageLayout";
+import { SectionEditor } from "../components/admin-edit/SectionEditor";
 
 const fadeSlide: Variants = {
   hidden: { opacity: 0, y: 28 },
   show: (i = 0) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.6, ease: "easeOut" } }),
 };
 
-const VALUES = [
-  { icon: Heart, title: "Compassion", desc: "Every person bears the image of God and deserves dignity, care, and the opportunity to flourish." },
-  { icon: BookOpen, title: "Truth", desc: "We build on the unshakeable foundation of Scripture and the transformative power of the Gospel." },
-  { icon: Users, title: "Community", desc: "Lasting change happens within relationships — we walk alongside communities, not ahead of them." },
-  { icon: Globe, title: "Stewardship", desc: "Every dollar given is a sacred trust. We operate with full financial transparency and accountability." },
-  { icon: Lightbulb, title: "Empowerment", desc: "We equip, not enable — building local capacity so communities own and sustain their own transformation." },
-];
-
 const LEADERS = (localImages: SiteMediaBundle["localImages"]) => [
-  { name: "Rev. Emmanuel Tshilobo", role: "Executive Director & Co-Founder", bio: "Born in the DRC, Emmanuel has served in ministry for 20+ years. He holds a Master of Divinity and has a heart for reconciling the church with its community calling.", img: localImages.leaderOne },
-  { name: "Grace Tshilobo", role: "Director of Programs & Co-Founder", bio: "Originally from Atlanta, Grace brings expertise in women's development, entrepreneurship education, and cross-cultural program design.", img: localImages.leaderTwo },
-  { name: "Jonathan Kalala", role: "Community Development Lead", bio: "A native of Kasai Province, Jonathan builds relationships with village chiefs and local NGOs to ensure every project is community-owned.", img: localImages.leaderThree },
+  {
+    name: "Rev. Emmanuel Tshilobo",
+    role: "Executive Director & Co-Founder",
+    bio: "Born in the DRC, Emmanuel has served in ministry for 20+ years with a heart for reconciling the church with its community calling.",
+    img: localImages.leaderOne,
+    region: "DRC & USA",
+  },
+  {
+    name: "Grace Tshilobo",
+    role: "Director of Programs & Co-Founder",
+    bio: "Grace brings expertise in women's development, entrepreneurship education, and cross-cultural program design.",
+    img: localImages.leaderTwo,
+    region: "USA",
+  },
+  {
+    name: "Jonathan Kalala",
+    role: "Community Development Lead",
+    bio: "A native of Kasai Province, Jonathan builds relationships with village leaders so every project is community-owned.",
+    img: localImages.leaderThree,
+    region: "DRC",
+  },
 ];
 
 export default function AboutPage() {
   const c = useColors();
   const { settings } = useSiteContent();
-  const { aboutStoryImages, localImages, websiteUseImages } = useSiteMedia();
+  const { localImages, websiteUseImages } = useSiteMedia();
   const aboutBanner = useMediaUrl(websiteUseImages.about);
+  const leaders = LEADERS(localImages);
+
   return (
     <div className="overflow-x-hidden">
-
-      <section className="relative h-72 sm:h-96 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
-        <div
-          className="absolute top-0 h-full"
-          style={{ width: "calc(100% + 200px)", left: "50%", transform: "translateX(-50%)" }}
-        >
-          <motion.img
-            src={aboutBanner}
-            alt="Community gathering"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ opacity: c.isDark ? 0.26 : 0.38 }}
-            initial={{ scale: 1.08 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 1.4, ease: "easeOut" }}
+      <SectionEditor
+        title="About page banner"
+        fields={[
+          {
+            kind: "image",
+            path: ["websiteUseImages", "about"],
+            label: "Top photo on About page",
+            help: "Choose a photo where the village or people are clearly visible. This saves to the live site automatically.",
+          },
+        ]}
+      >
+        <section className="relative h-72 sm:h-96 flex items-center justify-center overflow-hidden" style={{ backgroundColor: c.heroBg }}>
+          <div className="absolute inset-0">
+            <motion.img
+              src={aboutBanner}
+              alt="Ministry community"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ objectPosition: "center 40%", opacity: c.isDark ? 0.35 : 0.45 }}
+              initial={{ scale: 1.06 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+            />
+          </div>
+          <div
+            className="absolute inset-0"
+            style={{
+              background: c.isDark
+                ? "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.25), rgba(0,0,0,0.7))"
+                : "linear-gradient(to bottom, rgba(0,0,0,0.35), transparent, rgba(0,0,0,0.55))",
+            }}
           />
-        </div>
-        <div className="absolute inset-0" style={{ background: c.isDark ? "linear-gradient(to bottom, rgba(0,0,0,0.60), rgba(0,0,0,0.20), rgba(0,0,0,0.75))" : "linear-gradient(to bottom, rgba(0,0,0,0.40), transparent, rgba(0,0,0,0.60))" }} />
-        <Sparkles count={10} color="#EAC79A" className="inset-0" />
-        <AnimatedBlob color="#6E9277" opacity={0.08} size={400} className="-top-20 right-0" />
+          <div className="relative z-10 text-center px-5">
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-xs tracking-[0.2em] uppercase mb-3"
+              style={{ color: "#EAC79A" }}
+            >
+              Who We Are
+            </motion.p>
+            <motion.h1
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="text-4xl lg:text-6xl text-white"
+            >
+              About One By One Ministries
+            </motion.h1>
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+            <WaveDivider topColor="transparent" bottomColor={c.cream} />
+          </div>
+        </section>
+      </SectionEditor>
 
-        <div className="relative z-10 text-center px-5">
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="text-[#EAC79A] text-xs tracking-[0.2em] uppercase mb-3"
-          >
-            Who We Are
-          </motion.p>
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.7 }}
-            className="text-4xl lg:text-6xl text-white"
-          >
-            About One By One Ministries
-          </motion.h1>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <WaveDivider topColor="transparent" bottomColor={c.cream} />
-        </div>
-      </section>
-
-      {/* Our Story */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
-        <CrossPattern color="rgba(110,146,119,0.06)" />
-        <AnimatedBlob color="#EAC79A" opacity={0.07} size={500} className="-top-20 right-0" />
-
-        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-14 lg:gap-20 items-center relative z-10`}>
-          <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
-            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>How It Began</p>
-            <h2 className="text-3xl lg:text-5xl mb-6 leading-tight" style={{ color: c.text }}>A Vision Born in the Heart of Congo</h2>
-            <p className="leading-relaxed mb-4" style={{ color: c.muted }}>
-              One By One Ministries began with a single trip to the Democratic Republic of Congo. What our founders witnessed — children without schools, families without economic hope, rural villages with little Gospel access — compelled them to act.
+      <SectionEditor
+        title="How we began"
+        fields={[{ kind: "text", key: "missionStatement", label: "Short mission / intro text", multiline: true }]}
+      >
+        <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
+          <CrossPattern color="rgba(110,146,119,0.05)" />
+          <div className={`max-w-3xl mx-auto px-5 sm:px-8 ${SECTION_PY} relative z-10 text-center`}>
+            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>
+              How We Began
             </p>
-            <p className="leading-relaxed mb-4" style={{ color: c.muted }}>
-              The name says it all. We believe transformation doesn't happen in sweeping programs. It happens one person at a time, one family at a time — through patient, faithful work of love, discipleship, and service.
+            <h2 className="text-3xl lg:text-4xl mb-6 leading-tight" style={{ color: c.text }}>
+              A simple calling in Congo
+            </h2>
+            <p className="leading-relaxed mb-4 text-base sm:text-lg" style={{ color: c.muted }}>
+              One By One Ministries began with a calling to walk with communities in the Democratic Republic of Congo.
+              Transformation happens one person, one family, and one village at a time through education, entrepreneurship,
+              and spiritual discipleship.
             </p>
             {settings.missionStatement ? (
-              <p
-                className="text-base text-[#5A4749] leading-relaxed mb-4 border-l-4 pl-4"
-                style={{ borderColor: "#6E9277", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}
-              >
+              <p className="leading-relaxed text-base border-l-4 pl-4 text-left" style={{ color: c.text, borderColor: "#6E9277" }}>
                 {settings.missionStatement}
               </p>
             ) : null}
-            <p
-              className="text-lg text-[#5A4749] leading-relaxed mb-7 border-l-4 pl-4"
-              style={{ borderColor: "#EAC79A", fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}
-            >
-              "We believe the DRC is ready for a generation-defining revival — and we are privileged to be part of it."
-            </p>
-            <Link href="/donate">
-              <motion.button
-                whileHover={{ scale: 1.04, backgroundColor: "#5a7d64" }}
-                whileTap={{ scale: 0.97 }}
-                className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm text-white"
-                style={{ backgroundColor: "#6E9277" }}
-              >
-                Support the Work <ArrowRight size={14} />
-              </motion.button>
-            </Link>
-          </motion.div>
-
-          <motion.div
-            custom={1}
-            variants={fadeSlide}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="grid grid-cols-2 gap-4"
-          >
-            {[
-              { src: aboutStoryImages[0], className: "col-span-2 h-52 rounded-2xl object-cover w-full" },
-              { src: aboutStoryImages[1], className: "h-40 rounded-2xl object-cover w-full" },
-              { src: aboutStoryImages[2], className: "h-40 rounded-2xl object-cover w-full" },
-            ].map((img, i) => (
-              <motion.div
-                key={i}
-                className={i === 0 ? "col-span-2 overflow-hidden rounded-2xl" : "overflow-hidden rounded-2xl"}
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.3 }}
-              >
-                <img src={img.src} alt="" className={img.className} />
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-        <WaveDivider topColor={c.cream} bottomColor={c.white} />
-      </section>
-
-      {/* Vision & Mission */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
-        <DiagonalStripes color="rgba(110,146,119,0.04)" />
-        <AnimatedBlob color="#5A4749" opacity={0.04} size={500} className="-bottom-40 -right-40" />
-
-        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-8 lg:gap-10 relative z-10`}>
-          <motion.div
-            custom={0}
-            variants={fadeSlide}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            whileHover={{ y: -6 }}
-            transition={{ duration: 0.25 }}
-            className="rounded-2xl p-9"
-            style={{ border: `1px solid ${c.borderLight}` }}
-          >
-            <motion.div whileHover={{ rotate: 15 }} className="w-12 h-12 rounded-xl flex items-center justify-center mb-5" style={{ backgroundColor: c.cream }}>
-              <Globe size={22} style={{ color: "#6E9277" }} />
-            </motion.div>
-            <h3 className="text-2xl mb-4" style={{ color: c.text }}>Our Vision</h3>
-            <p className="text-lg text-[#5A4749] leading-relaxed" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}>
-              A world where every person — regardless of geography, poverty, or circumstance — has access to the transformative love of Jesus Christ, quality education, and the opportunity to build a dignified, flourishing life.
-            </p>
-          </motion.div>
-
-          <motion.div
-            custom={1}
-            variants={fadeSlide}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            whileHover={{ y: -6 }}
-            transition={{ duration: 0.25 }}
-            className="rounded-2xl p-9"
-            style={{ backgroundColor: "#6E9277" }}
-          >
-            <motion.div whileHover={{ rotate: 15 }} className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 bg-white/20">
-              <Heart size={22} className="text-white" />
-            </motion.div>
-            <h3 className="text-2xl text-white mb-4">Our Mission</h3>
-            <p className="text-lg text-white/90 leading-relaxed" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic" }}>
-              One By One Ministries is dedicated to rebuilding communities through Education, Entrepreneurship, and Spiritual Discipleship — changing the world one person, one community, and one country at a time through the power of the Holy Spirit and the Word of God.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ══════ FOUNDERS TREE ══════ */}
-      <FoundersTree />
-
-      {/* Core Values */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
-        <DotPattern color="rgba(110,146,119,0.08)" size={22} />
-        <AnimatedBlob color="#6E9277" opacity={0.06} size={600} className="-top-40 left-0" />
-
-        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
-          <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-14">
-            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>What Drives Us</p>
-            <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Our Core Values</h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 lg:gap-6">
-            {VALUES.map((val, i) => {
-              const Icon = val.icon;
-              return (
-                <motion.div
-                  key={val.title}
-                  custom={i}
-                  variants={fadeSlide}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true }}
-                  whileHover={{ y: -8, boxShadow: "0 20px 50px rgba(71,71,71,0.1)" }}
-                  transition={{ duration: 0.25 }}
-                  className="text-center p-6 rounded-2xl cursor-pointer"
-                  style={{ border: `1px solid ${c.borderLight}`, backgroundColor: c.white }}
-                >
-                  <motion.div
-                    whileHover={{ rotate: 15, scale: 1.1 }}
-                    className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
-                    style={{ backgroundColor: c.cream }}
-                  >
-                    <Icon size={20} style={{ color: "#6E9277" }} />
-                  </motion.div>
-                  <h4 className="text-sm mb-2" style={{ color: c.text }}>{val.title}</h4>
-                  <p className="text-xs leading-relaxed" style={{ color: c.muted }}>{val.desc}</p>
-                </motion.div>
-              );
-            })}
           </div>
-        </div>
-        <WaveDivider topColor={c.cream} bottomColor={c.white} />
-      </section>
+          <WaveDivider topColor={c.cream} bottomColor={c.white} />
+        </section>
+      </SectionEditor>
 
-      {/* Leadership */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
-        <CrossPattern color="rgba(110,146,119,0.04)" />
-        <AnimatedBlob color="#EAC79A" opacity={0.06} size={500} className="-top-20 -right-20" />
-
+        <DotPattern color="rgba(110,146,119,0.06)" size={24} />
         <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
-          <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-14">
-            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>The Team</p>
-            <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Leadership</h2>
-          </motion.div>
+          <div className="text-center mb-12">
+            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>Our People</p>
+            <h2 className="text-3xl lg:text-4xl" style={{ color: c.text }}>Founders, board &amp; team</h2>
+            <p className="mt-3 text-sm max-w-2xl mx-auto" style={{ color: c.muted }}>
+              Leadership in the USA and a team on the ground in the DRC Congo, working together.
+            </p>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
-            {LEADERS(localImages).map((leader, i) => (
+          <div className="grid md:grid-cols-3 gap-8">
+            {leaders.map((person, i) => (
               <motion.div
-                key={leader.name}
+                key={person.name}
                 custom={i}
                 variants={fadeSlide}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true }}
-                whileHover={{ y: -10 }}
-                transition={{ duration: 0.25 }}
-                className="rounded-2xl overflow-hidden"
-                style={{ backgroundColor: c.white, boxShadow: "0 2px 24px rgba(71,71,71,0.07)", border: "1px solid rgba(110,146,119,0.12)" }}
+                className="text-center"
               >
-                <div className="overflow-hidden h-64">
-                  <motion.img
-                    src={leader.img}
-                    alt={leader.name}
-                    className="w-full h-full object-cover object-top"
-                    whileHover={{ scale: 1.06 }}
-                    transition={{ duration: 0.5 }}
-                  />
+                <div className="mx-auto mb-4 w-36 h-36 rounded-full overflow-hidden" style={{ backgroundColor: c.cream }}>
+                  <img src={person.img} alt={person.name} className="w-full h-full object-cover" style={{ objectPosition: "center top" }} />
                 </div>
-                <div className="p-6">
-                  <h3 className="text-base mb-0.5" style={{ color: c.text }}>{leader.name}</h3>
-                  <p className="text-xs font-semibold tracking-wide mb-3" style={{ color: "#6E9277" }}>{leader.role}</p>
-                  <p className="text-sm leading-relaxed" style={{ color: c.muted }}>{leader.bio}</p>
-                </div>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#6E9277" }}>
+                  {person.region}
+                </p>
+                <h3 className="text-lg mb-1" style={{ color: c.text }}>{person.name}</h3>
+                <p className="text-sm font-semibold mb-2" style={{ color: "#6E9277" }}>{person.role}</p>
+                <p className="text-sm leading-relaxed" style={{ color: c.muted }}>{person.bio}</p>
               </motion.div>
             ))}
           </div>
         </div>
-        <WaveDivider topColor={c.white} bottomColor={c.cream} />
+        <WaveDivider topColor={c.white} bottomColor="#6E9277" />
       </section>
 
-      {/* Why Congo */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
-        <DiagonalStripes color="rgba(110,146,119,0.05)" />
-        <AnimatedBlob color="#6E9277" opacity={0.07} size={500} className="-bottom-20 right-0" />
-
-        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10`}>
-          <motion.div custom={0} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
-            <div className="relative rounded-2xl overflow-hidden shadow-xl">
-              <motion.img
-                src={localImages.communityAlt}
-                alt="Children in the DRC"
-                className="w-full h-80 object-cover"
-                whileHover={{ scale: 1.04 }}
-                transition={{ duration: 0.5 }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-            </div>
-          </motion.div>
-          <motion.div custom={1} variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }}>
-            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>Why Congo</p>
-            <h2 className="text-3xl lg:text-4xl mb-6 leading-tight" style={{ color: c.text }}>The DRC: Immense Need, Immense Promise</h2>
-            <p className="leading-relaxed mb-4" style={{ color: c.muted }}>
-              The Democratic Republic of Congo is among the world's most impoverished nations, yet it is rich in natural resources and extraordinary people — resilient, joyful, faith-filled communities hungry for opportunity and for Christ.
-            </p>
-            <p className="leading-relaxed mb-6" style={{ color: c.muted }}>
-              We believe the DRC is on the threshold of a generation-defining transformation, and we are called to be part of it — not through charity, but through partnership that restores dignity and builds lasting foundations.
-            </p>
-            <div className="flex gap-4">
-              <Link href="/projects">
-                <motion.button whileHover={{ scale: 1.04, backgroundColor: "#5a7d64" }} whileTap={{ scale: 0.97 }} className="px-6 py-3 rounded-xl font-semibold text-sm text-white" style={{ backgroundColor: "#6E9277" }}>
-                  See Our Work
-                </motion.button>
-              </Link>
-              <Link href="/donate">
-                <motion.button
-                  whileHover={{ scale: 1.04, backgroundColor: "#6E9277", color: "white" }}
-                  whileTap={{ scale: 0.97 }}
-                  className="px-6 py-3 rounded-xl font-semibold text-sm border transition-colors"
-                  style={{ borderColor: "#6E9277", color: "#6E9277" }}
-                >
-                  Give Now
-                </motion.button>
-              </Link>
-            </div>
-          </motion.div>
+      <section className="relative overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
+        <AnimatedBlob color="#ffffff" opacity={0.06} size={400} className="-top-20 right-0" />
+        <div className={`max-w-3xl mx-auto px-5 text-center ${SECTION_PY} relative z-10`}>
+          <h2 className="text-3xl lg:text-4xl text-white mb-4">Pray with us. Partner with us.</h2>
+          <p className="text-white/85 mb-8">Every gift and every prayer helps the work in Congo.</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/donate"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold"
+              style={{ backgroundColor: "#EAC79A", color: "#474747" }}
+            >
+              Give here <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-white border border-white/40"
+            >
+              Contact us
+            </Link>
+          </div>
         </div>
-        <WaveDivider topColor={c.cream} bottomColor={c.footer} />
       </section>
     </div>
   );

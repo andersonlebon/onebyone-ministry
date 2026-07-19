@@ -1,10 +1,6 @@
 import "server-only";
 
-import {
-  defaultProjects,
-  defaultSiteSettings,
-  defaultVideos,
-} from "@/content/site-defaults";
+import { defaultSiteSettings } from "@/content/site-defaults";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import { getSiteContentValue } from "@/lib/db/site-content";
 import { getDefaultSiteContentBundle } from "./defaults";
@@ -19,6 +15,10 @@ import {
   type SiteSettings,
   type Video,
 } from "./types";
+
+function mergeSettings(stored: SiteSettings | null): SiteSettings {
+  return { ...defaultSiteSettings, ...(stored ?? {}) };
+}
 
 export async function getSiteContentBundle(): Promise<SiteContentBundle> {
   const defaults = getDefaultSiteContentBundle();
@@ -36,11 +36,12 @@ export async function getSiteContentBundle(): Promise<SiteContentBundle> {
       getSiteContentValue<FinanceDetails>(SITE_CONTENT_KEYS.finance),
     ]);
 
+    // Empty arrays are intentional (client-managed). Only null/missing falls back.
     return {
-      settings: settings ?? { ...defaultSiteSettings },
+      settings: mergeSettings(settings),
       posts: normalizePosts(posts ?? []),
-      projects: projects ?? defaultProjects.map((p) => ({ ...p })),
-      videos: videos ?? defaultVideos.map((v) => ({ ...v })),
+      projects: projects ?? [],
+      videos: videos ?? [],
       finance: finance ?? { ...EMPTY_FINANCE },
     };
   } catch (error) {

@@ -3,6 +3,7 @@
 import {
   createMediaAsset,
   deleteMediaAssetById,
+  getMediaAssetById,
   listMediaAssets,
   updateMediaAsset,
 } from "@/lib/db/media";
@@ -12,6 +13,7 @@ import { revalidatePublicSite } from "@/lib/site-content/revalidate";
 import { MEDIA_BUCKET } from "@/lib/supabase/config";
 import { isAdminUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { deleteStorageObject } from "@/lib/supabase/storage";
 
 async function requireAdminUser() {
   const supabase = await createClient();
@@ -82,6 +84,19 @@ export async function updateMediaAssetAction(
 export async function deleteMediaAssetAction(id: string): Promise<MediaAsset> {
   assertDatabase();
   await requireAdminUser();
+
+  const existing = await getMediaAssetById(id);
+  if (!existing) {
+    throw new Error("Photo not found");
+  }
+
+  const supabase = await createClient();
+  try {
+    await deleteStorageObject(supabase, existing.path);
+  } catch (error) {
+    console.warn("[media] Storage delete failed (continuing with DB delete):", error);
+  }
+
   const asset = await deleteMediaAssetById(id);
   revalidatePublicSite();
   return asset;

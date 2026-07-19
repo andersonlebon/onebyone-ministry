@@ -8,6 +8,7 @@ import { useMediaUrl } from "@/site/lib/mediaContext";
 export type SettingsPreviewSection =
   | "homepage"
   | "mission"
+  | "stats"
   | "donate"
   | "contact"
   | "social"
@@ -27,6 +28,7 @@ type AdminSettingsPreviewProps = {
 export const SECTION_LABELS: Record<SettingsPreviewSection, string> = {
   homepage: "Homepage hero",
   mission: "Mission section",
+  stats: "Homepage stats & verse",
   donate: "Donate page",
   contact: "Contact page & footer",
   social: "Footer social links",

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, type Variants } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import { useForm } from "react-hook-form";
-import { Mail, MapPin, Phone, Facebook, Instagram, Youtube, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { Mail, MapPin, Phone, Facebook, Instagram, Youtube, CheckCircle2 } from "lucide-react";
 import { submitContact } from "@/app/actions/contact";
 import { siteConfig } from "@/lib/site";
 import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
@@ -13,6 +13,7 @@ import NewsletterSubscribeForm from "../components/shared/NewsletterSubscribeFor
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
+import { SectionEditor } from "../components/admin-edit/SectionEditor";
 
 type ContactForm = {
   name: string;
@@ -21,56 +22,10 @@ type ContactForm = {
   message: string;
 };
 
-const FAQS = [
-  {
-    q: "How do I know my donation goes to the field?",
-    a: "85% of every dollar donated goes directly to field programs. We publish annual financial reports and are fully transparent about how funds are allocated. All donations are audited by an independent accounting firm.",
-  },
-  {
-    q: "Can I sponsor a specific project or community?",
-    a: "Yes! Contact us directly and we'll connect you with our project team to identify a project that matches your giving goals and heart for Congo.",
-  },
-  {
-    q: "Is One By One Ministries a registered nonprofit?",
-    a: "Yes. One By One Ministries Inc. is a 501(c)(3) registered nonprofit organization. All donations are tax-deductible to the full extent allowed by US law.",
-  },
-  {
-    q: "How can I volunteer with the ministry?",
-    a: "We welcome volunteers who can travel to Congo or serve remotely. Fill out the contact form below with 'Volunteer' in the subject line and our team will reach out with opportunities.",
-  },
-  {
-    q: "Do you partner with other organizations?",
-    a: "Absolutely. We actively partner with local Congolese churches, international NGOs, and other Christian mission organizations to maximize our impact and avoid duplication.",
-  },
-  {
-    q: "How can I receive prayer updates?",
-    a: "Subscribe to our newsletter using the form in our footer or on the Stories page. We send a monthly prayer letter with specific requests from the field.",
-  },
-];
-
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } },
 };
-
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const c = useColors();
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="border-b last:border-0" style={{ borderColor: c.borderLight }}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full py-4 text-left gap-4"
-      >
-        <span className="text-sm font-semibold" style={{ color: c.text }}>{q}</span>
-        {open ? <ChevronUp size={16} style={{ color: "#6E9277", flexShrink: 0 }} /> : <ChevronDown size={16} style={{ color: c.muted, flexShrink: 0 }} />}
-      </button>
-      {open && (
-        <p className="text-sm leading-relaxed pb-4" style={{ color: c.muted }}>{a}</p>
-      )}
-    </div>
-  );
-}
 
 export default function ContactPage() {
   const c = useColors();
@@ -115,6 +70,19 @@ export default function ContactPage() {
 
   return (
     <div className="overflow-x-hidden">
+      <SectionEditor
+        title="Contact details & banner"
+        fields={[
+          { kind: "image", path: ["localImages", "contactHero"], label: "Top photo on Contact page" },
+          { kind: "text", key: "contactEmail", label: "Email" },
+          { kind: "text", key: "contactPhone", label: "Phone" },
+          { kind: "text", key: "usaAddress", label: "USA address", multiline: true },
+          { kind: "text", key: "congoAddress", label: "Congo address", multiline: true },
+          { kind: "text", key: "facebookUrl", label: "Facebook URL" },
+          { kind: "text", key: "instagramUrl", label: "Instagram URL" },
+          { kind: "text", key: "youtubeUrl", label: "YouTube URL" },
+        ]}
+      >
       <PageHero
         imageSrc={contactBanner}
         imageAlt="Connect with us"
@@ -123,6 +91,7 @@ export default function ContactPage() {
         bottomColor={c.cream}
         variant="cinematic"
       />
+      </SectionEditor>
 
       {/* Contact Section */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
@@ -224,20 +193,24 @@ export default function ContactPage() {
             <div className="rounded-xl p-6" style={{ backgroundColor: c.white }}>
               <h4 className="text-sm mb-5" style={{ color: c.text }}>Contact Information</h4>
               <ul className="space-y-4">
+                {settings.usaAddress ? (
                 <li className="flex gap-3 text-sm">
                   <MapPin size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#6E9277" }} />
                   <div>
                     <p className="font-semibold text-xs mb-0.5" style={{ color: c.text }}>Headquarters (USA)</p>
-                    <p className="text-xs" style={{ color: c.muted }}>123 Mission Drive, Atlanta, GA 30301</p>
+                    <p className="text-xs whitespace-pre-line" style={{ color: c.muted }}>{settings.usaAddress}</p>
                   </div>
                 </li>
+                ) : null}
+                {settings.congoAddress ? (
                 <li className="flex gap-3 text-sm">
                   <MapPin size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#6E9277" }} />
                   <div>
                     <p className="font-semibold text-xs mb-0.5" style={{ color: c.text }}>Field Office (DRC)</p>
-                    <p className="text-xs" style={{ color: c.muted }}>Avenue du Commerce, Kinshasa, DRC</p>
+                    <p className="text-xs whitespace-pre-line" style={{ color: c.muted }}>{settings.congoAddress}</p>
                   </div>
                 </li>
+                ) : null}
                 <li className="flex gap-3">
                   <Mail size={16} className="flex-shrink-0 mt-0.5" style={{ color: "#6E9277" }} />
                   <div>
@@ -260,23 +233,25 @@ export default function ContactPage() {
                 )}
               </ul>
               <div className="border-t mt-5 pt-4" style={{ borderColor: c.borderLight }}>
-                <p className="text-xs mb-3" style={{ color: c.muted }}>Follow Us</p>
-                <div className="flex gap-3">
-                  {socials.map(({ icon: Icon, label, href }) => (
-                    <a
-                      key={label}
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={label}
-                      className="w-8 h-8 rounded flex items-center justify-center transition-colors"
-                      style={{ backgroundColor: c.cream, color: "#6E9277" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#6E9277"; e.currentTarget.style.color = "#ffffff"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = c.cream; e.currentTarget.style.color = "#6E9277"; }}
-                    >
-                      <Icon size={14} />
-                    </a>
-                  ))}
+                <p className="text-sm font-semibold mb-3" style={{ color: c.text }}>Follow Us</p>
+                <div className="flex flex-wrap gap-3">
+                  {socials.length === 0 ? (
+                    <p className="text-xs" style={{ color: c.muted }}>Social links can be added in Site Settings.</p>
+                  ) : (
+                    socials.map(({ icon: Icon, label, href }) => (
+                      <a
+                        key={label}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={label}
+                        className="inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+                        style={{ backgroundColor: "#6E9277", color: "#ffffff" }}
+                      >
+                        <Icon size={18} /> {label}
+                      </a>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -301,30 +276,7 @@ export default function ContactPage() {
             </div>
           </motion.div>
         </div>
-        <WaveDivider topColor={c.cream} bottomColor={c.white} />
-      </section>
-
-      {/* FAQ */}
-      <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
-        <div className={`max-w-3xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
-          <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-10">
-            <p className="text-xs tracking-[0.2em] uppercase mb-3" style={{ color: "#6E9277" }}>Common Questions</p>
-            <h2 className="text-3xl" style={{ color: c.text }}>Frequently Asked Questions</h2>
-          </motion.div>
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="rounded-xl px-6"
-            style={{ border: `1px solid ${c.borderLight}`, backgroundColor: c.white }}
-          >
-            {FAQS.map((faq, i) => (
-              <FAQItem key={i} q={faq.q} a={faq.a} />
-            ))}
-          </motion.div>
-        </div>
-        <WaveDivider topColor={c.white} bottomColor={c.footer} />
+        <WaveDivider topColor={c.cream} bottomColor={c.footer} />
       </section>
     </div>
   );
