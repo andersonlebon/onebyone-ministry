@@ -47,11 +47,13 @@ export type Photo = {
   albumName?: string | null;
 };
 
+export type ProjectStatus = "Active" | "Completed" | "Planned" | "Archived";
+
 export type Project = {
   id: string;
   title: string;
   category: string;
-  status: "Active" | "Completed" | "Planned";
+  status: ProjectStatus;
   desc: string;
   fullDesc: string;
   img: string;

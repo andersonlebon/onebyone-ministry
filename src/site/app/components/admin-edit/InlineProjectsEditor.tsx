@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Pencil, Plus, Trash2, X } from "lucide-react";
+import { Archive, Pencil, Plus, Trash2, X } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 
-import { updateProjectsAction } from "@/app/actions/site-content";
+import {
+  archiveProjectAction,
+  deleteProjectAction,
+  saveProjectAction,
+} from "@/app/actions/site-content";
 import type { Project } from "@/lib/site-content/types";
 import { useCanInlineEdit } from "@/site/lib/adminEditContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
@@ -13,13 +17,9 @@ import ProjectFormModal, {
   type ProjectFormValues,
 } from "@/site/app/components/admin/ProjectFormModal";
 
-const uid = () =>
-  typeof crypto !== "undefined" && crypto.randomUUID
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2, 10);
-
 /**
- * Admin-only control on public pages to add/edit/delete projects with photo upload.
+ * Admin-only control on public pages to add/edit/archive/delete projects with photo upload.
+ * Mutations always read-merge-write against the database so saves persist after refresh.
  */
 export function InlineProjectsEditor({
   children,
@@ -30,39 +30,64 @@ export function InlineProjectsEditor({
 }) {
   const canEdit = useCanInlineEdit();
   const router = useRouter();
-  const { projects } = useSiteContent();
+  const { projects: initialProjects } = useSiteContent();
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Project | undefined>();
   const [showForm, setShowForm] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [savedNote, setSavedNote] = useState("");
+
+  useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
 
   if (!canEdit) return <>{children}</>;
 
-  const persist = async (next: Project[]) => {
-    await updateProjectsAction(next);
-    setOpen(false);
+  const afterMutation = (next: Project[]) => {
+    setProjects(next);
+    setSavedNote("Saved to the live site.");
     setShowForm(false);
+    setEditing(undefined);
     router.refresh();
   };
 
   const saveProject = async (form: ProjectFormValues) => {
-    if (editing) {
-      const next = projects.map((p) => (p.id === editing.id ? { ...p, ...form } : p));
-      await persist(next);
-      return;
-    }
-    await persist([{ ...form, id: uid() }, ...projects]);
+    setError("");
+    setSavedNote("");
+    const next = await saveProjectAction(
+      editing ? { ...form, id: editing.id } : form
+    );
+    afterMutation(next);
   };
 
   const removeProject = async (id: string) => {
-    if (!confirm("Delete this project from the live site?")) return;
+    if (!confirm("Permanently delete this project from the live site?")) return;
     setBusyId(id);
     setError("");
+    setSavedNote("");
     try {
-      await persist(projects.filter((p) => p.id !== id));
+      const next = await deleteProjectAction(id);
+      afterMutation(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete project.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const archiveProject = async (id: string) => {
+    if (!confirm("Archive this project? It will be hidden from the public site.")) return;
+    setBusyId(id);
+    setError("");
+    setSavedNote("");
+    try {
+      const next = await archiveProjectAction(id);
+      afterMutation(next);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not archive project.");
+    } finally {
       setBusyId(null);
     }
   };
@@ -74,6 +99,7 @@ export function InlineProjectsEditor({
         type="button"
         onClick={() => {
           setError("");
+          setSavedNote("");
           setOpen(true);
         }}
         className="absolute top-3 right-3 z-30 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white shadow-md opacity-90 hover:opacity-100"
@@ -105,7 +131,7 @@ export function InlineProjectsEditor({
 
             <div className="p-5 space-y-4">
               <p className="text-xs text-[#6b7280]">
-                Upload a photo from your computer when you add or edit a project. No image URL needed.
+                Upload a photo when you add or edit a project. Changes are saved to the database immediately.
               </p>
 
               <button
@@ -121,6 +147,7 @@ export function InlineProjectsEditor({
               </button>
 
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              {savedNote ? <p className="text-sm text-[#6E9277]">{savedNote}</p> : null}
 
               {projects.length === 0 ? (
                 <p className="text-sm text-[#6b7280] text-center py-8">No projects yet. Add the first one.</p>
@@ -129,7 +156,7 @@ export function InlineProjectsEditor({
                   {projects.map((project) => (
                     <li
                       key={project.id}
-                      className="flex items-center gap-3 rounded-xl border p-3"
+                      className="flex items-center gap-2 rounded-xl border p-3"
                       style={{ borderColor: "rgba(110,146,119,0.25)" }}
                     >
                       <div
@@ -157,12 +184,23 @@ export function InlineProjectsEditor({
                       >
                         <Pencil size={14} />
                       </button>
+                      {project.status !== "Archived" ? (
+                        <button
+                          type="button"
+                          disabled={busyId === project.id}
+                          className="p-2 rounded-lg hover:bg-[#EFE7DB] text-[#6E9277] disabled:opacity-50"
+                          onClick={() => void archiveProject(project.id)}
+                          title="Archive (hide from public site)"
+                        >
+                          <Archive size={14} />
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         disabled={busyId === project.id}
                         className="p-2 rounded-lg hover:bg-red-50 text-red-500 disabled:opacity-50"
                         onClick={() => void removeProject(project.id)}
-                        title="Delete"
+                        title="Delete permanently"
                       >
                         <Trash2 size={14} />
                       </button>

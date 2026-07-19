@@ -1,22 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Archive, Plus, Pencil, Trash2 } from "lucide-react";
 
+import {
+  archiveProjectAction,
+  deleteProjectAction,
+  saveProjectAction,
+} from "@/app/actions/site-content";
+import type { Project } from "@/lib/site-content/types";
 import ProjectFormModal from "@/site/app/components/admin/ProjectFormModal";
-import { useSiteStore, Project } from "@/site/lib/siteStore";
+import { useSiteStore } from "@/site/lib/siteStore";
 
 const STATUS_COLORS: Record<string, string> = {
   Active: "#6E9277",
   Completed: "#474747",
   Planned: "#EAC79A",
+  Archived: "#9ca3af",
 };
 
 export default function AdminProjects() {
-  const { projects, addProject, updateProject, deleteProject } = useSiteStore();
+  const router = useRouter();
+  const { projects: storeProjects } = useSiteStore();
+  const [projects, setProjects] = useState<Project[]>(storeProjects);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Project | undefined>();
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setProjects(storeProjects);
+  }, [storeProjects]);
+
+  const refresh = () => router.refresh();
 
   return (
     <div>
@@ -25,7 +42,7 @@ export default function AdminProjects() {
           <h1 className="text-2xl text-foreground">Projects</h1>
           <p className="text-sm text-muted-foreground">
             {projects.length} total · {projects.filter((p) => p.status === "Active").length} active ·
-            upload a photo for each project (no URL needed)
+            upload a photo for each project. Archive hides from the public site; delete removes permanently.
           </p>
         </div>
         <motion.button
@@ -41,6 +58,8 @@ export default function AdminProjects() {
           <Plus size={15} /> New Project
         </motion.button>
       </div>
+
+      {error ? <p className="text-sm text-red-600 mb-4">{error}</p> : null}
 
       <div className="space-y-3">
         <AnimatePresence>
@@ -64,7 +83,7 @@ export default function AdminProjects() {
                 <div className="flex items-center gap-2 mt-1.5">
                   <span
                     className="text-xs px-2 py-0.5 rounded-full font-semibold text-white"
-                    style={{ backgroundColor: STATUS_COLORS[project.status] }}
+                    style={{ backgroundColor: STATUS_COLORS[project.status] ?? "#6E9277" }}
                   >
                     {project.status}
                   </span>
@@ -81,15 +100,49 @@ export default function AdminProjects() {
                     setShowModal(true);
                   }}
                   className="p-2 rounded-lg hover:bg-muted text-muted-foreground"
+                  title="Edit"
                 >
                   <Pencil size={14} />
                 </motion.button>
+                {project.status !== "Archived" ? (
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    onClick={() => {
+                      if (!confirm("Archive this project? It will be hidden from the public site.")) return;
+                      void (async () => {
+                        try {
+                          setError("");
+                          const next = await archiveProjectAction(project.id);
+                          setProjects(next);
+                          refresh();
+                        } catch (err) {
+                          setError(err instanceof Error ? err.message : "Could not archive.");
+                        }
+                      })();
+                    }}
+                    className="p-2 rounded-lg hover:bg-muted text-muted-foreground"
+                    title="Archive"
+                  >
+                    <Archive size={14} />
+                  </motion.button>
+                ) : null}
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   onClick={() => {
-                    if (confirm("Delete project?")) void deleteProject(project.id);
+                    if (!confirm("Permanently delete this project?")) return;
+                    void (async () => {
+                      try {
+                        setError("");
+                        const next = await deleteProjectAction(project.id);
+                        setProjects(next);
+                        refresh();
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : "Could not delete.");
+                      }
+                    })();
                   }}
                   className="p-2 rounded-lg hover:bg-red-50 text-red-400"
+                  title="Delete permanently"
                 >
                   <Trash2 size={14} />
                 </motion.button>
@@ -109,7 +162,12 @@ export default function AdminProjects() {
         {showModal ? (
           <ProjectFormModal
             project={editing}
-            onSave={async (f) => (editing ? updateProject(editing.id, f) : addProject(f))}
+            onSave={async (f) => {
+              setError("");
+              const next = await saveProjectAction(editing ? { ...f, id: editing.id } : f);
+              setProjects(next);
+              refresh();
+            }}
             onClose={() => setShowModal(false)}
           />
         ) : null}

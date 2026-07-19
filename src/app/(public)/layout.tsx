@@ -6,6 +6,7 @@ import { getPublicMediaBundle, getPlaceholderMediaBundle } from "@/lib/media/res
 import { getSiteContentBundle } from "@/lib/site-content/resolve";
 import { getDefaultSiteContentBundle } from "@/lib/site-content/defaults";
 import { withTimeout } from "@/lib/server/with-timeout";
+import type { SiteContentBundle } from "@/lib/site-content/types";
 import { AdminEditProvider } from "@/site/lib/adminEditContext";
 import { MediaProvider } from "@/site/lib/mediaContext";
 import { SiteContentProvider } from "@/site/lib/siteContentContext";
@@ -19,18 +20,28 @@ export async function headers() {
   };
 }
 
+async function loadSiteContentReliable(): Promise<SiteContentBundle> {
+  const first = await withTimeout(getSiteContentBundle(), 8_000, null);
+  if (first) return first;
+
+  // Retry once — empty fallback previously made saved projects look “gone”.
+  const second = await withTimeout(getSiteContentBundle(), 8_000, null);
+  if (second) return second;
+
+  console.error("[public-layout] site content timed out twice; using settings-only fallback");
+  return getDefaultSiteContentBundle();
+}
+
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const mediaFallback = {
     media: getPlaceholderMediaBundle(),
     version: null,
     albums: [] as Array<{ id: string; name: string; slug: string }>,
   };
-  const contentFallback = getDefaultSiteContentBundle();
 
-  // Never let auth/DB hangs take down the public site (seen as ERR_NETWORK_CHANGED / endless load).
   const [{ media, version, albums }, content, canEdit] = await Promise.all([
-    withTimeout(getPublicMediaBundle(), 6_000, mediaFallback),
-    withTimeout(getSiteContentBundle(), 6_000, contentFallback),
+    withTimeout(getPublicMediaBundle(), 8_000, mediaFallback),
+    loadSiteContentReliable(),
     withTimeout(canInlineEditAction(), 2_000, false),
   ]);
 
