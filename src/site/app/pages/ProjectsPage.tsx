@@ -9,6 +9,8 @@ import { useSiteContent } from "@/site/lib/siteContentContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
+import { SectionEditor } from "../components/admin-edit/SectionEditor";
+import { InlineProjectsEditor } from "../components/admin-edit/InlineProjectsEditor";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -34,16 +36,29 @@ export default function ProjectsPage() {
 
   return (
     <div className="overflow-x-hidden">
-      <PageHero
-        imageSrc={bannerSrc}
-        imageAlt="Projects in the DRC"
-        eyebrow="On the Ground"
-        title="Our Projects"
-        bottomColor={c.cream}
-        variant="cinematic"
-      />
+      <SectionEditor
+        title="Projects page banner"
+        fields={[
+          {
+            kind: "image",
+            path: ["websiteUseImages", "projects"],
+            label: "Top photo on Projects page",
+            help: "This is only the banner. Project cards are edited with the Edit projects button below.",
+          },
+        ]}
+      >
+        <PageHero
+          imageSrc={bannerSrc}
+          imageAlt="Projects in the DRC"
+          eyebrow="On the Ground"
+          title="Our Projects"
+          bottomColor={c.cream}
+          variant="cinematic"
+        />
+      </SectionEditor>
 
       {/* Filter + Grid */}
+      <InlineProjectsEditor title="Projects">
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY}`}>
           {categories.length > 0 ? (
@@ -67,7 +82,7 @@ export default function ProjectsPage() {
 
           {filtered.length === 0 ? (
             <p className="text-center text-sm py-16" style={{ color: c.muted }}>
-              Projects will appear here once they are added.
+              Projects will appear here once they are added. Admins can click Edit projects to add one with a photo upload.
             </p>
           ) : null}
 
@@ -131,6 +146,7 @@ export default function ProjectsPage() {
         </div>
         <WaveDivider topColor={c.cream} bottomColor={c.footer} />
       </section>
+      </InlineProjectsEditor>
 
       {/* Project Detail Modal */}
       <AnimatePresence>

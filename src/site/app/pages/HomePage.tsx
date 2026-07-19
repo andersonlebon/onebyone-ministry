@@ -17,6 +17,8 @@ import {
   AnimatedBlob, CrossPattern, DiagonalStripes, PulsingRing, Sparkles,
 } from "../components/shared/SvgDecorators";
 import { SectionEditor } from "../components/admin-edit/SectionEditor";
+import { InlineProjectsEditor } from "../components/admin-edit/InlineProjectsEditor";
+import { useCanInlineEdit } from "@/site/lib/adminEditContext";
 
 /* ───── Animated Counter ───── */
 function useAnimatedCounter(target: number, duration = 2400) {
@@ -111,6 +113,7 @@ function StatCard({ value, suffix, label, icon: Icon }: { value: number; suffix:
 /* ═══════════════════════════════════════════════════════════ */
 export default function HomePage() {
   const c = useColors();
+  const canInlineEdit = useCanInlineEdit();
   const { brandAssets, homePillars, websiteUseImages } = useSiteMedia();
   const heroBackground = useMediaUrl(websiteUseImages.hero);
   const { settings, projects } = useSiteContent();
@@ -488,7 +491,8 @@ export default function HomePage() {
       </section>
 
       {/* ══════════ FEATURED PROJECTS ══════════ */}
-      {PROJECTS.length > 0 ? (
+      {PROJECTS.length > 0 || canInlineEdit ? (
+      <InlineProjectsEditor title="Featured projects">
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
         <AnimatedBlob color="#6E9277" opacity={0.05} size={500} className="top-20 -left-40" />
 
@@ -503,6 +507,11 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
+          {PROJECTS.length === 0 ? (
+            <p className="text-center text-sm py-10" style={{ color: c.muted }}>
+              No projects yet. Click Edit projects to add one and upload a photo from your computer.
+            </p>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
             {PROJECTS.map((project, i) => (
               <motion.div
@@ -549,9 +558,11 @@ export default function HomePage() {
               </motion.div>
             ))}
           </div>
+          )}
         </div>
         <WaveDivider topColor={c.white} bottomColor="#6E9277" />
       </section>
+      </InlineProjectsEditor>
       ) : (
         <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
       )}
