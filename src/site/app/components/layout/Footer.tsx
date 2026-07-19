@@ -7,6 +7,7 @@ import { siteConfig } from "@/lib/site";
 import { useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import NewsletterSubscribeForm from "../shared/NewsletterSubscribeForm";
+import { SectionEditor } from "../admin-edit/SectionEditor";
 
 const QUICK_LINKS = [
   { label: "Home", to: "/" },
@@ -40,35 +41,44 @@ export default function Footer() {
     <footer style={{ backgroundColor: c.footer }} className="text-white">
       <div className="max-w-7xl mx-auto px-5 lg:px-8 pt-16 pb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-          <div className="lg:col-span-1">
-            <img
-              src={brandAssets.logoWhite}
-              alt="One By One Ministries"
-              className="h-24 w-auto object-contain mb-5"
-            />
-            <p className="text-white text-sm font-semibold mb-3 tracking-wide">Follow us</p>
-            {socials.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {socials.map(({ href, icon: Icon, label }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={label}
-                    title={label}
-                    className="w-14 h-14 rounded-xl flex items-center justify-center bg-white/10 hover:bg-[#6E9277] transition-colors"
-                  >
-                    <Icon size={28} strokeWidth={1.75} />
-                  </a>
-                ))}
-              </div>
-            ) : (
-              <p className="text-white/50 text-xs leading-relaxed">
-                Add Facebook, Instagram, and YouTube links in Site Settings to show them here.
-              </p>
-            )}
-          </div>
+          <SectionEditor
+            title="Social media links"
+            fields={[
+              { kind: "text", key: "facebookUrl", label: "Facebook URL" },
+              { kind: "text", key: "instagramUrl", label: "Instagram URL" },
+              { kind: "text", key: "youtubeUrl", label: "YouTube URL" },
+            ]}
+          >
+            <div className="lg:col-span-1 relative min-h-[8rem]">
+              <img
+                src={brandAssets.logoWhite}
+                alt="One By One Ministries"
+                className="h-24 w-auto object-contain mb-5"
+              />
+              <p className="text-white text-sm font-semibold mb-3 tracking-wide">Follow us</p>
+              {socials.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {socials.map(({ href, icon: Icon, label }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      title={label}
+                      className="w-14 h-14 rounded-xl flex items-center justify-center bg-white/10 hover:bg-[#6E9277] transition-colors"
+                    >
+                      <Icon size={28} strokeWidth={1.75} />
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-white/50 text-xs leading-relaxed pr-16">
+                  No social links yet. Admins can click Edit to add Facebook, Instagram, and YouTube URLs.
+                </p>
+              )}
+            </div>
+          </SectionEditor>
 
           <div>
             <h4 className="text-white text-sm tracking-widest uppercase mb-5" style={{ fontFamily: "'Francois One', sans-serif" }}>
