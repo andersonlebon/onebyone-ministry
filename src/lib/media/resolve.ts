@@ -30,30 +30,26 @@ export async function getPublicMediaBundle(): Promise<PublicMediaPayload> {
     const base = stored ?? buildPlaceholderMediaBundle();
     const albumNameById = new Map(albums.map((a) => [a.id, a.name]));
 
+    // Always derive the public gallery from Photo Library rows.
+    // An empty library must stay empty (do not fall back to seeded galleryPhotos JSON).
     const photoAssets = await listMediaAssets("photos");
-    if (photoAssets.length > 0) {
-      return {
-        version,
-        albums: albums.map((a) => ({ id: a.id, name: a.name, slug: a.slug })),
-        media: {
-          ...base,
-          galleryPhotos: photoAssets.map((asset, index) => ({
-            id: index + 1,
-            src: asset.publicUrl,
-            alt: asset.alt ?? "",
-            category: asset.category ?? "Community",
-            albumId: asset.albumId ?? null,
-            albumName: asset.albumId ? albumNameById.get(asset.albumId) ?? null : null,
-            h: 300,
-          })),
-        },
-      };
-    }
+    const galleryPhotos: GalleryPhoto[] = photoAssets.map((asset, index) => ({
+      id: index + 1,
+      src: asset.publicUrl,
+      alt: asset.alt ?? "",
+      category: asset.category ?? "Community",
+      albumId: asset.albumId ?? null,
+      albumName: asset.albumId ? albumNameById.get(asset.albumId) ?? null : null,
+      h: 300,
+    }));
 
     return {
-      media: base,
       version,
       albums: albums.map((a) => ({ id: a.id, name: a.name, slug: a.slug })),
+      media: {
+        ...base,
+        galleryPhotos,
+      },
     };
   } catch (error) {
     console.error("[media] Failed to load site media:", error);

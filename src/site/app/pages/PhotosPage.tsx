@@ -75,7 +75,9 @@ export default function PhotosPage() {
 
           {filtered.length === 0 ? (
             <p className="text-center text-sm py-16" style={{ color: c.muted }}>
-              No photos in this album yet. Check back soon.
+              {galleryPhotos.length === 0
+                ? "Photos will appear here once they are added."
+                : "No photos in this album yet. Check back soon."}
             </p>
           ) : (
             <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 640: 2, 1024: 3 }}>
