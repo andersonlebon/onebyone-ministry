@@ -119,14 +119,17 @@ export default function HomePage() {
   const { settings, projects } = useSiteContent();
   const publishedPosts = usePublishedPosts();
 
-  const PROJECTS = projects.slice(0, 3).map((project) => ({
-    id: project.id,
-    title: project.title,
-    category: project.category,
-    desc: project.desc,
-    img: project.img,
-    status: project.status,
-  }));
+  const PROJECTS = projects
+    .filter((project) => project.status !== "Archived")
+    .slice(0, 3)
+    .map((project) => ({
+      id: project.id,
+      title: project.title,
+      category: project.category,
+      desc: project.desc,
+      img: project.img,
+      status: project.status,
+    }));
 
   const STORIES = publishedPosts.slice(0, 3).map((post) => ({
     id: post.id,

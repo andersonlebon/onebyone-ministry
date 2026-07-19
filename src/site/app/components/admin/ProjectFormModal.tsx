@@ -8,7 +8,7 @@ import type { Project } from "@/lib/site-content/types";
 import AdminImageUpload from "@/site/app/components/admin/AdminImageUpload";
 
 const CATEGORIES = ["Education", "Entrepreneurship", "Discipleship", "Community"];
-const STATUSES = ["Active", "Completed", "Planned"] as const;
+const STATUSES = ["Active", "Completed", "Planned", "Archived"] as const;
 
 export type ProjectFormValues = Omit<Project, "id">;
 

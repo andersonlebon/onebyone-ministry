@@ -21,7 +21,12 @@ export default function ProjectsPage() {
   const c = useColors();
   const { websiteUseImages } = useSiteMedia();
   const bannerSrc = useMediaUrl(websiteUseImages.projects);
-  const { projects: PROJECTS } = useSiteContent();
+  const { projects: allProjects } = useSiteContent();
+  // Archived projects stay in the DB but are hidden on the public site.
+  const PROJECTS = useMemo(
+    () => allProjects.filter((p) => p.status !== "Archived"),
+    [allProjects]
+  );
   const [activeCategory, setActiveCategory] = useState("All");
   const [selectedProject, setSelectedProject] = useState<(typeof PROJECTS)[number] | null>(null);
 
