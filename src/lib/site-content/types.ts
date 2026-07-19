@@ -10,6 +10,19 @@ export type SiteSettings = {
   facebookUrl: string;
   instagramUrl: string;
   youtubeUrl: string;
+  /** Homepage impact stats (editable by client). */
+  statCommunities: string;
+  statFamilies: string;
+  statProjects: string;
+  statTeam: string;
+  statCommunitiesLabel: string;
+  statFamiliesLabel: string;
+  statProjectsLabel: string;
+  statTeamLabel: string;
+  verseText: string;
+  verseReference: string;
+  usaAddress: string;
+  congoAddress: string;
 };
 
 export type Post = {

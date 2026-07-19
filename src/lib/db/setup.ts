@@ -1,14 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { eq } from "drizzle-orm";
 
-import {
-  defaultGallerySeed,
-  defaultProjectMediaSeed,
-  defaultProjects,
-  defaultSiteSettings,
-  defaultVideoThumbSeed,
-  defaultVideos,
-} from "@/content/site-defaults";
+import { defaultSiteSettings } from "@/content/site-defaults";
 import { SETUP_ROW_ID } from "@/lib/setup/constants";
 import { applyUrlMapToMediaBundle } from "@/lib/media/resolve-urls";
 import { buildPlaceholderMediaBundle } from "@/lib/media/placeholders";
@@ -21,19 +14,6 @@ import { MEDIA_BUCKET } from "@/lib/supabase/config";
 import { getDb } from "./index";
 import { mediaAssets, projectSetup, siteContent } from "./schema";
 import { upsertSiteContentValue } from "./site-content";
-
-function resolveSeedRows<T extends { img?: string; thumb?: string; publicUrl?: string }>(
-  rows: readonly T[],
-  urlMap: Record<string, string>
-): T[] {
-  return rows.map((row) => {
-    const next = { ...row } as T & { img?: string; thumb?: string; publicUrl?: string };
-    if (next.img && urlMap[next.img]) next.img = urlMap[next.img];
-    if (next.thumb && urlMap[next.thumb]) next.thumb = urlMap[next.thumb];
-    if (next.publicUrl && urlMap[next.publicUrl]) next.publicUrl = urlMap[next.publicUrl];
-    return next as T;
-  });
-}
 
 export async function getSetupRecord() {
   const db = getDb();
@@ -50,32 +30,35 @@ export async function isSetupComplete() {
   return Boolean(row);
 }
 
+/**
+ * Seeds design media + empty content collections.
+ * Gallery, projects, videos, and posts are left for the client to add.
+ */
 export async function seedDefaultSiteData(supabase: SupabaseClient, uploadedBy?: string) {
   const db = getDb();
 
   const { urlMap, records } = await uploadAllPublicAssets(supabase);
   const mediaBundle = applyUrlMapToMediaBundle(buildPlaceholderMediaBundle(), urlMap);
+  // Ensure no seeded gallery/video content is written into site_content.media
+  mediaBundle.galleryPhotos = [];
+  mediaBundle.ministryVideos = [];
+  mediaBundle.featuredVideo = {
+    id: "",
+    title: "",
+    desc: "",
+    duration: "",
+    category: "",
+    thumb: "",
+  };
 
   await upsertSiteContentValue(SITE_MEDIA_CONTENT_KEY, mediaBundle);
 
   const contentRows = [
     { key: SITE_CONTENT_KEYS.settings, value: defaultSiteSettings },
-    {
-      key: SITE_CONTENT_KEYS.posts,
-      value: [],
-    },
-    {
-      key: SITE_CONTENT_KEYS.projects,
-      value: resolveSeedRows(defaultProjects, urlMap),
-    },
-    {
-      key: SITE_CONTENT_KEYS.videos,
-      value: resolveSeedRows(defaultVideos, urlMap),
-    },
-    {
-      key: SITE_CONTENT_KEYS.finance,
-      value: { ...EMPTY_FINANCE },
-    },
+    { key: SITE_CONTENT_KEYS.posts, value: [] },
+    { key: SITE_CONTENT_KEYS.projects, value: [] },
+    { key: SITE_CONTENT_KEYS.videos, value: [] },
+    { key: SITE_CONTENT_KEYS.finance, value: { ...EMPTY_FINANCE } },
   ] as const;
 
   for (const row of contentRows) {
@@ -87,22 +70,6 @@ export async function seedDefaultSiteData(supabase: SupabaseClient, uploadedBy?:
         set: { value: row.value, updatedAt: new Date() },
       });
   }
-
-  const mediaSeed = [
-    ...defaultGallerySeed.map((item) => ({
-      ...item,
-      publicUrl: urlMap[item.publicUrl] ?? item.publicUrl,
-      path: item.path,
-    })),
-    ...defaultProjectMediaSeed.map((item) => ({
-      ...item,
-      publicUrl: urlMap[item.publicUrl] ?? item.publicUrl,
-    })),
-    ...defaultVideoThumbSeed.map((item) => ({
-      ...item,
-      publicUrl: urlMap[item.publicUrl] ?? item.publicUrl,
-    })),
-  ];
 
   for (const item of records) {
     await db
@@ -125,21 +92,6 @@ export async function seedDefaultSiteData(supabase: SupabaseClient, uploadedBy?:
           folder: item.folder,
         },
       });
-  }
-
-  for (const item of mediaSeed) {
-    await db
-      .insert(mediaAssets)
-      .values({
-        bucket: MEDIA_BUCKET,
-        path: item.path,
-        publicUrl: item.publicUrl,
-        alt: item.alt,
-        category: item.category,
-        folder: item.folder,
-        uploadedBy: uploadedBy ?? null,
-      })
-      .onConflictDoNothing({ target: mediaAssets.path });
   }
 }
 

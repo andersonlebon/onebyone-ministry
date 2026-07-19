@@ -4,119 +4,204 @@ import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useColors } from "../../lib/themeStore";
 import Masonry, { ResponsiveMasonry } from "react-responsive-masonry";
-import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ZoomIn, ChevronLeft, ChevronRight, ArrowLeft, Images } from "lucide-react";
 import { useMediaUrl, usePhotoAlbums, useSiteMedia } from "@/site/lib/mediaContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
+import { SectionEditor } from "../components/admin-edit/SectionEditor";
 
 export default function PhotosPage() {
   const c = useColors();
   const { galleryPhotos, websiteUseImages } = useSiteMedia();
   const albums = usePhotoAlbums();
   const bannerSrc = useMediaUrl(websiteUseImages.community);
-  const [activeAlbum, setActiveAlbum] = useState("All");
+  const [activeAlbumId, setActiveAlbumId] = useState<string | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const albumsWithPhotos = useMemo(() => {
-    const used = new Set(
-      galleryPhotos.map((p) => p.albumId).filter((id): id is string => Boolean(id))
-    );
-    return albums.filter((a) => used.has(a.id));
+  const albumCards = useMemo(() => {
+    return albums
+      .map((album) => {
+        const photos = galleryPhotos.filter((p) => p.albumId === album.id);
+        return {
+          ...album,
+          count: photos.length,
+          cover: photos[0]?.src ?? null,
+        };
+      })
+      .filter((a) => a.count > 0);
   }, [albums, galleryPhotos]);
 
-  const filters = useMemo(
-    () => [{ id: "All", name: "All" }, ...albumsWithPhotos.map((a) => ({ id: a.id, name: a.name }))],
-    [albumsWithPhotos]
+  const unassigned = useMemo(
+    () => galleryPhotos.filter((p) => !p.albumId),
+    [galleryPhotos]
   );
 
-  const filtered =
-    activeAlbum === "All"
-      ? galleryPhotos
-      : galleryPhotos.filter((p) => p.albumId === activeAlbum);
+  const activeAlbum = albums.find((a) => a.id === activeAlbumId) ?? null;
+  const albumPhotos =
+    activeAlbumId === "__unassigned__"
+      ? unassigned
+      : activeAlbumId
+        ? galleryPhotos.filter((p) => p.albumId === activeAlbumId)
+        : [];
 
   const openLightbox = (i: number) => setLightboxIndex(i);
   const closeLightbox = () => setLightboxIndex(null);
   const goPrev = () => setLightboxIndex((prev) => (prev !== null && prev > 0 ? prev - 1 : prev));
   const goNext = () =>
-    setLightboxIndex((prev) => (prev !== null && prev < filtered.length - 1 ? prev + 1 : prev));
+    setLightboxIndex((prev) => (prev !== null && prev < albumPhotos.length - 1 ? prev + 1 : prev));
 
   return (
     <div className="overflow-x-hidden">
-      <PageHero
-        imageSrc={bannerSrc}
-        imageAlt="Ministry photos"
-        eyebrow="Visual Stories"
-        title="Photo Gallery"
-        bottomColor={c.cream}
-        variant="cinematic"
-      />
+      <SectionEditor
+        title="Photos page banner"
+        fields={[
+          {
+            kind: "image",
+            path: ["websiteUseImages", "community"],
+            label: "Top photo on Photos page",
+            help: "This is only the banner at the top. Gallery photos are managed in Photo Library albums.",
+          },
+        ]}
+      >
+        <PageHero
+          imageSrc={bannerSrc}
+          imageAlt="Ministry photos"
+          eyebrow="Visual Stories"
+          title="Photo Gallery"
+          bottomColor={c.cream}
+          variant="cinematic"
+        />
+      </SectionEditor>
 
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <div className={`max-w-7xl mx-auto px-5 lg:px-8 ${SECTION_PY}`}>
-          {filters.length > 1 ? (
-            <div className="flex flex-wrap gap-2 mb-10">
-              {filters.map((album) => (
-                <button
-                  key={album.id}
-                  onClick={() => setActiveAlbum(album.id)}
-                  className="px-4 py-2 rounded text-sm font-semibold transition-all duration-200"
-                  style={{
-                    backgroundColor: activeAlbum === album.id ? "#6E9277" : c.white,
-                    color: activeAlbum === album.id ? "#ffffff" : c.text,
-                    border: activeAlbum === album.id ? "none" : `1px solid ${c.borderLight}`,
-                  }}
-                >
-                  {album.name}
-                </button>
-              ))}
-            </div>
-          ) : null}
+          {!activeAlbumId ? (
+            <>
+              <div className="text-center mb-10">
+                <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: "#6E9277" }}>
+                  Browse by album
+                </p>
+                <h2 className="text-2xl lg:text-3xl" style={{ color: c.text }}>
+                  Choose an album to see the photos
+                </h2>
+              </div>
 
-          {filtered.length === 0 ? (
-            <p className="text-center text-sm py-16" style={{ color: c.muted }}>
-              {galleryPhotos.length === 0
-                ? "Photos will appear here once they are added."
-                : "No photos in this album yet. Check back soon."}
-            </p>
-          ) : (
-            <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 640: 2, 1024: 3 }}>
-              <Masonry gutter="16px">
-                {filtered.map((photo, i) => (
-                  <motion.div
-                    key={`${photo.src}-${i}`}
-                    initial={{ opacity: 0, scale: 0.97 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: i * 0.05 }}
-                    className="relative group cursor-pointer rounded-lg overflow-hidden"
-                    style={{ backgroundColor: c.borderLight }}
-                    onClick={() => openLightbox(i)}
-                  >
-                    <img
-                      src={photo.src}
-                      alt={photo.alt}
-                      className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-                      <ZoomIn
-                        size={28}
-                        className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      />
-                    </div>
-                    {photo.albumName ? (
-                      <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/70 to-transparent">
-                        <span
-                          className="text-white text-xs px-2 py-0.5 rounded"
-                          style={{ backgroundColor: "#6E9277" }}
-                        >
-                          {photo.albumName}
-                        </span>
+              {albumCards.length === 0 && unassigned.length === 0 ? (
+                <p className="text-center text-sm py-16" style={{ color: c.muted }}>
+                  Photos will appear here once albums are added.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {albumCards.map((album, i) => (
+                    <motion.button
+                      key={album.id}
+                      type="button"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      onClick={() => setActiveAlbumId(album.id)}
+                      className="text-left rounded-2xl overflow-hidden group"
+                      style={{ backgroundColor: c.white, border: `1px solid ${c.borderLight}` }}
+                    >
+                      <div className="relative h-48 overflow-hidden" style={{ backgroundColor: c.borderLight }}>
+                        {album.cover ? (
+                          <img
+                            src={album.cover}
+                            alt={album.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Images size={32} style={{ color: "#6E9277" }} />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-white font-semibold text-lg">{album.name}</p>
+                          <p className="text-white/80 text-xs">{album.count} photo{album.count === 1 ? "" : "s"}</p>
+                        </div>
                       </div>
-                    ) : null}
-                  </motion.div>
-                ))}
-              </Masonry>
-            </ResponsiveMasonry>
+                    </motion.button>
+                  ))}
+
+                  {unassigned.length > 0 ? (
+                    <motion.button
+                      type="button"
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => setActiveAlbumId("__unassigned__")}
+                      className="text-left rounded-2xl overflow-hidden"
+                      style={{ backgroundColor: c.white, border: `1px solid ${c.borderLight}` }}
+                    >
+                      <div className="relative h-48 overflow-hidden" style={{ backgroundColor: c.borderLight }}>
+                        <img
+                          src={unassigned[0].src}
+                          alt="Other photos"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+                        <div className="absolute bottom-3 left-3 right-3">
+                          <p className="text-white font-semibold text-lg">Other photos</p>
+                          <p className="text-white/80 text-xs">{unassigned.length} photo{unassigned.length === 1 ? "" : "s"}</p>
+                        </div>
+                      </div>
+                    </motion.button>
+                  ) : null}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveAlbumId(null);
+                  setLightboxIndex(null);
+                }}
+                className="inline-flex items-center gap-2 text-sm font-semibold mb-8"
+                style={{ color: "#6E9277" }}
+              >
+                <ArrowLeft size={16} /> All albums
+              </button>
+              <h2 className="text-2xl lg:text-3xl mb-8" style={{ color: c.text }}>
+                {activeAlbumId === "__unassigned__" ? "Other photos" : activeAlbum?.name ?? "Album"}
+              </h2>
+
+              {albumPhotos.length === 0 ? (
+                <p className="text-center text-sm py-16" style={{ color: c.muted }}>
+                  No photos in this album yet.
+                </p>
+              ) : (
+                <ResponsiveMasonry columnsCountBreakPoints={{ 350: 1, 640: 2, 1024: 3 }}>
+                  <Masonry gutter="16px">
+                    {albumPhotos.map((photo, i) => (
+                      <motion.div
+                        key={`${photo.src}-${i}`}
+                        initial={{ opacity: 0, scale: 0.97 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.35, delay: i * 0.04 }}
+                        className="relative group cursor-pointer rounded-lg overflow-hidden"
+                        style={{ backgroundColor: c.borderLight }}
+                        onClick={() => openLightbox(i)}
+                      >
+                        <img
+                          src={photo.src}
+                          alt={photo.alt}
+                          className="w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                          <ZoomIn
+                            size={28}
+                            className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </Masonry>
+                </ResponsiveMasonry>
+              )}
+            </>
           )}
         </div>
         <WaveDivider topColor={c.cream} bottomColor={c.footer} />
@@ -132,10 +217,7 @@ export default function PhotosPage() {
             style={{ backgroundColor: "rgba(0,0,0,0.9)" }}
             onClick={closeLightbox}
           >
-            <button
-              className="absolute top-5 right-5 text-white/80 hover:text-white"
-              onClick={closeLightbox}
-            >
+            <button className="absolute top-5 right-5 text-white/80 hover:text-white" onClick={closeLightbox}>
               <X size={28} />
             </button>
             {lightboxIndex > 0 && (
@@ -149,7 +231,7 @@ export default function PhotosPage() {
                 <ChevronLeft size={36} />
               </button>
             )}
-            {lightboxIndex < filtered.length - 1 && (
+            {lightboxIndex < albumPhotos.length - 1 && (
               <button
                 className="absolute right-4 text-white/80 hover:text-white"
                 onClick={(e) => {
@@ -164,8 +246,8 @@ export default function PhotosPage() {
               key={lightboxIndex}
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              src={filtered[lightboxIndex]?.src}
-              alt={filtered[lightboxIndex]?.alt ?? ""}
+              src={albumPhotos[lightboxIndex]?.src}
+              alt={albumPhotos[lightboxIndex]?.alt ?? ""}
               className="max-h-[85vh] max-w-full object-contain rounded-lg"
               onClick={(e) => e.stopPropagation()}
             />
