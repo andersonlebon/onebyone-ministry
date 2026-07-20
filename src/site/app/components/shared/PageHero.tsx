@@ -3,6 +3,8 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
+import type { SiteMediaSlotPath } from "@/app/actions/site-media";
+import type { SiteSettings } from "@/lib/site-content/types";
 import { useColors } from "../../../lib/themeStore";
 import {
   HERO_IMAGE_CROP_PX,
@@ -11,6 +13,7 @@ import {
   getHeroMainOverlay,
   getHeroSideOverlay,
 } from "../../../lib/pageLayout";
+import { SectionEditor } from "../admin-edit/SectionEditor";
 
 import { AnimatedBlob, Sparkles, WaveDivider } from "./SvgDecorators";
 
@@ -25,6 +28,18 @@ type PageHeroProps = {
   children?: ReactNode;
   decorative?: ReactNode;
   animateImage?: boolean;
+  /**
+   * When set, admins see an Edit button on this hero to replace the background
+   * image (and optional settings text fields).
+   */
+  edit?: {
+    title?: string;
+    imagePath: SiteMediaSlotPath;
+    imageLabel?: string;
+    help?: string;
+    textFields?: { key: keyof SiteSettings; label: string; multiline?: boolean }[];
+    buttonLabel?: string;
+  };
 };
 
 const SIZE_CLASS = {
@@ -33,15 +48,13 @@ const SIZE_CLASS = {
   tall: "min-h-[18rem] sm:min-h-[22rem]",
 } as const;
 
-const CINEMATIC_SIZE_CLASS = "h-72 sm:h-96";
-
 function getCinematicOverlay(isDark: boolean) {
   return isDark
     ? "linear-gradient(to bottom, rgba(0,0,0,0.60), rgba(0,0,0,0.20), rgba(0,0,0,0.75))"
     : "linear-gradient(to bottom, rgba(0,0,0,0.40), transparent, rgba(0,0,0,0.60))";
 }
 
-export default function PageHero({
+function PageHeroInner({
   imageSrc,
   imageAlt,
   eyebrow,
@@ -52,7 +65,7 @@ export default function PageHero({
   children,
   decorative,
   animateImage = false,
-}: PageHeroProps) {
+}: Omit<PageHeroProps, "edit">) {
   const c = useColors();
   const cropTotal = HERO_IMAGE_CROP_PX * 2;
   const cropXTotal = HERO_IMAGE_CROP_X_PX * 2;
@@ -61,7 +74,7 @@ export default function PageHero({
   if (variant === "cinematic") {
     return (
       <section
-        className={`relative pt-24 h-[60vh] flex flex-col items-center justify-end overflow-hidden`}
+        className="relative pt-24 h-[60vh] flex flex-col items-center justify-end overflow-hidden"
         style={{ backgroundColor: c.heroBg }}
       >
         <div
@@ -162,5 +175,37 @@ export default function PageHero({
 
       <WaveDivider topColor="transparent" bottomColor={bottomColor} />
     </section>
+  );
+}
+
+export default function PageHero({ edit, ...props }: PageHeroProps) {
+  const hero = <PageHeroInner {...props} />;
+
+  if (!edit) return hero;
+
+  return (
+    <SectionEditor
+      title={edit.title ?? "Page banner"}
+      placement="hero"
+      buttonLabel={edit.buttonLabel ?? "Edit banner"}
+      fields={[
+        {
+          kind: "image",
+          path: edit.imagePath,
+          label: edit.imageLabel ?? "Background photo",
+          help:
+            edit.help ??
+            "This replaces the large background image at the top of this page. It saves to the live site.",
+        },
+        ...(edit.textFields ?? []).map((f) => ({
+          kind: "text" as const,
+          key: f.key,
+          label: f.label,
+          multiline: f.multiline,
+        })),
+      ]}
+    >
+      {hero}
+    </SectionEditor>
   );
 }

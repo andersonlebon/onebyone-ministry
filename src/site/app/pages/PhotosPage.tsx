@@ -9,7 +9,6 @@ import { useMediaUrl, usePhotoAlbums, useSiteMedia } from "@/site/lib/mediaConte
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
-import { SectionEditor } from "../components/admin-edit/SectionEditor";
 
 export default function PhotosPage() {
   const c = useColors();
@@ -53,26 +52,20 @@ export default function PhotosPage() {
 
   return (
     <div className="overflow-x-hidden">
-      <SectionEditor
-        title="Photos page banner"
-        fields={[
-          {
-            kind: "image",
-            path: ["websiteUseImages", "community"],
-            label: "Top photo on Photos page",
-            help: "This is only the banner at the top. Gallery photos are managed in Photo Library albums.",
-          },
-        ]}
-      >
-        <PageHero
-          imageSrc={bannerSrc}
-          imageAlt="Ministry photos"
-          eyebrow="Visual Stories"
-          title="Photo Gallery"
-          bottomColor={c.cream}
-          variant="cinematic"
-        />
-      </SectionEditor>
+      <PageHero
+        imageSrc={bannerSrc}
+        imageAlt="Ministry photos"
+        eyebrow="Visual Stories"
+        title="Photo Gallery"
+        bottomColor={c.cream}
+        variant="cinematic"
+        edit={{
+          title: "Photos page banner",
+          imagePath: ["websiteUseImages", "community"],
+          imageLabel: "Background photo",
+          help: "Banner only. Gallery photos are managed in Photo Library albums.",
+        }}
+      />
 
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <div className={`max-w-7xl mx-auto px-5 lg:px-8 ${SECTION_PY}`}>

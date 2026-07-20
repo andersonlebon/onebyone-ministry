@@ -6,6 +6,7 @@ import { X, Save } from "lucide-react";
 
 import type { Project } from "@/lib/site-content/types";
 import AdminImageUpload from "@/site/app/components/admin/AdminImageUpload";
+import { useColors } from "@/site/lib/themeStore";
 
 const CATEGORIES = ["Education", "Entrepreneurship", "Discipleship", "Community"];
 const STATUSES = ["Active", "Completed", "Planned", "Archived"] as const;
@@ -50,8 +51,14 @@ export default function ProjectFormModal({
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const c = useColors();
 
   const set = (k: keyof ProjectFormValues, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const fieldStyle = {
+    backgroundColor: c.inputBg,
+    color: c.text,
+    borderColor: c.border,
+  } as const;
 
   const handleSave = async () => {
     if (!form.title.trim()) {
@@ -84,47 +91,59 @@ export default function ProjectFormModal({
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0 }}
-        className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto"
+        className="rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-xl"
+        style={{ backgroundColor: c.card, color: c.text, border: `1px solid ${c.border}` }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-muted">
-          <h3 className="text-base text-foreground">{project ? "Edit Project" : "New Project"}</h3>
-          <button type="button" onClick={onClose}>
-            <X size={16} className="text-muted-foreground" />
+        <div
+          className="flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: `1px solid ${c.border}` }}
+        >
+          <h3 className="text-base font-semibold" style={{ color: c.text }}>
+            {project ? "Edit Project" : "New Project"}
+          </h3>
+          <button type="button" onClick={onClose} style={{ color: c.muted }}>
+            <X size={16} />
           </button>
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">Title</label>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>
+              Title
+            </label>
             <input
               value={form.title}
               onChange={(e) => set("title", e.target.value)}
               placeholder="Project title"
               className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]"
-              style={{ borderColor: "rgba(110,146,119,0.3)" }}
+              style={fieldStyle}
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">Category</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>
+                Category
+              </label>
               <select
                 value={form.category}
                 onChange={(e) => set("category", e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl border text-sm bg-card focus:outline-none focus:border-[#6E9277]"
-                style={{ borderColor: "rgba(110,146,119,0.3)" }}
+                className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]"
+                style={fieldStyle}
               >
-                {CATEGORIES.map((c) => (
-                  <option key={c}>{c}</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat}>{cat}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">Status</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>
+                Status
+              </label>
               <select
                 value={form.status}
                 onChange={(e) => set("status", e.target.value as Project["status"])}
-                className="w-full px-3 py-2.5 rounded-xl border text-sm bg-card focus:outline-none focus:border-[#6E9277]"
-                style={{ borderColor: "rgba(110,146,119,0.3)" }}
+                className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]"
+                style={fieldStyle}
               >
                 {STATUSES.map((s) => (
                   <option key={s}>{s}</option>
@@ -133,23 +152,27 @@ export default function ProjectFormModal({
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">Short Description</label>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>
+              Short Description
+            </label>
             <textarea
               value={form.desc}
               onChange={(e) => set("desc", e.target.value)}
               rows={2}
               className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277] resize-none"
-              style={{ borderColor: "rgba(110,146,119,0.3)" }}
+              style={fieldStyle}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">Full Description</label>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>
+              Full Description
+            </label>
             <textarea
               value={form.fullDesc}
               onChange={(e) => set("fullDesc", e.target.value)}
               rows={4}
               className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277] resize-none"
-              style={{ borderColor: "rgba(110,146,119,0.3)" }}
+              style={fieldStyle}
             />
           </div>
 
@@ -161,48 +184,60 @@ export default function ProjectFormModal({
           {form.img ? (
             <img src={form.img} alt="Project preview" className="w-full h-40 object-cover rounded-xl" />
           ) : (
-            <p className="text-xs text-muted-foreground">Upload a photo from your computer. URL paste is not needed.</p>
+            <p className="text-xs" style={{ color: c.muted }}>
+              Upload a photo from your computer. URL paste is not needed.
+            </p>
           )}
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">Location</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>
+                Location
+              </label>
               <input
                 value={form.location}
                 onChange={(e) => set("location", e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]"
-                style={{ borderColor: "rgba(110,146,119,0.3)" }}
+                style={fieldStyle}
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">Year(s)</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>
+                Year(s)
+              </label>
               <input
                 value={form.year}
                 onChange={(e) => set("year", e.target.value)}
                 placeholder="2024–2025"
                 className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]"
-                style={{ borderColor: "rgba(110,146,119,0.3)" }}
+                style={fieldStyle}
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-foreground mb-1.5">Impact</label>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>
+                Impact
+              </label>
               <input
                 value={form.impact}
                 onChange={(e) => set("impact", e.target.value)}
                 placeholder="200+ people"
                 className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]"
-                style={{ borderColor: "rgba(110,146,119,0.3)" }}
+                style={fieldStyle}
               />
             </div>
           </div>
 
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          {error ? <p className="text-sm text-red-500">{error}</p> : null}
         </div>
-        <div className="px-6 py-4 border-t border-muted flex gap-3 justify-end">
+        <div
+          className="px-6 py-4 flex gap-3 justify-end"
+          style={{ borderTop: `1px solid ${c.border}` }}
+        >
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm text-foreground border border-muted hover:bg-muted"
+            className="px-4 py-2 rounded-xl text-sm border"
+            style={{ color: c.text, borderColor: c.border, backgroundColor: c.hoverBg }}
           >
             Cancel
           </button>

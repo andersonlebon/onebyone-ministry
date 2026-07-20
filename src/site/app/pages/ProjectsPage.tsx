@@ -9,7 +9,6 @@ import { useSiteContent } from "@/site/lib/siteContentContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
-import { SectionEditor } from "../components/admin-edit/SectionEditor";
 import { InlineProjectsEditor } from "../components/admin-edit/InlineProjectsEditor";
 
 const fadeUp: Variants = {
@@ -41,26 +40,20 @@ export default function ProjectsPage() {
 
   return (
     <div className="overflow-x-hidden">
-      <SectionEditor
-        title="Projects page banner"
-        fields={[
-          {
-            kind: "image",
-            path: ["websiteUseImages", "projects"],
-            label: "Top photo on Projects page",
-            help: "This is only the banner. Project cards are edited with the Edit projects button below.",
-          },
-        ]}
-      >
-        <PageHero
-          imageSrc={bannerSrc}
-          imageAlt="Projects in the DRC"
-          eyebrow="On the Ground"
-          title="Our Projects"
-          bottomColor={c.cream}
-          variant="cinematic"
-        />
-      </SectionEditor>
+      <PageHero
+        imageSrc={bannerSrc}
+        imageAlt="Projects in the DRC"
+        eyebrow="On the Ground"
+        title="Our Projects"
+        bottomColor={c.cream}
+        variant="cinematic"
+        edit={{
+          title: "Projects page banner",
+          imagePath: ["websiteUseImages", "projects"],
+          imageLabel: "Background photo",
+          help: "Replaces the banner behind this title. Project cards use Edit projects below.",
+        }}
+      />
 
       {/* Filter + Grid */}
       <InlineProjectsEditor title="Projects">

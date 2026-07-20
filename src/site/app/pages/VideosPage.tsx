@@ -9,7 +9,6 @@ import { useSiteContent } from "@/site/lib/siteContentContext";
 import PageHero from "../components/shared/PageHero";
 import { WaveDivider } from "../components/shared/SvgDecorators";
 import { SECTION_PY } from "../../lib/pageLayout";
-import { SectionEditor } from "../components/admin-edit/SectionEditor";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Education: "#6E9277",
@@ -62,27 +61,21 @@ export default function VideosPage() {
   const hasFeatured = Boolean(FEATURED.id);
 
   return (
-    <div className="pt-20">
-      <SectionEditor
-        title="Videos page banner"
-        fields={[
-          {
-            kind: "image",
-            path: ["websiteUseImages", "outreach"],
-            label: "Top photo on Videos page",
-            help: "Find this under Site Settings too. Upload here to change the banner.",
-          },
-        ]}
-      >
-        <PageHero
-          imageSrc={bannerSrc}
-          imageAlt="Ministry videos"
-          eyebrow="Watch & Be Moved"
-          title="Video Library"
-          bottomColor={c.white}
-          variant="cinematic"
-        />
-      </SectionEditor>
+    <div className="overflow-x-hidden">
+      <PageHero
+        imageSrc={bannerSrc}
+        imageAlt="Ministry videos"
+        eyebrow="Watch & Be Moved"
+        title="Video Library"
+        bottomColor={c.white}
+        variant="cinematic"
+        edit={{
+          title: "Videos page banner",
+          imagePath: ["websiteUseImages", "outreach"],
+          imageLabel: "Background photo",
+          help: "Replaces the banner behind this title.",
+        }}
+      />
 
       {hasFeatured ? (
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>

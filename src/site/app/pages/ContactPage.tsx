@@ -70,10 +70,24 @@ export default function ContactPage() {
 
   return (
     <div className="overflow-x-hidden">
+      <PageHero
+        imageSrc={contactBanner}
+        imageAlt="Connect with us"
+        eyebrow="Get in Touch"
+        title="Contact Us"
+        bottomColor={c.cream}
+        variant="cinematic"
+        edit={{
+          title: "Contact page banner",
+          imagePath: ["localImages", "contactHero"],
+          imageLabel: "Background photo",
+        }}
+      />
+
+      {/* Contact Section */}
       <SectionEditor
-        title="Contact details & banner"
+        title="Contact details"
         fields={[
-          { kind: "image", path: ["localImages", "contactHero"], label: "Top photo on Contact page" },
           { kind: "text", key: "contactEmail", label: "Email" },
           { kind: "text", key: "contactPhone", label: "Phone" },
           { kind: "text", key: "usaAddress", label: "USA address", multiline: true },
@@ -83,17 +97,6 @@ export default function ContactPage() {
           { kind: "text", key: "youtubeUrl", label: "YouTube URL" },
         ]}
       >
-      <PageHero
-        imageSrc={contactBanner}
-        imageAlt="Connect with us"
-        eyebrow="Get in Touch"
-        title="Contact Us"
-        bottomColor={c.cream}
-        variant="cinematic"
-      />
-      </SectionEditor>
-
-      {/* Contact Section */}
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-5 gap-10 lg:gap-14 items-start`}>
           {/* Form */}
@@ -278,6 +281,7 @@ export default function ContactPage() {
         </div>
         <WaveDivider topColor={c.cream} bottomColor={c.footer} />
       </section>
+      </SectionEditor>
     </div>
   );
 }

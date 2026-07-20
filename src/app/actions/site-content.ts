@@ -8,7 +8,11 @@ import { getSiteContentBundle } from "@/lib/site-content/resolve";
 import { revalidatePublicSite } from "@/lib/site-content/revalidate";
 import { SITE_CONTENT_KEYS } from "@/lib/site-content/keys";
 import { normalizePosts } from "@/lib/site-content/posts";
+import { mergeAboutContent } from "@/lib/site-content/about-defaults";
 import type {
+  AboutPageContent,
+  AboutTeamMember,
+  AboutTimelineMilestone,
   FinanceDetails,
   Post,
   Project,
@@ -138,4 +142,105 @@ export async function updateFinanceAction(finance: FinanceDetails): Promise<Fina
   await upsertSiteContentValue(SITE_CONTENT_KEYS.finance, finance);
   revalidatePublicSite();
   return finance;
+}
+
+async function readAboutFromDb(): Promise<AboutPageContent> {
+  const { getSiteContentValue } = await import("@/lib/db/site-content");
+  const stored = await getSiteContentValue<AboutPageContent>(SITE_CONTENT_KEYS.about);
+  return mergeAboutContent(stored);
+}
+
+async function writeAbout(about: AboutPageContent): Promise<AboutPageContent> {
+  await upsertSiteContentValue(SITE_CONTENT_KEYS.about, about);
+  revalidatePublicSite();
+  revalidatePath("/about");
+  return about;
+}
+
+/** Replace or merge About page fields (story, vision, values text, etc.). */
+export async function updateAboutAction(
+  patch: Partial<AboutPageContent>
+): Promise<AboutPageContent> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+  const current = await readAboutFromDb();
+  return writeAbout({ ...current, ...patch });
+}
+
+export async function saveTeamMemberAction(
+  input: Omit<AboutTeamMember, "id"> & { id?: string }
+): Promise<AboutPageContent> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+
+  const current = await readAboutFromDb();
+  const team = [...current.team].sort((a, b) => a.sortOrder - b.sortOrder);
+
+  if (input.id) {
+    const exists = team.some((p) => p.id === input.id);
+    if (!exists) {
+      team.push({ ...input, id: input.id });
+    } else {
+      const next = team.map((p) => (p.id === input.id ? { ...p, ...input, id: input.id } : p));
+      return writeAbout({ ...current, team: next });
+    }
+  } else {
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const sortOrder =
+      typeof input.sortOrder === "number"
+        ? input.sortOrder
+        : team.reduce((max, p) => Math.max(max, p.sortOrder), -1) + 1;
+    team.push({ ...input, id, sortOrder });
+  }
+
+  return writeAbout({ ...current, team });
+}
+
+export async function deleteTeamMemberAction(id: string): Promise<AboutPageContent> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+
+  const current = await readAboutFromDb();
+  return writeAbout({ ...current, team: current.team.filter((p) => p.id !== id) });
+}
+
+export async function saveTimelineMilestoneAction(
+  input: Omit<AboutTimelineMilestone, "id"> & { id?: string }
+): Promise<AboutPageContent> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+
+  const current = await readAboutFromDb();
+  const timeline = [...current.timeline];
+
+  if (input.id) {
+    const exists = timeline.some((m) => m.id === input.id);
+    if (!exists) {
+      timeline.push({ ...input, id: input.id });
+    } else {
+      return writeAbout({
+        ...current,
+        timeline: timeline.map((m) => (m.id === input.id ? { ...m, ...input, id: input.id } : m)),
+      });
+    }
+  } else {
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    timeline.push({ ...input, id });
+  }
+
+  return writeAbout({ ...current, timeline });
+}
+
+export async function deleteTimelineMilestoneAction(id: string): Promise<AboutPageContent> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+
+  const current = await readAboutFromDb();
+  return writeAbout({ ...current, timeline: current.timeline.filter((m) => m.id !== id) });
 }

@@ -159,6 +159,21 @@ export default function HomePage() {
     <div className="overflow-x-hidden">
 
       {/* ══════════ HERO ══════════ */}
+      <SectionEditor
+        title="Homepage hero"
+        placement="hero"
+        buttonLabel="Edit hero"
+        fields={[
+          {
+            kind: "image",
+            path: ["websiteUseImages", "hero"],
+            label: "Background photo",
+            help: "Large photo behind the homepage headline. Upload a clear, bright image.",
+          },
+          { kind: "text", key: "heroHeadline", label: "Headline", multiline: true },
+          { kind: "text", key: "heroSubheadline", label: "Supporting line", multiline: true },
+        ]}
+      >
       <section ref={heroRef} className="relative min-h-[100svh] flex flex-col overflow-hidden">
         {/* Background image with parallax */}
         <motion.div className="absolute inset-0 overflow-hidden" style={{ y: parallaxSmooth }}>
@@ -312,6 +327,7 @@ export default function HomePage() {
           <WaveBottom fill={c.cream} />
         </div>
       </section>
+      </SectionEditor>
 
       {/* ══════════ IMPACT STATS ══════════ */}
       <SectionEditor
@@ -359,7 +375,6 @@ export default function HomePage() {
         title="Mission statement"
         fields={[
           { kind: "text", key: "missionStatement", label: "Mission statement", multiline: true },
-          { kind: "image", path: ["websiteUseImages", "hero"], label: "Homepage hero photo", help: "This is the large photo at the top of the homepage." },
         ]}
       >
       <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>

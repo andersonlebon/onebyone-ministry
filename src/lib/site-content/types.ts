@@ -132,12 +132,81 @@ export type FinanceDetails = {
   };
 };
 
+/** Lucide icon name stored as a string for About values / timeline. */
+export type AboutIconName = "Heart" | "Users" | "Leaf" | "Star" | "Globe" | "BookOpen";
+
+export type AboutTeamMember = {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  region: string;
+  img: string;
+  sortOrder: number;
+};
+
+export type AboutValue = {
+  id: string;
+  title: string;
+  desc: string;
+  icon: AboutIconName;
+};
+
+export type AboutTimelineMilestone = {
+  id: string;
+  year: string;
+  title: string;
+  desc: string;
+  icon: AboutIconName;
+  color: string;
+  img: string;
+  side: "left" | "right";
+};
+
+export type AboutRoot = {
+  id: string;
+  label: string;
+  sub: string;
+  color: string;
+};
+
+/** Full editable About page content (story, vision, team, timeline, values). */
+export type AboutPageContent = {
+  storyEyebrow: string;
+  storyTitle: string;
+  storyBody1: string;
+  storyBody2: string;
+  storyQuote: string;
+  visionText: string;
+  missionText: string;
+  valuesEyebrow: string;
+  valuesTitle: string;
+  teamEyebrow: string;
+  teamTitle: string;
+  teamIntro: string;
+  whyCongoEyebrow: string;
+  whyCongoTitle: string;
+  whyCongoBody1: string;
+  whyCongoBody2: string;
+  timelineEyebrow: string;
+  timelineTitle: string;
+  timelineIntro: string;
+  timelineFruitLabel: string;
+  timelineFruitTitle: string;
+  timelineFruitSub: string;
+  roots: AboutRoot[];
+  values: AboutValue[];
+  team: AboutTeamMember[];
+  timeline: AboutTimelineMilestone[];
+};
+
 export type SiteContentBundle = {
   settings: SiteSettings;
   posts: Post[];
   projects: Project[];
   videos: Video[];
   finance: FinanceDetails;
+  about: AboutPageContent;
 };
 
 export const EMPTY_FINANCE: FinanceDetails = {

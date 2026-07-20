@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { Archive, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Archive, Pencil, Plus, Trash2 } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 
 import {
@@ -16,6 +16,8 @@ import { useSiteContent } from "@/site/lib/siteContentContext";
 import ProjectFormModal, {
   type ProjectFormValues,
 } from "@/site/app/components/admin/ProjectFormModal";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { InlineEditDrawer, useInlineFieldStyles } from "./InlineEditDrawer";
 
 /**
  * Admin-only control on public pages to add/edit/archive/delete projects with photo upload.
@@ -31,6 +33,7 @@ export function InlineProjectsEditor({
   const canEdit = useCanInlineEdit();
   const router = useRouter();
   const { projects: initialProjects } = useSiteContent();
+  const styles = useInlineFieldStyles();
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Project | undefined>();
@@ -38,6 +41,9 @@ export function InlineProjectsEditor({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [savedNote, setSavedNote] = useState("");
+  const [pending, setPending] = useState<
+    null | { type: "delete" | "archive"; id: string; title: string }
+  >(null);
 
   useEffect(() => {
     setProjects(initialProjects);
@@ -50,6 +56,7 @@ export function InlineProjectsEditor({
     setSavedNote("Saved to the live site.");
     setShowForm(false);
     setEditing(undefined);
+    setPending(null);
     router.refresh();
   };
 
@@ -62,31 +69,26 @@ export function InlineProjectsEditor({
     afterMutation(next);
   };
 
-  const removeProject = async (id: string) => {
-    if (!confirm("Permanently delete this project from the live site?")) return;
-    setBusyId(id);
+  const runPending = async () => {
+    if (!pending) return;
+    setBusyId(pending.id);
     setError("");
     setSavedNote("");
     try {
-      const next = await deleteProjectAction(id);
+      const next =
+        pending.type === "delete"
+          ? await deleteProjectAction(pending.id)
+          : await archiveProjectAction(pending.id);
       afterMutation(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not delete project.");
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const archiveProject = async (id: string) => {
-    if (!confirm("Archive this project? It will be hidden from the public site.")) return;
-    setBusyId(id);
-    setError("");
-    setSavedNote("");
-    try {
-      const next = await archiveProjectAction(id);
-      afterMutation(next);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not archive project.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : pending.type === "delete"
+            ? "Could not delete project."
+            : "Could not archive project."
+      );
+      setPending(null);
     } finally {
       setBusyId(null);
     }
@@ -102,116 +104,124 @@ export function InlineProjectsEditor({
           setSavedNote("");
           setOpen(true);
         }}
-        className="absolute top-3 right-3 z-30 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white shadow-md opacity-90 hover:opacity-100"
-        style={{ backgroundColor: "#6E9277" }}
+        className="absolute top-3 right-3 z-40 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-white shadow-md opacity-90 hover:opacity-100"
+        style={{ backgroundColor: styles.green }}
         title={`Edit ${title}`}
       >
         <Pencil size={12} /> Edit projects
       </button>
 
       {open ? (
-        <div
-          className="fixed inset-0 z-[80] flex justify-end"
-          style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="h-full w-full max-w-md bg-white shadow-xl overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+        <InlineEditDrawer title={title} onClose={() => setOpen(false)}>
+          <p className="text-xs" style={styles.help}>
+            Upload a photo when you add or edit a project. Changes are saved to the database immediately.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(undefined);
+              setShowForm(true);
+            }}
+            className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
+            style={{ backgroundColor: styles.green }}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-[#6E9277]">Edit on this page</p>
-                <h3 className="text-base font-semibold text-[#474747]">{title}</h3>
-              </div>
-              <button type="button" onClick={() => setOpen(false)} className="p-1 text-[#474747]">
-                <X size={18} />
-              </button>
-            </div>
+            <Plus size={14} /> New project
+          </button>
 
-            <div className="p-5 space-y-4">
-              <p className="text-xs text-[#6b7280]">
-                Upload a photo when you add or edit a project. Changes are saved to the database immediately.
-              </p>
+          {error ? <p className="text-sm text-red-500">{error}</p> : null}
+          {savedNote ? (
+            <p className="text-sm" style={{ color: styles.green }}>
+              {savedNote}
+            </p>
+          ) : null}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setEditing(undefined);
-                  setShowForm(true);
-                }}
-                className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"
-                style={{ backgroundColor: "#6E9277" }}
-              >
-                <Plus size={14} /> New project
-              </button>
-
-              {error ? <p className="text-sm text-red-600">{error}</p> : null}
-              {savedNote ? <p className="text-sm text-[#6E9277]">{savedNote}</p> : null}
-
-              {projects.length === 0 ? (
-                <p className="text-sm text-[#6b7280] text-center py-8">No projects yet. Add the first one.</p>
-              ) : (
-                <ul className="space-y-3">
-                  {projects.map((project) => (
-                    <li
-                      key={project.id}
-                      className="flex items-center gap-2 rounded-xl border p-3"
-                      style={{ borderColor: "rgba(110,146,119,0.25)" }}
+          {projects.length === 0 ? (
+            <p className="text-sm text-center py-8" style={styles.help}>
+              No projects yet. Add the first one.
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {projects.map((project) => (
+                <li
+                  key={project.id}
+                  className="flex items-center gap-2 rounded-xl border p-3"
+                  style={{ borderColor: styles.border }}
+                >
+                  <div
+                    className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0"
+                    style={{ backgroundColor: styles.cardBg }}
+                  >
+                    {project.img ? (
+                      <img src={project.img} alt="" className="w-full h-full object-cover" />
+                    ) : null}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate" style={{ color: styles.text }}>
+                      {project.title}
+                    </p>
+                    <p className="text-xs truncate" style={{ color: styles.muted }}>
+                      {project.status} · {project.category}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="p-2 rounded-lg"
+                    style={{ color: styles.green }}
+                    onClick={() => {
+                      setEditing(project);
+                      setShowForm(true);
+                    }}
+                    title="Edit"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  {project.status !== "Archived" ? (
+                    <button
+                      type="button"
+                      disabled={busyId === project.id}
+                      className="p-2 rounded-lg disabled:opacity-50"
+                      style={{ color: styles.green }}
+                      onClick={() =>
+                        setPending({ type: "archive", id: project.id, title: project.title })
+                      }
+                      title="Archive (hide from public site)"
                     >
-                      <div
-                        className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0"
-                        style={{ backgroundColor: "#EFE7DB" }}
-                      >
-                        {project.img ? (
-                          <img src={project.img} alt="" className="w-full h-full object-cover" />
-                        ) : null}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[#474747] truncate">{project.title}</p>
-                        <p className="text-xs text-[#6b7280] truncate">
-                          {project.status} · {project.category}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        className="p-2 rounded-lg hover:bg-[#EFE7DB] text-[#6E9277]"
-                        onClick={() => {
-                          setEditing(project);
-                          setShowForm(true);
-                        }}
-                        title="Edit"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      {project.status !== "Archived" ? (
-                        <button
-                          type="button"
-                          disabled={busyId === project.id}
-                          className="p-2 rounded-lg hover:bg-[#EFE7DB] text-[#6E9277] disabled:opacity-50"
-                          onClick={() => void archiveProject(project.id)}
-                          title="Archive (hide from public site)"
-                        >
-                          <Archive size={14} />
-                        </button>
-                      ) : null}
-                      <button
-                        type="button"
-                        disabled={busyId === project.id}
-                        className="p-2 rounded-lg hover:bg-red-50 text-red-500 disabled:opacity-50"
-                        onClick={() => void removeProject(project.id)}
-                        title="Delete permanently"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </div>
+                      <Archive size={14} />
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={busyId === project.id}
+                    className="p-2 rounded-lg text-red-500 disabled:opacity-50"
+                    onClick={() =>
+                      setPending({ type: "delete", id: project.id, title: project.title })
+                    }
+                    title="Delete permanently"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </InlineEditDrawer>
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(pending)}
+        title={pending?.type === "archive" ? "Archive project?" : "Delete project?"}
+        message={
+          pending?.type === "archive"
+            ? `"${pending.title}" will be hidden from the public site. You can still find it in the admin list.`
+            : `"${pending?.title ?? "This project"}" will be permanently removed from the live site.`
+        }
+        confirmLabel={pending?.type === "archive" ? "Archive" : "Delete"}
+        danger={pending?.type === "delete"}
+        busy={Boolean(busyId)}
+        onCancel={() => setPending(null)}
+        onConfirm={() => void runPending()}
+      />
 
       <AnimatePresence>
         {showForm ? (

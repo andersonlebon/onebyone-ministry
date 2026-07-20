@@ -22,7 +22,6 @@ import {
   VenmoPanel,
 } from "@/site/app/components/donate/payment-panels";
 import { SECTION_PY } from "../../lib/pageLayout";
-import { SectionEditor } from "../components/admin-edit/SectionEditor";
 
 const PAYMENT_TABS = [
   { id: "card", label: "Credit / Debit Card", icon: CreditCard },
@@ -54,14 +53,7 @@ function DonatePageContent() {
   const showSuccess = searchParams.get("status") === "success";
 
   return (
-    <div className="overflow-x-hidden pt-20">
-      <SectionEditor
-        title="Donate page"
-        fields={[
-          { kind: "text", key: "donatePageHeadline", label: "Page headline" },
-          { kind: "image", path: ["localImages", "donateHero"], label: "Top photo on Donate page" },
-        ]}
-      >
+    <div className="overflow-x-hidden">
       <PageHero
         imageSrc={donateBanner}
         imageAlt="Partner with One By One Ministries"
@@ -70,6 +62,12 @@ function DonatePageContent() {
         bottomColor={c.cream}
         size="tall"
         animateImage
+        edit={{
+          title: "Donate page banner",
+          imagePath: ["localImages", "donateHero"],
+          imageLabel: "Background photo",
+          textFields: [{ key: "donatePageHeadline", label: "Page headline" }],
+        }}
         decorative={
           <>
             <DotPattern color="rgba(255,255,255,0.12)" size={20} />
@@ -87,7 +85,6 @@ function DonatePageContent() {
           Every gift goes to the field. Every dollar helps.
         </motion.p>
       </PageHero>
-      </SectionEditor>
 
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <DotPattern color="rgba(110,146,119,0.07)" size={24} />
