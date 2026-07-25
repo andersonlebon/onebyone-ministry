@@ -631,7 +631,6 @@ export default function HomePage() {
       </SectionEditor>
 
       {/* ══════════ STORIES ══════════ */}
-      {STORIES.length > 0 ? (
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <CrossPattern color="rgba(110,146,119,0.05)" />
         <AnimatedBlob color="#6E9277" opacity={0.05} size={450} className="top-0 right-0" />
@@ -647,50 +646,72 @@ export default function HomePage() {
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
-            {STORIES.map((story, i) => (
-              <motion.article
-                key={story.id}
-                custom={i}
-                variants={fadeSlide}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, margin: "-40px" }}
-                className="group"
+          {STORIES.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
+              {STORIES.map((story, i) => (
+                <motion.article
+                  key={story.id}
+                  custom={i}
+                  variants={fadeSlide}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-40px" }}
+                  className="group"
+                >
+                  <Link href={`/stories/${story.slug}`}>
+                    <div className="rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: c.borderLight, boxShadow: "0 2px 20px rgba(71,71,71,0.07)" }}>
+                      <motion.img
+                        src={story.img}
+                        alt={story.title}
+                        className="w-full h-52 object-cover"
+                        whileHover={{ scale: 1.07 }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#6E9277" + "20", color: "#6E9277" }}>
+                        {story.category}
+                      </span>
+                      <span className="text-xs" style={{ color: c.muted }}>{story.date}</span>
+                    </div>
+                    <motion.h3
+                      className="text-base mb-2 leading-snug group-hover:text-[#6E9277] transition-colors"
+                      style={{ color: c.text }}
+                    >
+                      {story.title}
+                    </motion.h3>
+                    <p className="text-sm leading-relaxed" style={{ color: c.muted }}>{story.excerpt}</p>
+                  </Link>
+                </motion.article>
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              variants={fadeSlide}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="rounded-2xl px-6 py-12 text-center"
+              style={{ backgroundColor: c.white, border: `1px solid ${c.borderLight}` }}
+            >
+              <p className="text-base mb-2" style={{ color: c.text }}>
+                New stories from the field will appear here.
+              </p>
+              <p className="text-sm mb-5" style={{ color: c.muted }}>
+                Check back soon, or browse the full Stories page.
+              </p>
+              <Link
+                href="/stories"
+                className="inline-flex items-center gap-2 text-sm font-semibold"
+                style={{ color: "#6E9277" }}
               >
-                <Link href={`/stories/${story.slug}`}>
-                  <div className="rounded-2xl overflow-hidden mb-4" style={{ backgroundColor: c.borderLight, boxShadow: "0 2px 20px rgba(71,71,71,0.07)" }}>
-                    <motion.img
-                      src={story.img}
-                      alt={story.title}
-                      className="w-full h-52 object-cover"
-                      whileHover={{ scale: 1.07 }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold" style={{ backgroundColor: "#6E9277" + "20", color: "#6E9277" }}>
-                      {story.category}
-                    </span>
-                    <span className="text-xs" style={{ color: c.muted }}>{story.date}</span>
-                  </div>
-                  <motion.h3
-                    className="text-base mb-2 leading-snug group-hover:text-[#6E9277] transition-colors"
-                    style={{ color: c.text }}
-                  >
-                    {story.title}
-                  </motion.h3>
-                  <p className="text-sm leading-relaxed" style={{ color: c.muted }}>{story.excerpt}</p>
-                </Link>
-              </motion.article>
-            ))}
-          </div>
+                Visit Stories <ArrowRight size={14} />
+              </Link>
+            </motion.div>
+          )}
         </div>
         <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
       </section>
-      ) : (
-        <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
-      )}
 
       {/* ══════════ DONATE CTA ══════════ */}
       <section className="relative overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
