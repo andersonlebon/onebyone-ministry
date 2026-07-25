@@ -70,6 +70,12 @@ export default function StoriesPage() {
         title="Stories & Updates"
         bottomColor={c.white}
         variant="cinematic"
+        edit={{
+          title: "Stories page banner",
+          imagePath: ["localImages", "storyHero"],
+          imageLabel: "Background photo",
+          help: "Replaces the banner behind this title.",
+        }}
       />
 
       {/* Featured Story */}

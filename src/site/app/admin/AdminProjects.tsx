@@ -12,6 +12,7 @@ import {
 } from "@/app/actions/site-content";
 import type { Project } from "@/lib/site-content/types";
 import ProjectFormModal from "@/site/app/components/admin/ProjectFormModal";
+import { ConfirmDialog } from "@/site/app/components/admin-edit/ConfirmDialog";
 import { useSiteStore } from "@/site/lib/siteStore";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -28,12 +29,36 @@ export default function AdminProjects() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Project | undefined>();
   const [error, setError] = useState("");
+  const [pending, setPending] = useState<null | { type: "delete" | "archive"; project: Project }>(
+    null
+  );
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setProjects(storeProjects);
   }, [storeProjects]);
 
   const refresh = () => router.refresh();
+
+  const runPending = async () => {
+    if (!pending) return;
+    setBusy(true);
+    setError("");
+    try {
+      const next =
+        pending.type === "delete"
+          ? await deleteProjectAction(pending.project.id)
+          : await archiveProjectAction(pending.project.id);
+      setProjects(next);
+      setPending(null);
+      refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update project.");
+      setPending(null);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div>
@@ -107,19 +132,7 @@ export default function AdminProjects() {
                 {project.status !== "Archived" ? (
                   <motion.button
                     whileHover={{ scale: 1.1 }}
-                    onClick={() => {
-                      if (!confirm("Archive this project? It will be hidden from the public site.")) return;
-                      void (async () => {
-                        try {
-                          setError("");
-                          const next = await archiveProjectAction(project.id);
-                          setProjects(next);
-                          refresh();
-                        } catch (err) {
-                          setError(err instanceof Error ? err.message : "Could not archive.");
-                        }
-                      })();
-                    }}
+                    onClick={() => setPending({ type: "archive", project })}
                     className="p-2 rounded-lg hover:bg-muted text-muted-foreground"
                     title="Archive"
                   >
@@ -128,19 +141,7 @@ export default function AdminProjects() {
                 ) : null}
                 <motion.button
                   whileHover={{ scale: 1.1 }}
-                  onClick={() => {
-                    if (!confirm("Permanently delete this project?")) return;
-                    void (async () => {
-                      try {
-                        setError("");
-                        const next = await deleteProjectAction(project.id);
-                        setProjects(next);
-                        refresh();
-                      } catch (err) {
-                        setError(err instanceof Error ? err.message : "Could not delete.");
-                      }
-                    })();
-                  }}
+                  onClick={() => setPending({ type: "delete", project })}
                   className="p-2 rounded-lg hover:bg-red-50 text-red-400"
                   title="Delete permanently"
                 >
@@ -157,6 +158,21 @@ export default function AdminProjects() {
           No projects yet. Click New Project and upload a photo from your computer.
         </p>
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(pending)}
+        title={pending?.type === "archive" ? "Archive project?" : "Delete project?"}
+        message={
+          pending?.type === "archive"
+            ? `"${pending.project.title}" will be hidden from the public site.`
+            : `"${pending?.project.title ?? "This project"}" will be permanently removed.`
+        }
+        confirmLabel={pending?.type === "archive" ? "Archive" : "Delete"}
+        danger={pending?.type === "delete"}
+        busy={busy}
+        onCancel={() => setPending(null)}
+        onConfirm={() => void runPending()}
+      />
 
       <AnimatePresence>
         {showModal ? (

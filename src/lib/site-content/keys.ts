@@ -4,6 +4,7 @@ export const SITE_CONTENT_KEYS = {
   projects: "projects",
   videos: "videos",
   finance: "finance",
+  about: "about",
 } as const;
 
 export type SiteContentKey = (typeof SITE_CONTENT_KEYS)[keyof typeof SITE_CONTENT_KEYS];

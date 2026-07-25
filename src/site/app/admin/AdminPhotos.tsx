@@ -20,6 +20,7 @@ import {
 import type { MediaAsset, PhotoAlbum } from "@/lib/db/schema";
 import { isSupabaseBackendConfigured } from "@/lib/supabase/backend";
 import AdminImageUpload from "@/site/app/components/admin/AdminImageUpload";
+import { ConfirmDialog } from "@/site/app/components/admin-edit/ConfirmDialog";
 import { useSiteStore, type Photo } from "@/site/lib/siteStore";
 
 type PhotoForm = Omit<Photo, "id"> & { storagePath?: string };
@@ -164,6 +165,11 @@ export default function AdminPhotos() {
   const [newAlbumName, setNewAlbumName] = useState("");
   const [albumBusy, setAlbumBusy] = useState(false);
   const [error, setError] = useState("");
+  const [pendingPhotoDelete, setPendingPhotoDelete] = useState<Photo | null>(null);
+  const [pendingAlbumDelete, setPendingAlbumDelete] = useState<PhotoAlbum | null>(null);
+  const [renameAlbum, setRenameAlbum] = useState<PhotoAlbum | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [actionBusy, setActionBusy] = useState(false);
 
   const loadAlbums = useCallback(async () => {
     if (!useSupabase) return;
@@ -217,12 +223,22 @@ export default function AdminPhotos() {
     }
   };
 
-  const handleRenameAlbum = async (album: PhotoAlbum) => {
-    const next = window.prompt("Rename album", album.name);
-    if (!next || next.trim() === album.name) return;
+  const openRenameAlbum = (album: PhotoAlbum) => {
+    setRenameAlbum(album);
+    setRenameValue(album.name);
+  };
+
+  const submitRenameAlbum = async () => {
+    if (!renameAlbum) return;
+    const next = renameValue.trim();
+    if (!next || next === renameAlbum.name) {
+      setRenameAlbum(null);
+      return;
+    }
     setAlbumBusy(true);
     try {
-      await renamePhotoAlbumAction(album.id, next.trim());
+      await renamePhotoAlbumAction(renameAlbum.id, next);
+      setRenameAlbum(null);
       await loadRemotePhotos();
       router.refresh();
     } catch (err) {
@@ -232,22 +248,18 @@ export default function AdminPhotos() {
     }
   };
 
-  const handleDeleteAlbum = async (album: PhotoAlbum) => {
-    if (
-      !confirm(
-        `Delete album "${album.name}"? Photos in this album stay on the site and become Unassigned.`
-      )
-    ) {
-      return;
-    }
+  const confirmDeleteAlbum = async () => {
+    if (!pendingAlbumDelete) return;
     setAlbumBusy(true);
     try {
-      await deletePhotoAlbumAction(album.id);
-      if (activeAlbum === album.id) setActiveAlbum("All");
+      await deletePhotoAlbumAction(pendingAlbumDelete.id);
+      if (activeAlbum === pendingAlbumDelete.id) setActiveAlbum("All");
+      setPendingAlbumDelete(null);
       await loadRemotePhotos();
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete album");
+      setPendingAlbumDelete(null);
     } finally {
       setAlbumBusy(false);
     }
@@ -287,24 +299,34 @@ export default function AdminPhotos() {
     router.refresh();
   };
 
-  const handleDelete = async (photo: Photo) => {
-    if (!confirm("Delete this photo? It will be removed from the live gallery.")) return;
-
-    if (!useSupabase) {
-      deletePhoto(photo.id);
-      return;
-    }
-
-    const asset = remoteAssets.find((a) => a.id === photo.id);
-    if (!asset) return;
+  const confirmDeletePhoto = async () => {
+    if (!pendingPhotoDelete) return;
+    setActionBusy(true);
+    setError("");
 
     try {
-      // Server action deletes storage + DB row together (more reliable than client storage delete).
+      if (!useSupabase) {
+        deletePhoto(pendingPhotoDelete.id);
+        setPendingPhotoDelete(null);
+        return;
+      }
+
+      const asset = remoteAssets.find((a) => a.id === pendingPhotoDelete.id);
+      if (!asset) {
+        setError("Could not find that photo to delete.");
+        setPendingPhotoDelete(null);
+        return;
+      }
+
       await deleteMediaAssetAction(asset.id);
+      setPendingPhotoDelete(null);
       await loadRemotePhotos();
       router.refresh();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "Could not delete photo. Please try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete photo. Please try again.");
+      setPendingPhotoDelete(null);
+    } finally {
+      setActionBusy(false);
     }
   };
 
@@ -374,14 +396,14 @@ export default function AdminPhotos() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => void handleRenameAlbum(album)}
+                      onClick={() => openRenameAlbum(album)}
                       className="text-xs font-semibold text-[#6E9277] hover:underline"
                     >
                       Rename
                     </button>
                     <button
                       type="button"
-                      onClick={() => void handleDeleteAlbum(album)}
+                      onClick={() => setPendingAlbumDelete(album)}
                       className="text-xs font-semibold text-red-500 hover:underline"
                     >
                       Delete
@@ -450,7 +472,7 @@ export default function AdminPhotos() {
                   </motion.button>
                   <motion.button
                     whileHover={{ scale: 1.1 }}
-                    onClick={() => void handleDelete(photo)}
+                    onClick={() => setPendingPhotoDelete(photo)}
                     className="w-8 h-8 rounded-full bg-card flex items-center justify-center text-red-500"
                   >
                     <Trash2 size={13} />
@@ -483,6 +505,75 @@ export default function AdminPhotos() {
           </motion.button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingPhotoDelete)}
+        title="Delete this photo?"
+        message="It will be removed from the live gallery."
+        confirmLabel="Delete"
+        danger
+        busy={actionBusy}
+        onCancel={() => setPendingPhotoDelete(null)}
+        onConfirm={() => void confirmDeletePhoto()}
+      />
+
+      <ConfirmDialog
+        open={Boolean(pendingAlbumDelete)}
+        title="Delete album?"
+        message={
+          pendingAlbumDelete
+            ? `Delete album "${pendingAlbumDelete.name}"? Photos in this album stay on the site and become Unassigned.`
+            : "Photos in this album stay on the site and become Unassigned."
+        }
+        confirmLabel="Delete album"
+        danger
+        busy={albumBusy}
+        onCancel={() => setPendingAlbumDelete(null)}
+        onConfirm={() => void confirmDeleteAlbum()}
+      />
+
+      {renameAlbum ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          onClick={() => setRenameAlbum(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl border border-muted"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold text-foreground mb-3">Rename album</h3>
+            <input
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border text-sm mb-4 focus:outline-none focus:border-[#6E9277]"
+              style={{ borderColor: "rgba(110,146,119,0.3)" }}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void submitRenameAlbum();
+              }}
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setRenameAlbum(null)}
+                className="px-4 py-2 rounded-xl text-sm border border-muted text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={albumBusy || !renameValue.trim()}
+                onClick={() => void submitRenameAlbum()}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
+                style={{ backgroundColor: "#6E9277" }}
+              >
+                {albumBusy ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <AnimatePresence>
         {showModal && (

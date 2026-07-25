@@ -1,5 +1,6 @@
 import { defaultSiteSettings } from "@/content/site-defaults";
 
+import { getDefaultAboutContent } from "./about-defaults";
 import {
   EMPTY_FINANCE,
   type SiteContentBundle,
@@ -17,6 +18,7 @@ export function getDefaultSiteContentBundle(): SiteContentBundle {
     projects: [],
     videos: [],
     finance: { ...EMPTY_FINANCE },
+    about: getDefaultAboutContent(),
   };
 }
 
@@ -27,5 +29,6 @@ export function getEmptySiteContentBundle(): SiteContentBundle {
     projects: [],
     videos: [],
     finance: { ...EMPTY_FINANCE },
+    about: getDefaultAboutContent(),
   };
 }
