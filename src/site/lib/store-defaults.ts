@@ -1,4 +1,3 @@
-import { galleryPhotos } from "@/content/media";
 import { defaultSiteSettings } from "@/content/site-defaults";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
 
@@ -37,13 +36,8 @@ export function getInitialPosts(): Post[] {
 }
 
 export function getInitialPhotos(): Photo[] {
-  if (!isDemoContentEnabled()) return [];
-  return galleryPhotos.slice(0, 6).map((p) => ({
-    id: String(p.id),
-    src: p.src,
-    alt: p.alt,
-    category: p.category,
-  }));
+  // Photos only come from Supabase Photo Library — never from local seed data.
+  return [];
 }
 
 export function getInitialProjects(): Project[] {

@@ -1,8 +1,8 @@
 /**
  * Remove client-content media so the ministry can upload their own.
- * Keeps design assets (brand / website-use) and non-media site settings.
+ * Keeps logos only. Content image slots reset to empty placeholders.
  *
- * Clears: photos, projects, videos assets + projects/videos/posts content + gallery JSON.
+ * Clears: photos/projects/videos/general assets + projects/videos/posts content + banner URLs.
  * Usage: npx tsx scripts/clear-content-media.ts [--dry-run]
  */
 import { existsSync, readFileSync } from "node:fs";
@@ -97,7 +97,7 @@ async function main() {
     `;
 
     const designBundle = buildPlaceholderMediaBundle();
-    // Keep any existing brand URLs if media row exists; otherwise write design bundle.
+    // Keep logos only — wipe all content image URLs so uploads become the sole source of truth.
     const mediaRow = await sql<{ value: Record<string, unknown> }[]>`
       SELECT value FROM site_content WHERE key = 'media' LIMIT 1
     `;
@@ -105,14 +105,11 @@ async function main() {
     const next = {
       ...designBundle,
       brandAssets: (existing?.brandAssets as object) ?? designBundle.brandAssets,
-      websiteUseImages: {
-        ...designBundle.websiteUseImages,
-        ...((existing?.websiteUseImages as object) ?? {}),
-      },
-      localImages: {
-        ...designBundle.localImages,
-        ...((existing?.localImages as object) ?? {}),
-      },
+      websiteUseImages: designBundle.websiteUseImages,
+      localImages: designBundle.localImages,
+      homePillars: designBundle.homePillars,
+      aboutStoryImages: designBundle.aboutStoryImages,
+      founderTimelineImages: designBundle.founderTimelineImages,
       galleryPhotos: [],
       ministryVideos: [],
       featuredVideo: designBundle.featuredVideo,
@@ -130,7 +127,7 @@ async function main() {
 
     const removed = await removeStoragePaths(rows.map((r) => r.path));
     console.log(`Removed ${removed} storage file(s).`);
-    console.log("Done. Design banners/logos kept; content media cleared.");
+    console.log("Done. Logos kept; content image slots are empty placeholders.");
   } finally {
     await sql.end();
   }

@@ -31,15 +31,15 @@ export async function isSetupComplete() {
 }
 
 /**
- * Seeds design media + empty content collections.
- * Gallery, projects, videos, and posts are left for the client to add.
+ * Seeds text settings + logos only.
+ * All content image slots stay as empty placeholders until the client uploads.
  */
 export async function seedDefaultSiteData(supabase: SupabaseClient, uploadedBy?: string) {
   const db = getDb();
 
   const { urlMap, records } = await uploadAllPublicAssets(supabase);
+  // urlMap only remaps logo paths; banners/gallery stay EMPTY_IMAGE.
   const mediaBundle = applyUrlMapToMediaBundle(buildPlaceholderMediaBundle(), urlMap);
-  // Ensure no seeded gallery/video content is written into site_content.media
   mediaBundle.galleryPhotos = [];
   mediaBundle.ministryVideos = [];
   mediaBundle.featuredVideo = {

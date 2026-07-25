@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 import {
   createDonationAction,
@@ -82,27 +82,29 @@ type StoreCtx = {
 
 const StoreContext = createContext<StoreCtx>({} as StoreCtx);
 
-function useLocalDemoStore() {
-  return isDemoContentEnabled() && !useServerActionsForContent();
-}
+/** Site content must never live in localStorage (only theme/lang/auth prefs elsewhere). */
+const CONTENT_STORAGE_KEYS = [
+  "obom_posts",
+  "obom_photos",
+  "obom_projects",
+  "obom_videos",
+  "obom_settings",
+  "obom_donations",
+] as const;
 
-function load<T>(key: string, fallback: T): T {
-  if (!useLocalDemoStore()) return fallback;
+function clearStaleContentStorage() {
+  if (typeof window === "undefined") return;
   try {
-    const v = localStorage.getItem(key);
-    return v ? JSON.parse(v) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function save<T>(key: string, val: T) {
-  if (!useLocalDemoStore()) return;
-  try {
-    localStorage.setItem(key, JSON.stringify(val));
+    for (const key of CONTENT_STORAGE_KEYS) {
+      localStorage.removeItem(key);
+    }
   } catch {
     /* ignore */
   }
+}
+
+function useLocalDemoStore() {
+  return isDemoContentEnabled() && !useServerActionsForContent();
 }
 
 const uid = () =>
@@ -120,49 +122,41 @@ export function SiteStoreProvider({
   const fallback = getEmptySiteContentBundle();
   const seed = initialData ?? fallback;
   const persistToServer = useServerActionsForContent();
+  const demoLocal = useLocalDemoStore();
 
-  const [posts, setPosts] = useState<Post[]>(() =>
-    persistToServer ? seed.posts : load("obom_posts", seed.posts)
-  );
-  const [photos, setPhotos] = useState<Photo[]>(() =>
-    persistToServer ? getInitialPhotos() : load("obom_photos", getInitialPhotos())
-  );
-  const [projects, setProjects] = useState<Project[]>(() =>
-    persistToServer ? seed.projects : load("obom_projects", seed.projects)
-  );
-  const [videos, setVideos] = useState<Video[]>(() =>
-    persistToServer ? seed.videos : load("obom_videos", seed.videos)
-  );
+  useEffect(() => {
+    clearStaleContentStorage();
+  }, []);
+
+  const [posts, setPosts] = useState<Post[]>(() => seed.posts);
+  const [photos, setPhotos] = useState<Photo[]>(() => getInitialPhotos());
+  const [projects, setProjects] = useState<Project[]>(() => seed.projects);
+  const [videos, setVideos] = useState<Video[]>(() => seed.videos);
   const [donations, setDonations] = useState<Donation[]>(() =>
-    persistToServer ? (initialData?.donations ?? []) : load("obom_donations", getInitialDonations())
+    persistToServer ? (initialData?.donations ?? []) : getInitialDonations()
   );
-  const [admins, setAdmins] = useState<AdminUser[]>(() => load("obom_admins", getInitialAdmins()));
-  const [settings, setSettings] = useState<SiteSettings>(() =>
-    persistToServer ? seed.settings : load("obom_settings", seed.settings)
-  );
+  const [admins, setAdmins] = useState<AdminUser[]>(() => getInitialAdmins());
+  const [settings, setSettings] = useState<SiteSettings>(() => seed.settings);
   const [finance, setFinance] = useState<FinanceDetails>(() => seed.finance);
 
   const persistPosts = useCallback(async (next: Post[]) => {
     if (persistToServer) {
       return updatePostsAction(next);
     }
-    save("obom_posts", next);
+    // Demo-only: keep in React memory for the session. Never write site content to localStorage.
+    void demoLocal;
     return next;
-  }, [persistToServer]);
+  }, [persistToServer, demoLocal]);
 
   const persistProjects = useCallback(async (next: Project[]) => {
     if (persistToServer) {
       await updateProjectsAction(next);
-    } else {
-      save("obom_projects", next);
     }
   }, [persistToServer]);
 
   const persistVideos = useCallback(async (next: Video[]) => {
     if (persistToServer) {
       await updateVideosAction(next);
-    } else {
-      save("obom_videos", next);
     }
   }, [persistToServer]);
 
@@ -206,27 +200,15 @@ export function SiteStoreProvider({
   );
 
   const addPhoto = useCallback((p: Omit<Photo, "id">) => {
-    setPhotos((prev) => {
-      const next = [{ ...p, id: uid() }, ...prev];
-      save("obom_photos", next);
-      return next;
-    });
+    setPhotos((prev) => [{ ...p, id: uid() }, ...prev]);
   }, []);
 
   const updatePhoto = useCallback((id: string, p: Partial<Photo>) => {
-    setPhotos((prev) => {
-      const next = prev.map((x) => (x.id === id ? { ...x, ...p } : x));
-      save("obom_photos", next);
-      return next;
-    });
+    setPhotos((prev) => prev.map((x) => (x.id === id ? { ...x, ...p } : x)));
   }, []);
 
   const deletePhoto = useCallback((id: string) => {
-    setPhotos((prev) => {
-      const next = prev.filter((x) => x.id !== id);
-      save("obom_photos", next);
-      return next;
-    });
+    setPhotos((prev) => prev.filter((x) => x.id !== id));
   }, []);
 
   const addProject = useCallback(
@@ -309,8 +291,6 @@ export function SiteStoreProvider({
     });
     if (persistToServer) {
       await updateSettingsAction(next);
-    } else {
-      save("obom_settings", next);
     }
   }, [persistToServer]);
 
@@ -328,11 +308,7 @@ export function SiteStoreProvider({
       });
       return;
     }
-    setDonations((prev) => {
-      const next = [{ ...d, id: uid() }, ...prev];
-      save("obom_donations", next);
-      return next;
-    });
+    setDonations((prev) => [{ ...d, id: uid() }, ...prev]);
   }, [persistToServer]);
 
   const updateDonation = useCallback((id: string, d: Partial<Donation>) => {
@@ -342,11 +318,7 @@ export function SiteStoreProvider({
       });
       return;
     }
-    setDonations((prev) => {
-      const next = prev.map((x) => (x.id === id ? { ...x, ...d } : x));
-      save("obom_donations", next);
-      return next;
-    });
+    setDonations((prev) => prev.map((x) => (x.id === id ? { ...x, ...d } : x)));
   }, [persistToServer]);
 
   const deleteDonation = useCallback((id: string) => {
@@ -356,35 +328,19 @@ export function SiteStoreProvider({
       });
       return;
     }
-    setDonations((prev) => {
-      const next = prev.filter((x) => x.id !== id);
-      save("obom_donations", next);
-      return next;
-    });
+    setDonations((prev) => prev.filter((x) => x.id !== id));
   }, [persistToServer]);
 
   const addAdmin = useCallback((a: Omit<AdminUser, "id">) => {
-    setAdmins((prev) => {
-      const next = [...prev, { ...a, id: uid() }];
-      save("obom_admins", next);
-      return next;
-    });
+    setAdmins((prev) => [...prev, { ...a, id: uid() }]);
   }, []);
 
   const updateAdmin = useCallback((id: string, a: Partial<AdminUser>) => {
-    setAdmins((prev) => {
-      const next = prev.map((x) => (x.id === id ? { ...x, ...a } : x));
-      save("obom_admins", next);
-      return next;
-    });
+    setAdmins((prev) => prev.map((x) => (x.id === id ? { ...x, ...a } : x)));
   }, []);
 
   const deleteAdmin = useCallback((id: string) => {
-    setAdmins((prev) => {
-      const next = prev.filter((x) => x.id !== id);
-      save("obom_admins", next);
-      return next;
-    });
+    setAdmins((prev) => prev.filter((x) => x.id !== id));
   }, []);
 
   return (
