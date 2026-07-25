@@ -6,7 +6,7 @@ import { getPublicMediaBundle, SITE_MEDIA_CONTENT_KEY } from "@/lib/media/resolv
 import { EMPTY_IMAGE } from "@/lib/media/placeholders";
 import { sanitizeMediaBundle } from "@/lib/media/sanitize-bundle";
 import { revalidatePublicSite } from "@/lib/site-content/revalidate";
-import type { SiteMediaBundle } from "@/lib/media/types";
+import type { HomePillar, SiteMediaBundle } from "@/lib/media/types";
 import { isAdminUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { deletePreviousMediaUrl } from "@/lib/supabase/storage";
@@ -108,6 +108,72 @@ export async function updateSiteMediaSlotAction(
     await deletePreviousMediaUrl(supabase, previousUrl);
   }
 
+  revalidatePublicSite();
+  return next;
+}
+
+/** Update one homepage pillar (copy and/or image). Deletes previous image when replaced. */
+export async function saveHomePillarAction(
+  input: Partial<HomePillar> & { key: string }
+): Promise<SiteMediaBundle> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+
+  const { supabase } = await requireAdminUser();
+  const stored = await getSiteContentValue<SiteMediaBundle>(SITE_MEDIA_CONTENT_KEY);
+  const base = sanitizeMediaBundle(stored);
+  const pillars = [...base.homePillars];
+  const index = pillars.findIndex((p) => p.key === input.key);
+  if (index === -1) throw new Error("Pillar not found.");
+
+  const previous = pillars[index];
+  const nextPillar: HomePillar = {
+    ...previous,
+    ...input,
+    key: previous.key,
+    img: input.img?.trim() ? input.img : previous.img,
+  };
+  pillars[index] = nextPillar;
+
+  const next: SiteMediaBundle = {
+    ...base,
+    homePillars: pillars,
+    websiteUseImages: { ...base.websiteUseImages },
+    localImages: { ...base.localImages },
+  };
+
+  await upsertSiteContentValue(SITE_MEDIA_CONTENT_KEY, next);
+
+  if (
+    input.img &&
+    previous.img &&
+    input.img !== previous.img &&
+    previous.img !== EMPTY_IMAGE
+  ) {
+    await deletePreviousMediaUrl(supabase, previous.img);
+  }
+
+  revalidatePublicSite();
+  return next;
+}
+
+export async function updateHomePillarsHeadingAction(input: {
+  eyebrow: string;
+  title: string;
+}): Promise<SiteMediaBundle> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+
+  const stored = await getSiteContentValue<SiteMediaBundle>(SITE_MEDIA_CONTENT_KEY);
+  const base = sanitizeMediaBundle(stored);
+  const next: SiteMediaBundle = {
+    ...base,
+    homePillarsHeading: {
+      eyebrow: input.eyebrow.trim() || base.homePillarsHeading.eyebrow,
+      title: input.title.trim() || base.homePillarsHeading.title,
+    },
+  };
+
+  await upsertSiteContentValue(SITE_MEDIA_CONTENT_KEY, next);
   revalidatePublicSite();
   return next;
 }

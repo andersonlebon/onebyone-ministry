@@ -1,4 +1,4 @@
-import type { SiteMediaBundle } from "./types";
+import type { HomePillar, SiteMediaBundle } from "./types";
 
 /**
  * Neutral SVG used wherever a content photo has not been uploaded yet.
@@ -12,6 +12,41 @@ const LOGO = {
   logoVertical: "/assets/brand-transparent/5-web.png",
   logoVerticalWhite: "/assets/brand-transparent/7-web.png",
 } as const;
+
+export const DEFAULT_HOME_PILLARS: HomePillar[] = [
+  {
+    key: "education",
+    img: EMPTY_IMAGE,
+    title: "Education",
+    desc: "Building schools, training teachers, and equipping every child with the tools they need to flourish.",
+    color: "#6E9277",
+    icon: "BookOpen",
+  },
+  {
+    key: "entrepreneurship",
+    img: EMPTY_IMAGE,
+    title: "Entrepreneurship",
+    desc: "Equipping families with skills, micro-grants, and mentorship to build sustainable livelihoods.",
+    color: "#EAC79A",
+    icon: "Lightbulb",
+  },
+  {
+    key: "discipleship",
+    img: EMPTY_IMAGE,
+    title: "Spiritual Discipleship",
+    desc: "Sharing the Gospel through Bible study, pastoral training, and church partnerships in unreached villages.",
+    color: "#6E9277",
+    icon: "Heart",
+  },
+  {
+    key: "community",
+    img: EMPTY_IMAGE,
+    title: "Community Development",
+    desc: "Building infrastructure, clean water access, and healthcare systems that lift entire communities.",
+    color: "#6E9277",
+    icon: "Users",
+  },
+];
 
 /**
  * Design logos + empty content image slots.
@@ -62,12 +97,11 @@ export function buildPlaceholderMediaBundle(): SiteMediaBundle {
       thumb: "",
     },
     galleryPhotos: [],
-    homePillars: [
-      { key: "education", img: EMPTY_IMAGE },
-      { key: "entrepreneurship", img: EMPTY_IMAGE },
-      { key: "discipleship", img: EMPTY_IMAGE },
-      { key: "community", img: EMPTY_IMAGE },
-    ],
+    homePillars: DEFAULT_HOME_PILLARS.map((p) => ({ ...p })),
+    homePillarsHeading: {
+      eyebrow: "How We Serve",
+      title: "Four Pillars of Transformation",
+    },
     homeProjects: [],
     homeStories: [],
     aboutStoryImages: [EMPTY_IMAGE, EMPTY_IMAGE, EMPTY_IMAGE],
