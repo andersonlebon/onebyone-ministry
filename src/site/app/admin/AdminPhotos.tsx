@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Plus, Trash2, X, Save, Pencil, FolderPlus } from "lucide-react";
 
@@ -15,6 +14,7 @@ import {
   createPhotoAlbumAction,
   deletePhotoAlbumAction,
   listOrSeedPhotoAlbumsAction,
+  listPhotoAlbumsAction,
   renamePhotoAlbumAction,
 } from "@/app/actions/photo-albums";
 import type { MediaAsset, PhotoAlbum } from "@/lib/db/schema";
@@ -24,6 +24,20 @@ import { ConfirmDialog } from "@/site/app/components/admin-edit/ConfirmDialog";
 import { useSiteStore, type Photo } from "@/site/lib/siteStore";
 
 type PhotoForm = Omit<Photo, "id"> & { storagePath?: string };
+
+async function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out. Please try again.`)), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 function PhotoModal({
   photo,
@@ -140,6 +154,74 @@ function PhotoModal({
   );
 }
 
+function CreateAlbumModal({
+  busy,
+  error,
+  onClose,
+  onCreate,
+}: {
+  busy: boolean;
+  error: string;
+  onClose: () => void;
+  onCreate: (name: string) => Promise<void>;
+}) {
+  const [name, setName] = useState("");
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl border border-muted"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-base font-semibold text-foreground">Create album</h3>
+          <button type="button" onClick={onClose} className="text-muted-foreground">
+            <X size={16} />
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Albums group photos on the public Photos page. You can add photos to this album after it is created.
+        </p>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Album name"
+          className="w-full px-3 py-2.5 rounded-xl border text-sm mb-3 focus:outline-none focus:border-[#6E9277]"
+          style={{ borderColor: "rgba(110,146,119,0.3)" }}
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && name.trim()) void onCreate(name.trim());
+          }}
+        />
+        {error ? <p className="text-sm text-red-500 mb-3">{error}</p> : null}
+        <div className="flex gap-3 justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl text-sm border border-muted text-foreground"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={busy || !name.trim()}
+            onClick={() => void onCreate(name.trim())}
+            className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60 flex items-center gap-1.5"
+            style={{ backgroundColor: "#6E9277" }}
+          >
+            <FolderPlus size={14} />
+            {busy ? "Creating…" : "Create album"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function assetToPhoto(asset: MediaAsset, albums: PhotoAlbum[]): Photo {
   return {
     id: asset.id,
@@ -152,18 +234,19 @@ function assetToPhoto(asset: MediaAsset, albums: PhotoAlbum[]): Photo {
 }
 
 export default function AdminPhotos() {
-  const router = useRouter();
   const { photos, addPhoto, updatePhoto, deletePhoto } = useSiteStore();
   const useSupabase = isSupabaseBackendConfigured();
+  const albumsRef = useRef<PhotoAlbum[]>([]);
   const [albums, setAlbums] = useState<PhotoAlbum[]>([]);
   const [remotePhotos, setRemotePhotos] = useState<Photo[]>([]);
   const [remoteAssets, setRemoteAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(useSupabase);
   const [activeAlbum, setActiveAlbum] = useState<string>("All");
-  const [showModal, setShowModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showCreateAlbum, setShowCreateAlbum] = useState(false);
   const [editing, setEditing] = useState<Photo | undefined>();
-  const [newAlbumName, setNewAlbumName] = useState("");
   const [albumBusy, setAlbumBusy] = useState(false);
+  const [createAlbumError, setCreateAlbumError] = useState("");
   const [error, setError] = useState("");
   const [pendingPhotoDelete, setPendingPhotoDelete] = useState<Photo | null>(null);
   const [pendingAlbumDelete, setPendingAlbumDelete] = useState<PhotoAlbum | null>(null);
@@ -171,33 +254,42 @@ export default function AdminPhotos() {
   const [renameValue, setRenameValue] = useState("");
   const [actionBusy, setActionBusy] = useState(false);
 
-  const loadAlbums = useCallback(async () => {
-    if (!useSupabase) return;
-    const rows = await listOrSeedPhotoAlbumsAction();
+  const applyAlbums = useCallback((rows: PhotoAlbum[]) => {
+    albumsRef.current = rows;
     setAlbums(rows);
-    return rows;
+  }, []);
+
+  const refreshPhotos = useCallback(async (albumRows?: PhotoAlbum[]) => {
+    if (!useSupabase) return;
+    const assets = await withTimeout(listMediaAssetsAction("photos"), 15_000, "Loading photos");
+    const list = albumRows ?? albumsRef.current;
+    setRemoteAssets(assets);
+    setRemotePhotos(assets.map((asset) => assetToPhoto(asset, list)));
   }, [useSupabase]);
 
-  const loadRemotePhotos = useCallback(async () => {
+  const loadLibrary = useCallback(async () => {
     if (!useSupabase) return;
     setLoading(true);
+    setError("");
     try {
-      const albumRows = await loadAlbums();
-      const assets = await listMediaAssetsAction("photos");
-      setRemoteAssets(assets);
-      setRemotePhotos(assets.map((asset) => assetToPhoto(asset, albumRows ?? albums)));
+      const albumRows = await withTimeout(
+        listOrSeedPhotoAlbumsAction(),
+        15_000,
+        "Loading albums"
+      );
+      applyAlbums(albumRows);
+      await refreshPhotos(albumRows);
     } catch (err) {
       console.error(err);
       setError(err instanceof Error ? err.message : "Could not load photos");
     } finally {
       setLoading(false);
     }
-  }, [useSupabase, loadAlbums, albums]);
+  }, [useSupabase, applyAlbums, refreshPhotos]);
 
   useEffect(() => {
-    void loadRemotePhotos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
-  }, [useSupabase]);
+    void loadLibrary();
+  }, [loadLibrary]);
 
   const displayPhotos = useSupabase ? remotePhotos : photos;
   const filtered =
@@ -207,17 +299,16 @@ export default function AdminPhotos() {
         ? displayPhotos.filter((p) => !p.albumId)
         : displayPhotos.filter((p) => p.albumId === activeAlbum);
 
-  const handleCreateAlbum = async () => {
-    if (!newAlbumName.trim()) return;
+  const handleCreateAlbum = async (name: string) => {
     setAlbumBusy(true);
+    setCreateAlbumError("");
     setError("");
     try {
-      await createPhotoAlbumAction(newAlbumName.trim());
-      setNewAlbumName("");
-      await loadAlbums();
-      router.refresh();
+      const created = await withTimeout(createPhotoAlbumAction(name), 15_000, "Creating album");
+      applyAlbums([...albumsRef.current, created].sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)));
+      setShowCreateAlbum(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not create album");
+      setCreateAlbumError(err instanceof Error ? err.message : "Could not create album");
     } finally {
       setAlbumBusy(false);
     }
@@ -236,11 +327,18 @@ export default function AdminPhotos() {
       return;
     }
     setAlbumBusy(true);
+    setError("");
     try {
-      await renamePhotoAlbumAction(renameAlbum.id, next);
+      const updated = await withTimeout(
+        renamePhotoAlbumAction(renameAlbum.id, next),
+        15_000,
+        "Renaming album"
+      );
+      applyAlbums(albumsRef.current.map((a) => (a.id === updated.id ? updated : a)));
+      setRemotePhotos((prev) =>
+        prev.map((p) => (p.albumId === updated.id ? { ...p, albumName: updated.name } : p))
+      );
       setRenameAlbum(null);
-      await loadRemotePhotos();
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not rename album");
     } finally {
@@ -250,16 +348,40 @@ export default function AdminPhotos() {
 
   const confirmDeleteAlbum = async () => {
     if (!pendingAlbumDelete) return;
+    const deletingId = pendingAlbumDelete.id;
     setAlbumBusy(true);
+    setError("");
     try {
-      await deletePhotoAlbumAction(pendingAlbumDelete.id);
-      if (activeAlbum === pendingAlbumDelete.id) setActiveAlbum("All");
+      const remaining = await withTimeout(
+        deletePhotoAlbumAction(deletingId),
+        15_000,
+        "Deleting album"
+      );
+      applyAlbums(remaining);
+      if (activeAlbum === deletingId) setActiveAlbum("All");
       setPendingAlbumDelete(null);
-      await loadRemotePhotos();
-      router.refresh();
+      // Photos stay; clear album assignment locally, then reload once.
+      setRemotePhotos((prev) =>
+        prev.map((p) =>
+          p.albumId === deletingId ? { ...p, albumId: null, albumName: null } : p
+        )
+      );
+      try {
+        await refreshPhotos(remaining);
+      } catch (reloadErr) {
+        console.error(reloadErr);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete album");
       setPendingAlbumDelete(null);
+      // Recover list if delete may have succeeded server-side
+      try {
+        const rows = await listPhotoAlbumsAction();
+        applyAlbums(rows);
+        await refreshPhotos(rows);
+      } catch {
+        /* keep optimistic UI */
+      }
     } finally {
       setAlbumBusy(false);
     }
@@ -275,28 +397,37 @@ export default function AdminPhotos() {
       return;
     }
 
-    if (editing) {
-      await updateMediaAssetAction(editing.id, {
-        alt: form.alt,
-        category: form.category || "Community",
-        publicUrl: form.src,
-        albumId: form.albumId ?? null,
-      });
-      await loadRemotePhotos();
-      router.refresh();
-      return;
+    setError("");
+    try {
+      if (editing) {
+        await withTimeout(
+          updateMediaAssetAction(editing.id, {
+            alt: form.alt,
+            category: form.category || "Community",
+            publicUrl: form.src,
+            albumId: form.albumId ?? null,
+          }),
+          20_000,
+          "Saving photo"
+        );
+      } else {
+        await withTimeout(
+          createMediaAssetAction({
+            path: form.storagePath ?? form.src.split("/storage/v1/object/public/media/")[1] ?? "",
+            publicUrl: form.src,
+            folder: "photos",
+            alt: form.alt,
+            category: form.category || "Community",
+            albumId: form.albumId ?? null,
+          }),
+          20_000,
+          "Saving photo"
+        );
+      }
+      await refreshPhotos();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save photo");
     }
-
-    await createMediaAssetAction({
-      path: form.storagePath ?? form.src.split("/storage/v1/object/public/media/")[1] ?? "",
-      publicUrl: form.src,
-      folder: "photos",
-      alt: form.alt,
-      category: form.category || "Community",
-      albumId: form.albumId ?? null,
-    });
-    await loadRemotePhotos();
-    router.refresh();
   };
 
   const confirmDeletePhoto = async () => {
@@ -318,10 +449,9 @@ export default function AdminPhotos() {
         return;
       }
 
-      await deleteMediaAssetAction(asset.id);
+      await withTimeout(deleteMediaAssetAction(asset.id), 20_000, "Deleting photo");
       setPendingPhotoDelete(null);
-      await loadRemotePhotos();
-      router.refresh();
+      await refreshPhotos();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete photo. Please try again.");
       setPendingPhotoDelete(null);
@@ -340,18 +470,20 @@ export default function AdminPhotos() {
             Page top banners are edited in Site Settings.
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => {
-            setEditing(undefined);
-            setShowModal(true);
-          }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
-          style={{ backgroundColor: "#6E9277" }}
-        >
-          <Plus size={15} /> Add Photo
-        </motion.button>
+        {useSupabase ? (
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => {
+              setCreateAlbumError("");
+              setShowCreateAlbum(true);
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
+            style={{ backgroundColor: "#6E9277" }}
+          >
+            <FolderPlus size={15} /> Create album
+          </motion.button>
+        ) : null}
       </div>
 
       {useSupabase ? (
@@ -359,31 +491,9 @@ export default function AdminPhotos() {
           <div>
             <h2 className="text-sm font-semibold text-foreground">Albums</h2>
             <p className="text-xs text-muted-foreground mt-1">
-              Create albums with any name. Suggested starters appear the first time you open this page.
-              Visitors filter the Photos page by album.
+              Create albums with the button above. Visitors browse the Photos page by album.
+              Suggested starters appear the first time this page is empty.
             </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <input
-              value={newAlbumName}
-              onChange={(e) => setNewAlbumName(e.target.value)}
-              placeholder="New album name"
-              className="flex-1 min-w-[200px] px-3 py-2 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]"
-              style={{ borderColor: "rgba(110,146,119,0.3)" }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void handleCreateAlbum();
-              }}
-            />
-            <motion.button
-              whileHover={{ scale: albumBusy ? 1 : 1.03 }}
-              whileTap={{ scale: albumBusy ? 1 : 0.97 }}
-              disabled={albumBusy || !newAlbumName.trim()}
-              onClick={() => void handleCreateAlbum()}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-60"
-              style={{ backgroundColor: "#6E9277" }}
-            >
-              <FolderPlus size={15} /> Create album
-            </motion.button>
           </div>
           {albums.length > 0 ? (
             <ul className="space-y-2">
@@ -412,13 +522,22 @@ export default function AdminPhotos() {
                 </li>
               ))}
             </ul>
-          ) : null}
+          ) : (
+            <p className="text-xs text-muted-foreground">No albums yet. Create one to get started.</p>
+          )}
         </div>
       ) : null}
 
       {error ? (
-        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 flex flex-wrap items-center justify-between gap-3">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => void loadLibrary()}
+            className="text-xs font-semibold underline"
+          >
+            Retry
+          </button>
         </div>
       ) : null}
 
@@ -464,7 +583,7 @@ export default function AdminPhotos() {
                     whileHover={{ scale: 1.1 }}
                     onClick={() => {
                       setEditing(photo);
-                      setShowModal(true);
+                      setShowPhotoModal(true);
                     }}
                     className="w-8 h-8 rounded-full bg-card flex items-center justify-center text-foreground"
                   >
@@ -496,7 +615,7 @@ export default function AdminPhotos() {
             whileTap={{ scale: 0.98 }}
             onClick={() => {
               setEditing(undefined);
-              setShowModal(true);
+              setShowPhotoModal(true);
             }}
             className="aspect-square rounded-2xl border-2 border-dashed border-primary/40 text-muted-foreground hover:border-primary flex flex-col items-center justify-center gap-2 transition-colors"
           >
@@ -528,15 +647,24 @@ export default function AdminPhotos() {
         confirmLabel="Delete album"
         danger
         busy={albumBusy}
-        onCancel={() => setPendingAlbumDelete(null)}
+        onCancel={() => !albumBusy && setPendingAlbumDelete(null)}
         onConfirm={() => void confirmDeleteAlbum()}
       />
+
+      {showCreateAlbum ? (
+        <CreateAlbumModal
+          busy={albumBusy}
+          error={createAlbumError}
+          onClose={() => !albumBusy && setShowCreateAlbum(false)}
+          onCreate={handleCreateAlbum}
+        />
+      ) : null}
 
       {renameAlbum ? (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-          onClick={() => setRenameAlbum(null)}
+          onClick={() => !albumBusy && setRenameAlbum(null)}
         >
           <div
             className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl border border-muted"
@@ -576,13 +704,13 @@ export default function AdminPhotos() {
       ) : null}
 
       <AnimatePresence>
-        {showModal && (
+        {showPhotoModal && (
           <PhotoModal
             photo={editing}
             albums={albums}
             useSupabase={useSupabase}
             onSave={(f) => void handleSave(f)}
-            onClose={() => setShowModal(false)}
+            onClose={() => setShowPhotoModal(false)}
           />
         )}
       </AnimatePresence>

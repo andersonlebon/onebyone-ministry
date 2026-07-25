@@ -1,7 +1,12 @@
+import { dedupeImageList, reservedBannerUrls } from "./media-refs";
 import { DEFAULT_HOME_PILLARS, EMPTY_IMAGE, buildPlaceholderMediaBundle } from "./placeholders";
 import type { HomePillar, HomePillarIcon, SiteMediaBundle } from "./types";
 
 const PILLAR_ICONS: HomePillarIcon[] = ["BookOpen", "Lightbulb", "Heart", "Users"];
+
+function normalizeUrl(url: string): string {
+  return url.split("?")[0] ?? url;
+}
 
 /**
  * Paths that are no longer valid content sources.
@@ -61,10 +66,20 @@ export function sanitizeMediaBundle(stored: SiteMediaBundle | null | undefined):
 
   const defaultByKey = new Map(DEFAULT_HOME_PILLARS.map((p) => [p.key, p]));
   const storedPillars = Array.isArray(stored.homePillars) ? stored.homePillars : [];
-  const homePillars: HomePillar[] =
+
+  // Banner URLs must never be reused on pillars / story / timeline slots.
+  const reserved = reservedBannerUrls({
+    ...defaults,
+    brandAssets,
+    websiteUseImages,
+    localImages,
+  } as SiteMediaBundle);
+
+  const rawPillars: HomePillar[] =
     storedPillars.length > 0
       ? storedPillars.map((raw, index) => {
-          const fallback = defaultByKey.get(raw.key) ?? DEFAULT_HOME_PILLARS[index] ?? DEFAULT_HOME_PILLARS[0];
+          const fallback =
+            defaultByKey.get(raw.key) ?? DEFAULT_HOME_PILLARS[index] ?? DEFAULT_HOME_PILLARS[0];
           const icon =
             typeof raw.icon === "string" && PILLAR_ICONS.includes(raw.icon as HomePillarIcon)
               ? (raw.icon as HomePillarIcon)
@@ -80,6 +95,16 @@ export function sanitizeMediaBundle(stored: SiteMediaBundle | null | undefined):
         })
       : defaults.homePillars.map((p) => ({ ...p }));
 
+  // Unique images only: no hero reuse, no sharing across pillars.
+  const seenPillarImgs = new Set(reserved);
+  const homePillars: HomePillar[] = rawPillars.map((p) => {
+    const img = p.img === EMPTY_IMAGE ? EMPTY_IMAGE : normalizeUrl(p.img);
+    if (img === EMPTY_IMAGE) return { ...p, img: EMPTY_IMAGE };
+    if (seenPillarImgs.has(img)) return { ...p, img: EMPTY_IMAGE };
+    seenPillarImgs.add(img);
+    return p;
+  });
+
   const heading = stored.homePillarsHeading;
   const homePillarsHeading = {
     eyebrow:
@@ -91,6 +116,21 @@ export function sanitizeMediaBundle(stored: SiteMediaBundle | null | undefined):
         ? heading.title
         : defaults.homePillarsHeading.title,
   };
+
+  const listReserved = new Set([...reserved, ...seenPillarImgs]);
+
+  const aboutStoryImages = dedupeImageList(
+    (stored.aboutStoryImages?.length
+      ? stored.aboutStoryImages
+      : defaults.aboutStoryImages
+    ).map(sanitizeUrl),
+    listReserved
+  );
+
+  const timelineReserved = new Set([
+    ...listReserved,
+    ...aboutStoryImages.filter((u) => u !== EMPTY_IMAGE).map(normalizeUrl),
+  ]);
 
   return {
     ...defaults,
@@ -105,17 +145,17 @@ export function sanitizeMediaBundle(stored: SiteMediaBundle | null | undefined):
     homePillarsHeading,
     homeProjects: Array.isArray(stored.homeProjects) ? stored.homeProjects.map(sanitizeUrl) : [],
     homeStories: Array.isArray(stored.homeStories) ? stored.homeStories.map(sanitizeUrl) : [],
-    aboutStoryImages: (
-      stored.aboutStoryImages?.length ? stored.aboutStoryImages : defaults.aboutStoryImages
-    ).map(sanitizeUrl),
+    aboutStoryImages,
     projectImages: Array.isArray(stored.projectImages)
       ? stored.projectImages.map(sanitizeUrl)
       : [],
     storyImages: Array.isArray(stored.storyImages) ? stored.storyImages.map(sanitizeUrl) : [],
-    founderTimelineImages: (
-      stored.founderTimelineImages?.length
+    founderTimelineImages: dedupeImageList(
+      (stored.founderTimelineImages?.length
         ? stored.founderTimelineImages
         : defaults.founderTimelineImages
-    ).map(sanitizeUrl),
+      ).map(sanitizeUrl),
+      timelineReserved
+    ),
   };
 }

@@ -19,3 +19,13 @@ export function revalidatePublicSite() {
     revalidatePath(path, "page");
   }
 }
+
+/**
+ * Lighter cache bust for album/photo library changes.
+ * Only touch the public Photos page. Do NOT revalidate /admin layout here:
+ * that layout reloads media/content/donations and was crashing the Photo Library
+ * RSC after delete when the DB was under load.
+ */
+export function revalidatePhotoGallery() {
+  revalidatePath("/photos", "page");
+}

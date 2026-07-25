@@ -10,7 +10,7 @@ import {
   reorderPhotoAlbums,
 } from "@/lib/db/photo-albums";
 import type { PhotoAlbum } from "@/lib/db/schema";
-import { revalidatePublicSite } from "@/lib/site-content/revalidate";
+import { revalidatePhotoGallery } from "@/lib/site-content/revalidate";
 import { isAdminUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -49,7 +49,7 @@ export async function createPhotoAlbumAction(name: string): Promise<PhotoAlbum> 
   assertDatabase();
   await requireAdminUser();
   const album = await createPhotoAlbum(name);
-  revalidatePublicSite();
+  revalidatePhotoGallery();
   return album;
 }
 
@@ -57,21 +57,24 @@ export async function renamePhotoAlbumAction(id: string, name: string): Promise<
   assertDatabase();
   await requireAdminUser();
   const album = await renamePhotoAlbum(id, name);
-  revalidatePublicSite();
+  revalidatePhotoGallery();
   return album;
 }
 
-export async function deletePhotoAlbumAction(id: string): Promise<void> {
+/** Deletes the album and returns the remaining album list (photos become Unassigned). */
+export async function deletePhotoAlbumAction(id: string): Promise<PhotoAlbum[]> {
   assertDatabase();
   await requireAdminUser();
   await deletePhotoAlbum(id);
-  revalidatePublicSite();
+  const remaining = await listPhotoAlbums();
+  revalidatePhotoGallery();
+  return remaining;
 }
 
 export async function reorderPhotoAlbumsAction(orderedIds: string[]): Promise<PhotoAlbum[]> {
   assertDatabase();
   await requireAdminUser();
   const albums = await reorderPhotoAlbums(orderedIds);
-  revalidatePublicSite();
+  revalidatePhotoGallery();
   return albums;
 }
