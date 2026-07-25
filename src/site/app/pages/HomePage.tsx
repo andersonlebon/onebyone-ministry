@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useColors } from "../../lib/themeStore";
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, type Variants } from "motion/react";
 import {
-  BookOpen, Lightbulb, Heart, Users, ArrowRight, ChevronDown,
+  BookOpen, Heart, Users, ArrowRight, ChevronDown,
   Globe, Quote, Sparkles as SparklesIcon,
 } from "lucide-react";
 import { useSiteMedia, useMediaUrl } from "@/site/lib/mediaContext";
