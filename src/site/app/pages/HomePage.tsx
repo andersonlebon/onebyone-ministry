@@ -17,8 +17,10 @@ import {
   AnimatedBlob, CrossPattern, DiagonalStripes, PulsingRing, Sparkles,
 } from "../components/shared/SvgDecorators";
 import { SectionEditor } from "../components/admin-edit/SectionEditor";
+import { InlinePillarsEditor } from "../components/admin-edit/InlinePillarsEditor";
 import { InlineProjectsEditor } from "../components/admin-edit/InlineProjectsEditor";
 import { useCanInlineEdit } from "@/site/lib/adminEditContext";
+import { pillarIcon } from "@/site/lib/pillarIcons";
 
 /* ───── Animated Counter ───── */
 function useAnimatedCounter(target: number, duration = 2400) {
@@ -114,7 +116,7 @@ function StatCard({ value, suffix, label, icon: Icon }: { value: number; suffix:
 export default function HomePage() {
   const c = useColors();
   const canInlineEdit = useCanInlineEdit();
-  const { brandAssets, homePillars, websiteUseImages } = useSiteMedia();
+  const { brandAssets, homePillars, homePillarsHeading, websiteUseImages } = useSiteMedia();
   const heroBackground = useMediaUrl(websiteUseImages.hero);
   const { settings, projects } = useSiteContent();
   const publishedPosts = usePublishedPosts();
@@ -140,13 +142,6 @@ export default function HomePage() {
     img: post.img,
     excerpt: post.excerpt,
   }));
-
-  const PILLARS = [
-    { icon: BookOpen, title: "Education", color: "#6E9277", img: homePillars[0].img, desc: "Building schools, training teachers, and equipping every child with the tools they need to flourish." },
-    { icon: Lightbulb, title: "Entrepreneurship", color: "#EAC79A", img: homePillars[1].img, desc: "Equipping families with skills, micro-grants, and mentorship to build sustainable livelihoods." },
-    { icon: Heart, title: "Spiritual Discipleship", color: "#6E9277", img: homePillars[2].img, desc: "Sharing the Gospel through Bible study, pastoral training, and church partnerships in unreached villages." },
-    { icon: Users, title: "Community Development", color: "#6E9277", img: homePillars[3].img, desc: "Building infrastructure, clean water access, and healthcare systems that lift entire communities." },
-  ];
 
   const heroHeadline = settings.heroHeadline.replace(/\s*One By One\s*$/i, "").trim() || settings.heroHeadline;
   const heroRef = useRef<HTMLDivElement>(null);
@@ -452,22 +447,27 @@ export default function HomePage() {
       </SectionEditor>
 
       {/* ══════════ CORE PILLARS ══════════ */}
+      <InlinePillarsEditor>
       <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
         <DiagonalStripes color="rgba(110,146,119,0.06)" />
         <AnimatedBlob color="#5A4749" opacity={0.05} size={600} className="top-0 right-0" />
 
         <div className="max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 py-14 lg:py-20 relative z-10">
           <motion.div variants={fadeSlide} initial="hidden" whileInView="show" viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>How We Serve</p>
-            <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>Four Pillars of Transformation</h2>
+            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>
+              {homePillarsHeading.eyebrow}
+            </p>
+            <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>
+              {homePillarsHeading.title}
+            </h2>
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {PILLARS.map((pillar, i) => {
-              const Icon = pillar.icon;
+            {homePillars.map((pillar, i) => {
+              const Icon = pillarIcon(pillar.icon);
               return (
                 <motion.div
-                  key={pillar.title}
+                  key={pillar.key}
                   custom={i}
                   variants={fadeSlide}
                   initial="hidden"
@@ -475,7 +475,7 @@ export default function HomePage() {
                   viewport={{ once: true, margin: "-40px" }}
                   whileHover={{ y: -10, boxShadow: "0 24px 60px rgba(71,71,71,0.12)" }}
                   transition={{ duration: 0.3 }}
-                  className="group rounded-2xl overflow-hidden cursor-pointer"
+                  className="group rounded-2xl overflow-hidden"
                   style={{ backgroundColor: c.white, border: "1px solid rgba(110,146,119,0.15)" }}
                 >
                   <div className="relative h-48 overflow-hidden" style={{ backgroundColor: pillar.color + "22" }}>
@@ -507,6 +507,7 @@ export default function HomePage() {
         </div>
         <WaveDivider topColor={c.cream} bottomColor={c.white} />
       </section>
+      </InlinePillarsEditor>
 
       {/* ══════════ FEATURED PROJECTS ══════════ */}
       {PROJECTS.length > 0 || canInlineEdit ? (

@@ -1,5 +1,7 @@
-import { EMPTY_IMAGE, buildPlaceholderMediaBundle } from "./placeholders";
-import type { SiteMediaBundle } from "./types";
+import { DEFAULT_HOME_PILLARS, EMPTY_IMAGE, buildPlaceholderMediaBundle } from "./placeholders";
+import type { HomePillar, HomePillarIcon, SiteMediaBundle } from "./types";
+
+const PILLAR_ICONS: HomePillarIcon[] = ["BookOpen", "Lightbulb", "Heart", "Users"];
 
 /**
  * Paths that are no longer valid content sources.
@@ -57,6 +59,39 @@ export function sanitizeMediaBundle(stored: SiteMediaBundle | null | undefined):
     ...(stored.brandAssets ?? {}),
   };
 
+  const defaultByKey = new Map(DEFAULT_HOME_PILLARS.map((p) => [p.key, p]));
+  const storedPillars = Array.isArray(stored.homePillars) ? stored.homePillars : [];
+  const homePillars: HomePillar[] =
+    storedPillars.length > 0
+      ? storedPillars.map((raw, index) => {
+          const fallback = defaultByKey.get(raw.key) ?? DEFAULT_HOME_PILLARS[index] ?? DEFAULT_HOME_PILLARS[0];
+          const icon =
+            typeof raw.icon === "string" && PILLAR_ICONS.includes(raw.icon as HomePillarIcon)
+              ? (raw.icon as HomePillarIcon)
+              : fallback.icon;
+          return {
+            key: typeof raw.key === "string" && raw.key ? raw.key : fallback.key,
+            img: sanitizeUrl(raw.img),
+            title: typeof raw.title === "string" && raw.title.trim() ? raw.title : fallback.title,
+            desc: typeof raw.desc === "string" && raw.desc.trim() ? raw.desc : fallback.desc,
+            color: typeof raw.color === "string" && raw.color.trim() ? raw.color : fallback.color,
+            icon,
+          };
+        })
+      : defaults.homePillars.map((p) => ({ ...p }));
+
+  const heading = stored.homePillarsHeading;
+  const homePillarsHeading = {
+    eyebrow:
+      typeof heading?.eyebrow === "string" && heading.eyebrow.trim()
+        ? heading.eyebrow
+        : defaults.homePillarsHeading.eyebrow,
+    title:
+      typeof heading?.title === "string" && heading.title.trim()
+        ? heading.title
+        : defaults.homePillarsHeading.title,
+  };
+
   return {
     ...defaults,
     ...stored,
@@ -66,9 +101,8 @@ export function sanitizeMediaBundle(stored: SiteMediaBundle | null | undefined):
     galleryPhotos: [],
     ministryVideos: Array.isArray(stored.ministryVideos) ? stored.ministryVideos : [],
     featuredVideo: stored.featuredVideo ?? defaults.featuredVideo,
-    homePillars: (stored.homePillars?.length ? stored.homePillars : defaults.homePillars).map(
-      (p) => ({ ...p, img: sanitizeUrl(p.img) })
-    ),
+    homePillars,
+    homePillarsHeading,
     homeProjects: Array.isArray(stored.homeProjects) ? stored.homeProjects.map(sanitizeUrl) : [],
     homeStories: Array.isArray(stored.homeStories) ? stored.homeStories.map(sanitizeUrl) : [],
     aboutStoryImages: (

@@ -18,6 +18,17 @@ export type MinistryVideo = {
   url: string;
 };
 
+export type HomePillarIcon = "BookOpen" | "Lightbulb" | "Heart" | "Users";
+
+export type HomePillar = {
+  key: string;
+  img: string;
+  title: string;
+  desc: string;
+  color: string;
+  icon: HomePillarIcon;
+};
+
 export type SiteMediaBundle = {
   brandAssets: {
     logoDark: string;
@@ -63,7 +74,13 @@ export type SiteMediaBundle = {
     thumb: string;
   };
   galleryPhotos: GalleryPhoto[];
-  homePillars: ReadonlyArray<{ key: string; img: string }>;
+  /** Homepage “Four Pillars” cards (image + copy). */
+  homePillars: readonly HomePillar[];
+  /** Headings above the pillars grid. */
+  homePillarsHeading: {
+    eyebrow: string;
+    title: string;
+  };
   homeProjects: readonly string[];
   homeStories: readonly string[];
   aboutStoryImages: readonly string[];
