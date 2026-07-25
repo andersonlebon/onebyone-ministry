@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Photo placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a2620"/>
+      <stop offset="100%" stop-color="#2a3a2e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <rect x="620" y="320" width="360" height="260" rx="28" fill="none" stroke="#6E9277" stroke-width="6" stroke-dasharray="18 14" opacity="0.85"/>
+  <circle cx="740" cy="410" r="36" fill="#6E9277" opacity="0.55"/>
+  <path d="M680 520 L760 450 L820 500 L900 420 L980 520 Z" fill="#6E9277" opacity="0.45"/>
+  <text x="800" y="640" text-anchor="middle" fill="#EDE7DA" font-family="Georgia, serif" font-size="36" opacity="0.9">Add a photo</text>
+  <text x="800" y="690" text-anchor="middle" fill="#8fa895" font-family="system-ui, sans-serif" font-size="22">Upload in admin or Edit banner</text>
+</svg>

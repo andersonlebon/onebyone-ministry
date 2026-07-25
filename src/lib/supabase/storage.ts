@@ -48,3 +48,44 @@ export async function deleteStorageObject(supabase: SupabaseClient, path: string
     throw error;
   }
 }
+
+/** Extract storage object path from a public media URL (strips ?v= cache-bust). */
+export function extractMediaBucketPath(publicUrl: string): string | null {
+  if (!publicUrl || publicUrl.startsWith("/") || publicUrl.startsWith("data:")) return null;
+
+  const marker = `/storage/v1/object/public/${MEDIA_BUCKET}/`;
+  const idx = publicUrl.indexOf(marker);
+  if (idx === -1) return null;
+
+  const raw = publicUrl.slice(idx + marker.length).split("?")[0] ?? "";
+  if (!raw) return null;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+/** Logos are shared; never delete them when replacing a banner. */
+export function shouldDeleteReplacedMediaPath(path: string): boolean {
+  if (!path) return false;
+  if (path.startsWith("seed/brand-transparent/")) return false;
+  if (path.includes("/brand-transparent/")) return false;
+  return true;
+}
+
+/** Best-effort delete of a previous banner/content object after a successful replace. */
+export async function deletePreviousMediaUrl(
+  supabase: SupabaseClient,
+  previousUrl: string | undefined | null
+) {
+  if (!previousUrl) return;
+  const path = extractMediaBucketPath(previousUrl);
+  if (!path || !shouldDeleteReplacedMediaPath(path)) return;
+
+  try {
+    await deleteStorageObject(supabase, path);
+  } catch (error) {
+    console.warn("[storage] Could not delete previous media object:", path, error);
+  }
+}

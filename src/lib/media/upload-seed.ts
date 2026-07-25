@@ -13,10 +13,11 @@ const MIME: Record<string, string> = {
   ".png": "image/png",
   ".webp": "image/webp",
   ".gif": "image/gif",
+  ".svg": "image/svg+xml",
 };
 
-/** Only design/brand folders are uploaded at setup. Content photos are client-added. */
-const DESIGN_TOP_FOLDERS = new Set(["brand", "brand-transparent", "website-use"]);
+/** Setup only uploads logos. Content photos are never seeded. */
+const LOGO_TOP_FOLDERS = new Set(["brand-transparent"]);
 
 function walkFiles(dir: string): string[] {
   const entries = readdirSync(dir);
@@ -34,12 +35,6 @@ function walkFiles(dir: string): string[] {
   return files;
 }
 
-function inferFolder(relativePath: string): MediaFolder {
-  const top = relativePath.split(/[/\\]/)[0]?.toLowerCase() ?? "";
-  if (top === "brand" || top === "brand-transparent" || top === "website-use") return "brand";
-  return "general";
-}
-
 export type UploadedAssetRecord = {
   localPath: string;
   storagePath: string;
@@ -50,8 +45,8 @@ export type UploadedAssetRecord = {
 };
 
 /**
- * Upload design assets only (logos + layout backgrounds) during /setup.
- * Does not seed gallery photos, distributions, or video thumbs.
+ * Upload logo files only during /setup.
+ * Does not seed banners, gallery photos, or any other content images.
  */
 export async function uploadAllPublicAssets(
   supabase: SupabaseClient
@@ -65,7 +60,7 @@ export async function uploadAllPublicAssets(
   const files = walkFiles(assetsRoot).filter((absolutePath) => {
     const relativePath = relative(assetsRoot, absolutePath).replace(/\\/g, "/");
     const top = relativePath.split("/")[0]?.toLowerCase() ?? "";
-    return DESIGN_TOP_FOLDERS.has(top);
+    return LOGO_TOP_FOLDERS.has(top);
   });
 
   const urlMap: Record<string, string> = {};
@@ -92,7 +87,6 @@ export async function uploadAllPublicAssets(
     const publicUrl = getStoragePublicUrl(supabase, storagePath);
     urlMap[localPath] = publicUrl;
 
-    const folder = inferFolder(relativePath);
     const fileName = relativePath.split("/").pop() ?? relativePath;
 
     records.push({
@@ -100,8 +94,8 @@ export async function uploadAllPublicAssets(
       storagePath,
       publicUrl,
       alt: fileName.replace(/\.[^.]+$/, "").replace(/[-_]/g, " "),
-      category: "General",
-      folder,
+      category: "Brand",
+      folder: "brand",
     });
   }
 

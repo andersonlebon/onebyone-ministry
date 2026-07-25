@@ -4,7 +4,8 @@ import { isDatabaseConfigured } from "@/lib/db/config";
 import { listMediaAssets } from "@/lib/db/media";
 import { listPhotoAlbums } from "@/lib/db/photo-albums";
 import { getSiteContentRow } from "@/lib/db/site-content";
-import { PLACEHOLDER_MEDIA, buildPlaceholderMediaBundle } from "@/lib/media/placeholders";
+import { PLACEHOLDER_MEDIA } from "@/lib/media/placeholders";
+import { sanitizeMediaBundle } from "@/lib/media/sanitize-bundle";
 import type { GalleryPhoto, SiteMediaBundle } from "@/lib/media/types";
 
 export const SITE_MEDIA_CONTENT_KEY = "media";
@@ -27,7 +28,7 @@ export async function getPublicMediaBundle(): Promise<PublicMediaPayload> {
     ]);
     const stored = (row?.value as SiteMediaBundle | undefined) ?? null;
     const version = row?.updatedAt ? row.updatedAt.getTime() : null;
-    const base = stored ?? buildPlaceholderMediaBundle();
+    const base = sanitizeMediaBundle(stored);
     const albumNameById = new Map(albums.map((a) => [a.id, a.name]));
 
     // Always derive the public gallery from Photo Library rows.
@@ -59,5 +60,5 @@ export async function getPublicMediaBundle(): Promise<PublicMediaPayload> {
 }
 
 export function getPlaceholderMediaBundle(): SiteMediaBundle {
-  return buildPlaceholderMediaBundle();
+  return sanitizeMediaBundle(null);
 }

@@ -10,8 +10,8 @@ export const siteConfig = {
   location: "United States & Democratic Republic of Congo",
   /** Main logo (dark on light backgrounds). Used for favicon and structured data. */
   logo: "/assets/brand-transparent/6-web.png",
-  /** Hero photo used for social link previews (Open Graph / Twitter). */
-  ogImage: "/assets/brand/23-hero.jpg",
+  /** Fallback OG art when no hero has been uploaded yet (neutral placeholder). */
+  ogImage: "/assets/placeholders/empty.svg",
   socialLinks: [
     { label: "Facebook", href: "https://facebook.com" },
     { label: "Instagram", href: "https://instagram.com" },

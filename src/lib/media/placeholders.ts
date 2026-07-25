@@ -1,50 +1,55 @@
 import type { SiteMediaBundle } from "./types";
 
 /**
- * Design-only local paths used before setup / as structural fallbacks.
- * Content photos, videos, and gallery are empty — the client adds those.
+ * Neutral SVG used wherever a content photo has not been uploaded yet.
+ * Logos stay as real brand files; everything else starts empty.
+ */
+export const EMPTY_IMAGE = "/assets/placeholders/empty.svg";
+
+const LOGO = {
+  logoDark: "/assets/brand-transparent/6-web.png",
+  logoWhite: "/assets/brand-transparent/8-web.png",
+  logoVertical: "/assets/brand-transparent/5-web.png",
+  logoVerticalWhite: "/assets/brand-transparent/7-web.png",
+} as const;
+
+/**
+ * Design logos + empty content image slots.
+ * After setup/deploy, admins upload real photos into Supabase; those URLs live in DB only.
  */
 export function buildPlaceholderMediaBundle(): SiteMediaBundle {
-  const brandAssets = {
-    logoDark: "/assets/brand-transparent/6-web.png",
-    logoWhite: "/assets/brand-transparent/8-web.png",
-    logoVertical: "/assets/brand-transparent/5-web.png",
-    logoVerticalWhite: "/assets/brand-transparent/7-web.png",
-  };
-
   const websiteUseImages = {
-    hero: "/assets/brand/23-hero.jpg",
-    about: "/assets/website-use/2.jpg",
-    mission: "/assets/website-use/3.jpg",
-    projects: "/assets/website-use/4.jpg",
-    outreach: "/assets/website-use/5.jpg",
-    community: "/assets/website-use/6.jpg",
-    worship: "/assets/website-use/7.jpg",
+    hero: EMPTY_IMAGE,
+    about: EMPTY_IMAGE,
+    mission: EMPTY_IMAGE,
+    projects: EMPTY_IMAGE,
+    outreach: EMPTY_IMAGE,
+    community: EMPTY_IMAGE,
+    worship: EMPTY_IMAGE,
   };
 
-  // Structural page images only (brand / website-use). No gallery/distribution photos.
   const localImages = {
-    education: "/assets/website-use/3.jpg",
-    educationAlt: "/assets/website-use/4.jpg",
-    entrepreneurship: "/assets/website-use/5.jpg",
-    discipleship: "/assets/website-use/7.jpg",
-    community: "/assets/website-use/6.jpg",
-    communityAlt: "/assets/website-use/2.jpg",
-    outreach: "/assets/website-use/5.jpg",
-    water: "/assets/website-use/6.jpg",
-    worship: "/assets/website-use/7.jpg",
-    leaderOne: "/assets/brand/14.jpg",
-    leaderTwo: "/assets/brand/15.jpg",
-    leaderThree: "/assets/brand/16.jpg",
-    testimonialOne: "/assets/website-use/3.jpg",
-    testimonialTwo: "/assets/website-use/4.jpg",
-    storyHero: "/assets/brand/23-hero.jpg",
-    donateHero: "/assets/website-use/4.jpg",
-    contactHero: "/assets/website-use/2.jpg",
+    education: EMPTY_IMAGE,
+    educationAlt: EMPTY_IMAGE,
+    entrepreneurship: EMPTY_IMAGE,
+    discipleship: EMPTY_IMAGE,
+    community: EMPTY_IMAGE,
+    communityAlt: EMPTY_IMAGE,
+    outreach: EMPTY_IMAGE,
+    water: EMPTY_IMAGE,
+    worship: EMPTY_IMAGE,
+    leaderOne: EMPTY_IMAGE,
+    leaderTwo: EMPTY_IMAGE,
+    leaderThree: EMPTY_IMAGE,
+    testimonialOne: EMPTY_IMAGE,
+    testimonialTwo: EMPTY_IMAGE,
+    storyHero: EMPTY_IMAGE,
+    donateHero: EMPTY_IMAGE,
+    contactHero: EMPTY_IMAGE,
   };
 
   return {
-    brandAssets,
+    brandAssets: { ...LOGO },
     websiteUseImages,
     localImages,
     ministryVideos: [],
@@ -58,26 +63,17 @@ export function buildPlaceholderMediaBundle(): SiteMediaBundle {
     },
     galleryPhotos: [],
     homePillars: [
-      { key: "education", img: localImages.education },
-      { key: "entrepreneurship", img: localImages.entrepreneurship },
-      { key: "discipleship", img: localImages.discipleship },
-      { key: "community", img: localImages.community },
+      { key: "education", img: EMPTY_IMAGE },
+      { key: "entrepreneurship", img: EMPTY_IMAGE },
+      { key: "discipleship", img: EMPTY_IMAGE },
+      { key: "community", img: EMPTY_IMAGE },
     ],
     homeProjects: [],
     homeStories: [],
-    aboutStoryImages: [localImages.education, localImages.worship, localImages.community],
+    aboutStoryImages: [EMPTY_IMAGE, EMPTY_IMAGE, EMPTY_IMAGE],
     projectImages: [],
     storyImages: [],
-    founderTimelineImages: [
-      "/assets/website-use/1.jpg",
-      "/assets/website-use/2.jpg",
-      "/assets/website-use/3.jpg",
-      "/assets/brand/23.jpg",
-      "/assets/website-use/4.jpg",
-      "/assets/website-use/5.jpg",
-      "/assets/website-use/7.jpg",
-      "/assets/website-use/6.jpg",
-    ],
+    founderTimelineImages: Array.from({ length: 8 }, () => EMPTY_IMAGE),
   };
 }
 
