@@ -8,10 +8,12 @@ import { getSiteContentBundle } from "@/lib/site-content/resolve";
 import { revalidatePublicSite } from "@/lib/site-content/revalidate";
 import { SITE_CONTENT_KEYS } from "@/lib/site-content/keys";
 import { normalizePosts } from "@/lib/site-content/posts";
-import { mergeAboutContent } from "@/lib/site-content/about-defaults";
+import { mergeAboutContent, sanitizeAboutForWrite } from "@/lib/site-content/about-defaults";
 import type {
+  AboutLocation,
   AboutPageContent,
-  AboutTeamMember,
+  AboutPeopleListKey,
+  AboutPerson,
   AboutTimelineMilestone,
   FinanceDetails,
   Post,
@@ -151,13 +153,14 @@ async function readAboutFromDb(): Promise<AboutPageContent> {
 }
 
 async function writeAbout(about: AboutPageContent): Promise<AboutPageContent> {
-  await upsertSiteContentValue(SITE_CONTENT_KEYS.about, about);
+  const clean = sanitizeAboutForWrite(about);
+  await upsertSiteContentValue(SITE_CONTENT_KEYS.about, clean);
   revalidatePublicSite();
   revalidatePath("/about");
-  return about;
+  return clean;
 }
 
-/** Replace or merge About page fields (story, vision, values text, etc.). */
+/** Replace or merge About page fields (story, vision, headings, locations, etc.). */
 export async function updateAboutAction(
   patch: Partial<AboutPageContent>
 ): Promise<AboutPageContent> {
@@ -167,22 +170,32 @@ export async function updateAboutAction(
   return writeAbout({ ...current, ...patch });
 }
 
-export async function saveTeamMemberAction(
-  input: Omit<AboutTeamMember, "id"> & { id?: string }
+function peopleList(about: AboutPageContent, list: AboutPeopleListKey): AboutPerson[] {
+  return [...about[list]].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+export async function saveAboutPersonAction(
+  list: AboutPeopleListKey,
+  input: Omit<AboutPerson, "id"> & { id?: string }
 ): Promise<AboutPageContent> {
   if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
   await requireAdminUser();
 
   const current = await readAboutFromDb();
-  const team = [...current.team].sort((a, b) => a.sortOrder - b.sortOrder);
+  const rows = peopleList(current, list);
+  const socialLinks = Array.isArray(input.socialLinks)
+    ? input.socialLinks.filter((s) => s.url?.trim())
+    : [];
 
   if (input.id) {
-    const exists = team.some((p) => p.id === input.id);
+    const exists = rows.some((p) => p.id === input.id);
     if (!exists) {
-      team.push({ ...input, id: input.id });
+      rows.push({ ...input, id: input.id, socialLinks });
     } else {
-      const next = team.map((p) => (p.id === input.id ? { ...p, ...input, id: input.id } : p));
-      return writeAbout({ ...current, team: next });
+      const next = rows.map((p) =>
+        p.id === input.id ? { ...p, ...input, id: input.id, socialLinks } : p
+      );
+      return writeAbout({ ...current, [list]: next });
     }
   } else {
     const id =
@@ -192,19 +205,78 @@ export async function saveTeamMemberAction(
     const sortOrder =
       typeof input.sortOrder === "number"
         ? input.sortOrder
-        : team.reduce((max, p) => Math.max(max, p.sortOrder), -1) + 1;
-    team.push({ ...input, id, sortOrder });
+        : rows.reduce((max, p) => Math.max(max, p.sortOrder), -1) + 1;
+    rows.push({ ...input, id, sortOrder, socialLinks });
   }
 
-  return writeAbout({ ...current, team });
+  return writeAbout({ ...current, [list]: rows });
 }
 
-export async function deleteTeamMemberAction(id: string): Promise<AboutPageContent> {
+export async function deleteAboutPersonAction(
+  list: AboutPeopleListKey,
+  id: string
+): Promise<AboutPageContent> {
   if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
   await requireAdminUser();
 
   const current = await readAboutFromDb();
-  return writeAbout({ ...current, team: current.team.filter((p) => p.id !== id) });
+  return writeAbout({
+    ...current,
+    [list]: current[list].filter((p) => p.id !== id),
+  });
+}
+
+/** @deprecated Prefer saveAboutPersonAction("team", …) */
+export async function saveTeamMemberAction(
+  input: Omit<AboutPerson, "id"> & { id?: string }
+): Promise<AboutPageContent> {
+  return saveAboutPersonAction("team", input);
+}
+
+/** @deprecated Prefer deleteAboutPersonAction("team", id) */
+export async function deleteTeamMemberAction(id: string): Promise<AboutPageContent> {
+  return deleteAboutPersonAction("team", id);
+}
+
+export async function saveAboutLocationAction(
+  input: AboutLocation
+): Promise<AboutPageContent> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+
+  const current = await readAboutFromDb();
+  const lat = Number(input.lat);
+  const lng = Number(input.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    throw new Error("Latitude and longitude must be valid numbers.");
+  }
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    throw new Error("Coordinates are out of range.");
+  }
+
+  const locations = current.locations.map((loc) =>
+    loc.id === input.id
+      ? {
+          ...loc,
+          label: input.label.trim() || loc.label,
+          description: input.description.trim(),
+          lat,
+          lng,
+        }
+      : loc
+  );
+
+  if (!locations.some((loc) => loc.id === input.id)) {
+    locations.push({
+      id: input.id,
+      label: input.label.trim() || "Location",
+      description: input.description.trim(),
+      lat,
+      lng,
+    });
+  }
+
+  return writeAbout({ ...current, locations });
 }
 
 export async function saveTimelineMilestoneAction(
