@@ -20,16 +20,37 @@ export const metadata: Metadata = {
 
 export default async function AdminSectionLayout({ children }: { children: React.ReactNode }) {
   const contentFallback = getDefaultSiteContentBundle();
-  const mediaFallback = { media: getPlaceholderMediaBundle(), version: null, albums: [] };
+  const mediaFallback = {
+    media: getPlaceholderMediaBundle(),
+    version: null as number | null,
+    albums: [] as Array<{ id: string; name: string; slug: string }>,
+  };
 
-  const [{ media, version, albums }, content, donations, paymentEnv] = await Promise.all([
-    withTimeout(getPublicMediaBundle(), 8_000, mediaFallback),
-    withTimeout(getSiteContentBundle(), 8_000, contentFallback),
-    isDatabaseConfigured()
-      ? withTimeout(listDonations().catch(() => []), 5_000, [])
-      : Promise.resolve([]),
-    Promise.resolve(getPaymentEnvStatus()),
-  ]);
+  // Never let a DB blip crash the admin RSC tree (that produced the red
+  // "An error occurred in the Server Components render" banner after album deletes).
+  let media = mediaFallback.media;
+  let version = mediaFallback.version;
+  let albums = mediaFallback.albums;
+  let content = contentFallback;
+  let donations: Awaited<ReturnType<typeof listDonations>> = [];
+  const paymentEnv = getPaymentEnvStatus();
+
+  try {
+    const [mediaPayload, contentPayload, donationRows] = await Promise.all([
+      withTimeout(getPublicMediaBundle(), 10_000, mediaFallback),
+      withTimeout(getSiteContentBundle(), 10_000, contentFallback),
+      isDatabaseConfigured()
+        ? withTimeout(listDonations().catch(() => []), 5_000, [])
+        : Promise.resolve([]),
+    ]);
+    media = mediaPayload.media;
+    version = mediaPayload.version;
+    albums = mediaPayload.albums;
+    content = contentPayload;
+    donations = donationRows;
+  } catch (error) {
+    console.error("[admin-layout] Failed to load dashboard data; using fallbacks:", error);
+  }
 
   return (
     <AdminDashboardLayout

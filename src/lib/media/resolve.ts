@@ -22,9 +22,10 @@ export async function getPublicMediaBundle(): Promise<PublicMediaPayload> {
   }
 
   try {
-    const [row, albums] = await Promise.all([
+    const [row, albums, photoAssets] = await Promise.all([
       getSiteContentRow(SITE_MEDIA_CONTENT_KEY),
-      listPhotoAlbums().catch(() => []),
+      listPhotoAlbums().catch(() => [] as Awaited<ReturnType<typeof listPhotoAlbums>>),
+      listMediaAssets("photos").catch(() => [] as Awaited<ReturnType<typeof listMediaAssets>>),
     ]);
     const stored = (row?.value as SiteMediaBundle | undefined) ?? null;
     const version = row?.updatedAt ? row.updatedAt.getTime() : null;
@@ -33,7 +34,6 @@ export async function getPublicMediaBundle(): Promise<PublicMediaPayload> {
 
     // Always derive the public gallery from Photo Library rows.
     // An empty library must stay empty (do not fall back to seeded galleryPhotos JSON).
-    const photoAssets = await listMediaAssets("photos");
     const galleryPhotos: GalleryPhoto[] = photoAssets.map((asset, index) => ({
       id: index + 1,
       src: asset.publicUrl,

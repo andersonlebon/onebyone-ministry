@@ -17,7 +17,8 @@ export function getDb(): Db {
 
   if (!globalForDb.db) {
     const url = process.env.DATABASE_URL!;
-    globalForDb.sql = postgres(url, { prepare: false, max: 3, idle_timeout: 20 });
+    // Keep enough headroom for admin mutations + layout refresh without stalling.
+    globalForDb.sql = postgres(url, { prepare: false, max: 10, idle_timeout: 20 });
     globalForDb.db = drizzle(globalForDb.sql, { schema });
   }
 

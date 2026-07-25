@@ -9,7 +9,7 @@ import {
 } from "@/lib/db/media";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import type { MediaAsset, MediaFolder } from "@/lib/db/schema";
-import { revalidatePublicSite } from "@/lib/site-content/revalidate";
+import { revalidatePhotoGallery, revalidatePublicSite } from "@/lib/site-content/revalidate";
 import { MEDIA_BUCKET } from "@/lib/supabase/config";
 import { isAdminUser } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -60,7 +60,8 @@ export async function createMediaAssetAction(input: {
     albumId: input.albumId ?? null,
     uploadedBy: user.id,
   }).then((asset) => {
-    revalidatePublicSite();
+    if (input.folder === "photos") revalidatePhotoGallery();
+    else revalidatePublicSite();
     return asset;
   });
 }
@@ -77,7 +78,8 @@ export async function updateMediaAssetAction(
   assertDatabase();
   await requireAdminUser();
   const asset = await updateMediaAsset(id, input);
-  revalidatePublicSite();
+  if (asset.folder === "photos") revalidatePhotoGallery();
+  else revalidatePublicSite();
   return asset;
 }
 
@@ -98,6 +100,7 @@ export async function deleteMediaAssetAction(id: string): Promise<MediaAsset> {
   }
 
   const asset = await deleteMediaAssetById(id);
-  revalidatePublicSite();
+  if (asset.folder === "photos") revalidatePhotoGallery();
+  else revalidatePublicSite();
   return asset;
 }

@@ -3,6 +3,7 @@
 import { upsertSiteContentValue, getSiteContentValue } from "@/lib/db/site-content";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import { getPublicMediaBundle, SITE_MEDIA_CONTENT_KEY } from "@/lib/media/resolve";
+import { isMediaUrlStillReferenced } from "@/lib/media/media-refs";
 import { EMPTY_IMAGE } from "@/lib/media/placeholders";
 import { sanitizeMediaBundle } from "@/lib/media/sanitize-bundle";
 import { revalidatePublicSite } from "@/lib/site-content/revalidate";
@@ -91,20 +92,17 @@ export async function updateSiteMediaSlotAction(
     next.localImages = { ...next.localImages, [key]: url };
   }
 
-  // If a derived list still points at the previous URL, point it at the new one.
-  next.homePillars = (next.homePillars ?? []).map((p) =>
-    p.img === previousUrl ? { ...p, img: url } : p
-  );
-  next.aboutStoryImages = (next.aboutStoryImages ?? []).map((img) =>
-    img === previousUrl ? url : img
-  );
-  next.founderTimelineImages = (next.founderTimelineImages ?? []).map((img) =>
-    img === previousUrl ? url : img
-  );
+  // Do NOT copy this URL onto pillars/timeline/etc. Each slot keeps its own image
+  // (or EMPTY_IMAGE). Reusing caused hero uploads to fill empty pillar slots.
 
   await upsertSiteContentValue(SITE_MEDIA_CONTENT_KEY, next);
 
-  if (previousUrl && previousUrl !== url && previousUrl !== EMPTY_IMAGE) {
+  if (
+    previousUrl &&
+    previousUrl !== url &&
+    previousUrl !== EMPTY_IMAGE &&
+    !isMediaUrlStillReferenced(next, previousUrl)
+  ) {
     await deletePreviousMediaUrl(supabase, previousUrl);
   }
 
@@ -147,7 +145,8 @@ export async function saveHomePillarAction(
     input.img &&
     previous.img &&
     input.img !== previous.img &&
-    previous.img !== EMPTY_IMAGE
+    previous.img !== EMPTY_IMAGE &&
+    !isMediaUrlStillReferenced(next, previous.img)
   ) {
     await deletePreviousMediaUrl(supabase, previous.img);
   }

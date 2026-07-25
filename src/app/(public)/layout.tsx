@@ -32,15 +32,27 @@ async function loadSiteContentReliable(): Promise<SiteContentBundle> {
   return getDefaultSiteContentBundle();
 }
 
-export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const mediaFallback = {
+async function loadPublicMediaReliable() {
+  const empty = {
     media: getPlaceholderMediaBundle(),
-    version: null,
+    version: null as number | null,
     albums: [] as Array<{ id: string; name: string; slug: string }>,
   };
 
+  // Retry once — a single timeout previously made albums look wiped after admin deletes.
+  const first = await withTimeout(getPublicMediaBundle(), 10_000, null);
+  if (first) return first;
+
+  const second = await withTimeout(getPublicMediaBundle(), 10_000, null);
+  if (second) return second;
+
+  console.error("[public-layout] media/albums timed out twice; using empty gallery fallback");
+  return empty;
+}
+
+export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const [{ media, version, albums }, content, canEdit] = await Promise.all([
-    withTimeout(getPublicMediaBundle(), 8_000, mediaFallback),
+    loadPublicMediaReliable(),
     loadSiteContentReliable(),
     withTimeout(canInlineEditAction(), 2_000, false),
   ]);
