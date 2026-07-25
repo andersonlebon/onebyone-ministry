@@ -132,24 +132,45 @@ export type FinanceDetails = {
   };
 };
 
-/** Lucide icon name stored as a string for About values / timeline. */
+/** Lucide icon name stored as a string for About timeline. */
 export type AboutIconName = "Heart" | "Users" | "Leaf" | "Star" | "Globe" | "BookOpen";
 
-export type AboutTeamMember = {
+export type AboutSocialPlatform =
+  | "facebook"
+  | "instagram"
+  | "linkedin"
+  | "x"
+  | "youtube"
+  | "website";
+
+export type AboutSocialLink = {
+  id: string;
+  platform: AboutSocialPlatform;
+  url: string;
+};
+
+/** Person card used by Founders, Leadership, and Team Members sections. */
+export type AboutPerson = {
   id: string;
   name: string;
   role: string;
   bio: string;
-  region: string;
   img: string;
+  socialLinks: AboutSocialLink[];
   sortOrder: number;
 };
 
-export type AboutValue = {
+/** @deprecated Use AboutPerson */
+export type AboutTeamMember = AboutPerson;
+
+export type AboutPeopleListKey = "founders" | "leadership" | "team";
+
+export type AboutLocation = {
   id: string;
-  title: string;
-  desc: string;
-  icon: AboutIconName;
+  label: string;
+  description: string;
+  lat: number;
+  lng: number;
 };
 
 export type AboutTimelineMilestone = {
@@ -170,7 +191,7 @@ export type AboutRoot = {
   color: string;
 };
 
-/** Full editable About page content (story, vision, team, timeline, values). */
+/** Full editable About page content (story, people, locations, timeline). */
 export type AboutPageContent = {
   storyEyebrow: string;
   storyTitle: string;
@@ -179,15 +200,18 @@ export type AboutPageContent = {
   storyQuote: string;
   visionText: string;
   missionText: string;
-  valuesEyebrow: string;
-  valuesTitle: string;
+  foundersEyebrow: string;
+  foundersTitle: string;
+  foundersIntro: string;
+  leadershipEyebrow: string;
+  leadershipTitle: string;
+  leadershipIntro: string;
   teamEyebrow: string;
   teamTitle: string;
   teamIntro: string;
-  whyCongoEyebrow: string;
-  whyCongoTitle: string;
-  whyCongoBody1: string;
-  whyCongoBody2: string;
+  locationsEyebrow: string;
+  locationsTitle: string;
+  locationsIntro: string;
   timelineEyebrow: string;
   timelineTitle: string;
   timelineIntro: string;
@@ -195,8 +219,10 @@ export type AboutPageContent = {
   timelineFruitTitle: string;
   timelineFruitSub: string;
   roots: AboutRoot[];
-  values: AboutValue[];
-  team: AboutTeamMember[];
+  founders: AboutPerson[];
+  leadership: AboutPerson[];
+  team: AboutPerson[];
+  locations: AboutLocation[];
   timeline: AboutTimelineMilestone[];
 };
 

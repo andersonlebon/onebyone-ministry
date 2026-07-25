@@ -97,7 +97,11 @@ export default function FoundersTree() {
 
   return (
     <InlineTimelineEditor>
-      <section ref={containerRef} className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
+      <section
+        ref={containerRef}
+        className="relative overflow-hidden"
+        style={{ backgroundColor: "rgba(110,146,119,0.1)" }}
+      >
         <div className="absolute inset-0 pointer-events-none">
           <motion.div
             className="absolute left-1/2 -translate-x-1/2 top-0"
@@ -260,7 +264,7 @@ export default function FoundersTree() {
             </div>
           </div>
         </div>
-        <WaveDivider topColor={c.white} bottomColor={c.cream} />
+        <WaveDivider topColor="rgba(110,146,119,0.1)" bottomColor={c.footer} />
       </section>
     </InlineTimelineEditor>
   );

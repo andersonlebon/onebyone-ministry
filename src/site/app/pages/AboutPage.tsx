@@ -1,8 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { motion, type Variants } from "motion/react";
 import Link from "next/link";
-import { ArrowRight, Globe, Heart } from "lucide-react";
+import { ArrowRight, Globe, Heart, MapPin } from "lucide-react";
 import { useColors } from "../../lib/themeStore";
 import {
   WaveDivider,
@@ -14,11 +15,28 @@ import {
 import FoundersTree from "../components/shared/FoundersTree";
 import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
-import { aboutIcon } from "@/site/lib/aboutIcons";
+import { aboutSocialIcon } from "@/site/lib/aboutSocialIcons";
 import { SECTION_PY } from "../../lib/pageLayout";
 import { SectionEditor } from "../components/admin-edit/SectionEditor";
 import { AboutContentEditor } from "../components/admin-edit/AboutContentEditor";
-import { InlineTeamEditor } from "../components/admin-edit/InlineTeamEditor";
+import { InlinePeopleEditor } from "../components/admin-edit/InlinePeopleEditor";
+import { InlineLocationsEditor } from "../components/admin-edit/InlineLocationsEditor";
+import type { AboutPeopleListKey, AboutPerson } from "@/lib/site-content/types";
+
+const AboutLocationsMap = dynamic(
+  () => import("../components/shared/AboutLocationsMap"),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="w-full min-h-[280px] rounded-2xl flex items-center justify-center text-sm"
+        style={{ backgroundColor: "rgba(110,146,119,0.12)", color: "#6E9277" }}
+      >
+        Loading map…
+      </div>
+    ),
+  }
+);
 
 const fadeSlide: Variants = {
   hidden: { opacity: 0, y: 28 },
@@ -29,19 +47,145 @@ const fadeSlide: Variants = {
   }),
 };
 
+const GREEN = "#6E9277";
+const GREEN_SOFT = "rgba(110,146,119,0.12)";
+const GREEN_BORDER = "rgba(110,146,119,0.28)";
+
+function PeopleSection({
+  list,
+  eyebrow,
+  title,
+  intro,
+  people,
+  background,
+  nextWave,
+}: {
+  list: AboutPeopleListKey;
+  eyebrow: string;
+  title: string;
+  intro: string;
+  people: AboutPerson[];
+  background: string;
+  nextWave: { top: string; bottom: string };
+}) {
+  const c = useColors();
+
+  return (
+    <InlinePeopleEditor list={list}>
+      <section className="relative overflow-hidden" style={{ backgroundColor: background }}>
+        <CrossPattern color="rgba(110,146,119,0.07)" />
+        <AnimatedBlob color={GREEN} opacity={0.08} size={480} className="-top-24 -right-16" />
+
+        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
+          <motion.div
+            custom={0}
+            variants={fadeSlide}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: GREEN }}>
+              {eyebrow}
+            </p>
+            <h2 className="text-3xl lg:text-5xl mb-3" style={{ color: c.text }}>
+              {title}
+            </h2>
+            <div className="w-16 h-1 rounded-full mx-auto mb-4" style={{ backgroundColor: GREEN }} />
+            <p className="text-sm max-w-2xl mx-auto" style={{ color: c.muted }}>
+              {intro}
+            </p>
+          </motion.div>
+
+          {people.length === 0 ? (
+            <p className="text-center text-sm py-10" style={{ color: c.muted }}>
+              People will appear here once they are added.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+              {people.map((person, i) => (
+                <motion.div
+                  key={person.id}
+                  custom={i}
+                  variants={fadeSlide}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true }}
+                  whileHover={{ y: -8 }}
+                  transition={{ duration: 0.25 }}
+                  className="rounded-2xl overflow-hidden"
+                  style={{
+                    backgroundColor: c.white,
+                    boxShadow: "0 2px 24px rgba(110,146,119,0.12)",
+                    border: `1px solid ${GREEN_BORDER}`,
+                  }}
+                >
+                  <div className="overflow-hidden h-64" style={{ backgroundColor: GREEN_SOFT }}>
+                    {person.img ? (
+                      <motion.img
+                        src={person.img}
+                        alt={person.name}
+                        className="w-full h-full object-cover object-top"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-4xl font-semibold" style={{ color: GREEN }}>
+                        {person.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-base mb-0.5" style={{ color: c.text }}>
+                      {person.name}
+                    </h3>
+                    <p className="text-xs font-semibold tracking-wide mb-3" style={{ color: GREEN }}>
+                      {person.role}
+                    </p>
+                    <p className="text-sm leading-relaxed mb-4" style={{ color: c.muted }}>
+                      {person.bio}
+                    </p>
+                    {person.socialLinks?.length ? (
+                      <div className="flex flex-wrap gap-2">
+                        {person.socialLinks.map((link) => {
+                          const Icon = aboutSocialIcon(link.platform);
+                          return (
+                            <a
+                              key={link.id}
+                              href={link.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:opacity-90"
+                              style={{ backgroundColor: GREEN }}
+                              aria-label={link.platform}
+                            >
+                              <Icon size={15} />
+                            </a>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+        <WaveDivider topColor={nextWave.top} bottomColor={nextWave.bottom} />
+      </section>
+    </InlinePeopleEditor>
+  );
+}
+
 export default function AboutPage() {
   const c = useColors();
   const { settings, about } = useSiteContent();
   const { localImages, websiteUseImages, aboutStoryImages } = useSiteMedia();
   const aboutBanner = useMediaUrl(websiteUseImages.about);
 
-  const fallbackLeaders = [localImages.leaderOne, localImages.leaderTwo, localImages.leaderThree];
-  const team = [...about.team]
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((person, i) => ({
-      ...person,
-      img: person.img || fallbackLeaders[i] || "",
-    }));
+  const founders = [...about.founders].sort((a, b) => a.sortOrder - b.sortOrder);
+  const leadership = [...about.leadership].sort((a, b) => a.sortOrder - b.sortOrder);
+  const team = [...about.team].sort((a, b) => a.sortOrder - b.sortOrder);
 
   const storyImages = [
     aboutStoryImages[0] || localImages.community,
@@ -83,8 +227,8 @@ export default function AboutPage() {
             className="absolute inset-0"
             style={{
               background: c.isDark
-                ? "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.25), rgba(0,0,0,0.7))"
-                : "linear-gradient(to bottom, rgba(0,0,0,0.35), transparent, rgba(0,0,0,0.55))",
+                ? "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(30,50,40,0.4), rgba(0,0,0,0.7))"
+                : "linear-gradient(to bottom, rgba(110,146,119,0.35), transparent, rgba(0,0,0,0.5))",
             }}
           />
           <div className="relative z-10 text-center px-5">
@@ -123,8 +267,8 @@ export default function AboutPage() {
         ]}
       >
         <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
-          <CrossPattern color="rgba(110,146,119,0.06)" />
-          <AnimatedBlob color="#EAC79A" opacity={0.07} size={500} className="-top-20 right-0" />
+          <CrossPattern color="rgba(110,146,119,0.08)" />
+          <AnimatedBlob color={GREEN} opacity={0.1} size={500} className="-top-20 right-0" />
 
           <div
             className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-14 lg:gap-20 items-center relative z-10`}
@@ -136,12 +280,13 @@ export default function AboutPage() {
               whileInView="show"
               viewport={{ once: true }}
             >
-              <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>
+              <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: GREEN }}>
                 {about.storyEyebrow}
               </p>
-              <h2 className="text-3xl lg:text-5xl mb-6 leading-tight" style={{ color: c.text }}>
+              <h2 className="text-3xl lg:text-5xl mb-3 leading-tight" style={{ color: c.text }}>
                 {about.storyTitle}
               </h2>
+              <div className="w-16 h-1 rounded-full mb-6" style={{ backgroundColor: GREEN }} />
               <p className="leading-relaxed mb-4" style={{ color: c.muted }}>
                 {about.storyBody1}
               </p>
@@ -152,7 +297,7 @@ export default function AboutPage() {
                 <p
                   className="text-base leading-relaxed mb-4 border-l-4 pl-4"
                   style={{
-                    borderColor: "#6E9277",
+                    borderColor: GREEN,
                     color: c.text,
                     fontFamily: "'Cormorant Garamond', serif",
                     fontStyle: "italic",
@@ -164,7 +309,7 @@ export default function AboutPage() {
               <p
                 className="text-lg leading-relaxed mb-7 border-l-4 pl-4"
                 style={{
-                  borderColor: "#EAC79A",
+                  borderColor: GREEN,
                   color: c.text,
                   fontFamily: "'Cormorant Garamond', serif",
                   fontStyle: "italic",
@@ -177,7 +322,7 @@ export default function AboutPage() {
                   whileHover={{ scale: 1.04, backgroundColor: "#5a7d64" }}
                   whileTap={{ scale: 0.97 }}
                   className="flex items-center gap-2 px-7 py-3.5 rounded-xl font-semibold text-sm text-white"
-                  style={{ backgroundColor: "#6E9277" }}
+                  style={{ backgroundColor: GREEN }}
                 >
                   Support the Work <ArrowRight size={14} />
                 </motion.button>
@@ -199,7 +344,11 @@ export default function AboutPage() {
               ].map((img, i) => (
                 <motion.div
                   key={i}
-                  className={i === 0 ? "col-span-2 overflow-hidden rounded-2xl" : "overflow-hidden rounded-2xl"}
+                  className={
+                    i === 0
+                      ? "col-span-2 overflow-hidden rounded-2xl ring-2 ring-[#6E9277]/25"
+                      : "overflow-hidden rounded-2xl ring-1 ring-[#6E9277]/20"
+                  }
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
                 >
@@ -208,7 +357,7 @@ export default function AboutPage() {
               ))}
             </motion.div>
           </div>
-          <WaveDivider topColor={c.cream} bottomColor={c.white} />
+          <WaveDivider topColor={c.cream} bottomColor={GREEN_SOFT} />
         </section>
       </AboutContentEditor>
 
@@ -220,9 +369,9 @@ export default function AboutPage() {
           { key: "missionText", label: "Mission", multiline: true },
         ]}
       >
-        <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
-          <DiagonalStripes color="rgba(110,146,119,0.04)" />
-          <AnimatedBlob color="#5A4749" opacity={0.04} size={500} className="-bottom-40 -right-40" />
+        <section className="relative overflow-hidden" style={{ backgroundColor: GREEN_SOFT }}>
+          <DiagonalStripes color="rgba(110,146,119,0.08)" />
+          <AnimatedBlob color={GREEN} opacity={0.1} size={500} className="-bottom-40 -right-40" />
 
           <div
             className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-8 lg:gap-10 relative z-10`}
@@ -236,14 +385,19 @@ export default function AboutPage() {
               whileHover={{ y: -6 }}
               transition={{ duration: 0.25 }}
               className="rounded-2xl p-9"
-              style={{ border: `1px solid ${c.borderLight}` }}
+              style={{
+                backgroundColor: c.white,
+                border: `1px solid ${GREEN_BORDER}`,
+                borderLeftWidth: 5,
+                borderLeftColor: GREEN,
+              }}
             >
               <motion.div
                 whileHover={{ rotate: 15 }}
                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
-                style={{ backgroundColor: c.cream }}
+                style={{ backgroundColor: GREEN_SOFT }}
               >
-                <Globe size={22} style={{ color: "#6E9277" }} />
+                <Globe size={22} style={{ color: GREEN }} />
               </motion.div>
               <h3 className="text-2xl mb-4" style={{ color: c.text }}>
                 Our Vision
@@ -265,7 +419,7 @@ export default function AboutPage() {
               whileHover={{ y: -6 }}
               transition={{ duration: 0.25 }}
               className="rounded-2xl p-9"
-              style={{ backgroundColor: "#6E9277" }}
+              style={{ backgroundColor: GREEN }}
             >
               <motion.div
                 whileHover={{ rotate: 15 }}
@@ -282,242 +436,44 @@ export default function AboutPage() {
               </p>
             </motion.div>
           </div>
+          <WaveDivider topColor={GREEN_SOFT} bottomColor={c.cream} />
         </section>
       </AboutContentEditor>
 
-      <FoundersTree />
+      <PeopleSection
+        list="founders"
+        eyebrow={about.foundersEyebrow}
+        title={about.foundersTitle}
+        intro={about.foundersIntro}
+        people={founders}
+        background={c.cream}
+        nextWave={{ top: c.cream, bottom: GREEN_SOFT }}
+      />
 
-      {/* Core Values */}
-      <AboutContentEditor
-        title="Core values headings"
-        fields={[
-          { key: "valuesEyebrow", label: "Eyebrow" },
-          { key: "valuesTitle", label: "Title" },
-        ]}
-      >
-        <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
-          <DotPattern color="rgba(110,146,119,0.08)" size={22} />
-          <AnimatedBlob color="#6E9277" opacity={0.06} size={600} className="-top-40 left-0" />
+      <PeopleSection
+        list="leadership"
+        eyebrow={about.leadershipEyebrow}
+        title={about.leadershipTitle}
+        intro={about.leadershipIntro}
+        people={leadership}
+        background={GREEN_SOFT}
+        nextWave={{ top: GREEN_SOFT, bottom: c.white }}
+      />
 
-          <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
-            <motion.div
-              custom={0}
-              variants={fadeSlide}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="text-center mb-14"
-            >
-              <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>
-                {about.valuesEyebrow}
-              </p>
-              <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>
-                {about.valuesTitle}
-              </h2>
-            </motion.div>
+      <PeopleSection
+        list="team"
+        eyebrow={about.teamEyebrow}
+        title={about.teamTitle}
+        intro={about.teamIntro}
+        people={team}
+        background={c.white}
+        nextWave={{ top: c.white, bottom: GREEN }}
+      />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 lg:gap-6">
-              {about.values.map((val, i) => {
-                const Icon = aboutIcon(val.icon);
-                return (
-                  <motion.div
-                    key={val.id}
-                    custom={i}
-                    variants={fadeSlide}
-                    initial="hidden"
-                    whileInView="show"
-                    viewport={{ once: true }}
-                    whileHover={{ y: -8, boxShadow: "0 20px 50px rgba(71,71,71,0.1)" }}
-                    transition={{ duration: 0.25 }}
-                    className="text-center p-6 rounded-2xl cursor-pointer"
-                    style={{ border: `1px solid ${c.borderLight}`, backgroundColor: c.white }}
-                  >
-                    <motion.div
-                      whileHover={{ rotate: 15, scale: 1.1 }}
-                      className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
-                      style={{ backgroundColor: c.cream }}
-                    >
-                      <Icon size={20} style={{ color: "#6E9277" }} />
-                    </motion.div>
-                    <h4 className="text-sm mb-2" style={{ color: c.text }}>
-                      {val.title}
-                    </h4>
-                    <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-                      {val.desc}
-                    </p>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-          <WaveDivider topColor={c.cream} bottomColor={c.white} />
-        </section>
-      </AboutContentEditor>
-
-      {/* Leadership / Team */}
-      <InlineTeamEditor>
-        <section className="relative overflow-hidden" style={{ backgroundColor: c.white }}>
-          <CrossPattern color="rgba(110,146,119,0.04)" />
-          <AnimatedBlob color="#EAC79A" opacity={0.06} size={500} className="-top-20 -right-20" />
-
-          <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
-            <motion.div
-              custom={0}
-              variants={fadeSlide}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-              className="text-center mb-14"
-            >
-              <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>
-                {about.teamEyebrow}
-              </p>
-              <h2 className="text-3xl lg:text-5xl" style={{ color: c.text }}>
-                {about.teamTitle}
-              </h2>
-              <p className="mt-3 text-sm max-w-2xl mx-auto" style={{ color: c.muted }}>
-                {about.teamIntro}
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10">
-              {team.map((leader, i) => (
-                <motion.div
-                  key={leader.id}
-                  custom={i}
-                  variants={fadeSlide}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true }}
-                  whileHover={{ y: -10 }}
-                  transition={{ duration: 0.25 }}
-                  className="rounded-2xl overflow-hidden"
-                  style={{
-                    backgroundColor: c.white,
-                    boxShadow: "0 2px 24px rgba(71,71,71,0.07)",
-                    border: "1px solid rgba(110,146,119,0.12)",
-                  }}
-                >
-                  <div className="overflow-hidden h-64" style={{ backgroundColor: c.cream }}>
-                    {leader.img ? (
-                      <motion.img
-                        src={leader.img}
-                        alt={leader.name}
-                        className="w-full h-full object-cover object-top"
-                        whileHover={{ scale: 1.06 }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    ) : null}
-                  </div>
-                  <div className="p-6">
-                    <p
-                      className="text-xs font-semibold uppercase tracking-wider mb-1"
-                      style={{ color: "#6E9277" }}
-                    >
-                      {leader.region}
-                    </p>
-                    <h3 className="text-base mb-0.5" style={{ color: c.text }}>
-                      {leader.name}
-                    </h3>
-                    <p className="text-xs font-semibold tracking-wide mb-3" style={{ color: "#6E9277" }}>
-                      {leader.role}
-                    </p>
-                    <p className="text-sm leading-relaxed" style={{ color: c.muted }}>
-                      {leader.bio}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-          <WaveDivider topColor={c.white} bottomColor={c.cream} />
-        </section>
-      </InlineTeamEditor>
-
-      {/* Why Congo */}
-      <AboutContentEditor
-        title="Why Congo"
-        fields={[
-          { key: "whyCongoEyebrow", label: "Eyebrow" },
-          { key: "whyCongoTitle", label: "Title" },
-          { key: "whyCongoBody1", label: "First paragraph", multiline: true },
-          { key: "whyCongoBody2", label: "Second paragraph", multiline: true },
-        ]}
-      >
-        <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
-          <DiagonalStripes color="rgba(110,146,119,0.05)" />
-          <AnimatedBlob color="#6E9277" opacity={0.07} size={500} className="-bottom-20 right-0" />
-
-          <div
-            className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} grid lg:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10`}
-          >
-            <motion.div
-              custom={0}
-              variants={fadeSlide}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-            >
-              <div className="relative rounded-2xl overflow-hidden shadow-xl">
-                <motion.img
-                  src={localImages.communityAlt}
-                  alt="Children in the DRC"
-                  className="w-full h-80 object-cover"
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ duration: 0.5 }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-              </div>
-            </motion.div>
-            <motion.div
-              custom={1}
-              variants={fadeSlide}
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true }}
-            >
-              <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: "#6E9277" }}>
-                {about.whyCongoEyebrow}
-              </p>
-              <h2 className="text-3xl lg:text-4xl mb-6 leading-tight" style={{ color: c.text }}>
-                {about.whyCongoTitle}
-              </h2>
-              <p className="leading-relaxed mb-4" style={{ color: c.muted }}>
-                {about.whyCongoBody1}
-              </p>
-              <p className="leading-relaxed mb-6" style={{ color: c.muted }}>
-                {about.whyCongoBody2}
-              </p>
-              <div className="flex gap-4 flex-wrap">
-                <Link href="/projects">
-                  <motion.button
-                    whileHover={{ scale: 1.04, backgroundColor: "#5a7d64" }}
-                    whileTap={{ scale: 0.97 }}
-                    className="px-6 py-3 rounded-xl font-semibold text-sm text-white"
-                    style={{ backgroundColor: "#6E9277" }}
-                  >
-                    See Our Work
-                  </motion.button>
-                </Link>
-                <Link href="/donate">
-                  <motion.button
-                    whileHover={{ scale: 1.04, backgroundColor: "#6E9277", color: "white" }}
-                    whileTap={{ scale: 0.97 }}
-                    className="px-6 py-3 rounded-xl font-semibold text-sm border transition-colors"
-                    style={{ borderColor: "#6E9277", color: "#6E9277" }}
-                  >
-                    Give Now
-                  </motion.button>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-          <WaveDivider topColor={c.cream} bottomColor="#6E9277" />
-        </section>
-      </AboutContentEditor>
-
-      <section className="relative overflow-hidden" style={{ backgroundColor: "#6E9277" }}>
+      {/* CTA above locations so journey stays last */}
+      <section className="relative overflow-hidden" style={{ backgroundColor: GREEN }}>
         <AnimatedBlob color="#ffffff" opacity={0.06} size={400} className="-top-20 right-0" />
+        <DotPattern color="rgba(255,255,255,0.1)" size={22} />
         <div className={`max-w-3xl mx-auto px-5 text-center ${SECTION_PY} relative z-10`}>
           <h2 className="text-3xl lg:text-4xl text-white mb-4">Pray with us. Partner with us.</h2>
           <p className="text-white/85 mb-8">Every gift and every prayer helps the work in Congo.</p>
@@ -537,7 +493,87 @@ export default function AboutPage() {
             </Link>
           </div>
         </div>
+        <WaveDivider topColor={GREEN} bottomColor={GREEN_SOFT} />
       </section>
+
+      {/* Locations */}
+      <InlineLocationsEditor>
+        <section className="relative overflow-hidden" style={{ backgroundColor: GREEN_SOFT }}>
+          <CrossPattern color="rgba(110,146,119,0.1)" />
+          <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
+            <motion.div
+              custom={0}
+              variants={fadeSlide}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: GREEN }}>
+                {about.locationsEyebrow}
+              </p>
+              <h2 className="text-3xl lg:text-5xl mb-3" style={{ color: c.text }}>
+                {about.locationsTitle}
+              </h2>
+              <div className="w-16 h-1 rounded-full mx-auto mb-4" style={{ backgroundColor: GREEN }} />
+              <p className="text-sm max-w-2xl mx-auto" style={{ color: c.muted }}>
+                {about.locationsIntro}
+              </p>
+            </motion.div>
+
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 items-stretch">
+              <div className="space-y-4">
+                {about.locations.map((loc, i) => (
+                  <motion.div
+                    key={loc.id}
+                    custom={i}
+                    variants={fadeSlide}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true }}
+                    className="rounded-2xl p-5"
+                    style={{
+                      backgroundColor: c.white,
+                      border: `1px solid ${GREEN_BORDER}`,
+                      boxShadow: "0 2px 20px rgba(110,146,119,0.1)",
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: GREEN }}
+                      >
+                        <MapPin size={18} className="text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-semibold mb-1" style={{ color: c.text }}>
+                          {loc.label}
+                        </h3>
+                        <p className="text-sm leading-relaxed mb-2" style={{ color: c.muted }}>
+                          {loc.description}
+                        </p>
+                        <p className="text-xs font-medium" style={{ color: GREEN }}>
+                          {loc.lat.toFixed(4)}, {loc.lng.toFixed(4)}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              <div
+                className="rounded-2xl overflow-hidden min-h-[300px]"
+                style={{ border: `2px solid ${GREEN_BORDER}` }}
+              >
+                <AboutLocationsMap locations={about.locations} />
+              </div>
+            </div>
+          </div>
+          <WaveDivider topColor={GREEN_SOFT} bottomColor="rgba(110,146,119,0.1)" />
+        </section>
+      </InlineLocationsEditor>
+
+      {/* Journey tree last */}
+      <FoundersTree />
     </div>
   );
 }

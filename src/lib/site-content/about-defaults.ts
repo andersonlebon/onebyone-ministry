@@ -1,6 +1,86 @@
-import type { AboutPageContent } from "./types";
+import type {
+  AboutLocation,
+  AboutPageContent,
+  AboutPerson,
+  AboutSocialLink,
+  AboutSocialPlatform,
+} from "./types";
 
-/** Default About page copy, team, values, and founders timeline (editable in DB). */
+const PLATFORMS: AboutSocialPlatform[] = [
+  "facebook",
+  "instagram",
+  "linkedin",
+  "x",
+  "youtube",
+  "website",
+];
+
+function normalizeSocialLinks(raw: unknown): AboutSocialLink[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((item, index) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const url = typeof row.url === "string" ? row.url.trim() : "";
+      if (!url) return null;
+      const platform =
+        typeof row.platform === "string" && PLATFORMS.includes(row.platform as AboutSocialPlatform)
+          ? (row.platform as AboutSocialPlatform)
+          : "website";
+      const id =
+        typeof row.id === "string" && row.id.trim()
+          ? row.id
+          : `social-${index}-${platform}`;
+      return { id, platform, url };
+    })
+    .filter((x): x is AboutSocialLink => Boolean(x));
+}
+
+function normalizePerson(raw: unknown, index: number): AboutPerson | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  const name = typeof row.name === "string" ? row.name.trim() : "";
+  if (!name) return null;
+  return {
+    id: typeof row.id === "string" && row.id.trim() ? row.id : `person-${index}`,
+    name,
+    role: typeof row.role === "string" ? row.role : "",
+    bio: typeof row.bio === "string" ? row.bio : "",
+    img: typeof row.img === "string" ? row.img : "",
+    socialLinks: normalizeSocialLinks(row.socialLinks),
+    sortOrder: typeof row.sortOrder === "number" ? row.sortOrder : index,
+  };
+}
+
+function normalizePeople(raw: unknown, fallback: AboutPerson[]): AboutPerson[] {
+  if (!Array.isArray(raw)) return fallback.map((p) => ({ ...p, socialLinks: [...p.socialLinks] }));
+  const people = raw
+    .map((item, index) => normalizePerson(item, index))
+    .filter((p): p is AboutPerson => Boolean(p));
+  return people.length > 0
+    ? people.sort((a, b) => a.sortOrder - b.sortOrder)
+    : fallback.map((p) => ({ ...p, socialLinks: [...p.socialLinks] }));
+}
+
+function normalizeLocations(raw: unknown, fallback: AboutLocation[]): AboutLocation[] {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return fallback.map((loc) => ({ ...loc }));
+  }
+  return raw.map((item, index) => {
+    const row = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+    const fallbackLoc = fallback[index] ?? fallback[0];
+    return {
+      id: typeof row.id === "string" && row.id.trim() ? row.id : fallbackLoc.id,
+      label: typeof row.label === "string" && row.label.trim() ? row.label : fallbackLoc.label,
+      description:
+        typeof row.description === "string" ? row.description : fallbackLoc.description,
+      lat: typeof row.lat === "number" && Number.isFinite(row.lat) ? row.lat : fallbackLoc.lat,
+      lng: typeof row.lng === "number" && Number.isFinite(row.lng) ? row.lng : fallbackLoc.lng,
+    };
+  });
+}
+
+/** Default About page copy, people, locations, and founders timeline (editable in DB). */
 export function getDefaultAboutContent(): AboutPageContent {
   return {
     storyEyebrow: "How It Began",
@@ -15,17 +95,19 @@ export function getDefaultAboutContent(): AboutPageContent {
       "A world where every person — regardless of geography, poverty, or circumstance — has access to the transformative love of Jesus Christ, quality education, and the opportunity to build a dignified, flourishing life.",
     missionText:
       "One By One Ministries is dedicated to rebuilding communities through Education, Entrepreneurship, and Spiritual Discipleship — changing the world one person, one community, and one country at a time through the power of the Holy Spirit and the Word of God.",
-    valuesEyebrow: "What Drives Us",
-    valuesTitle: "Our Core Values",
-    teamEyebrow: "Our People",
-    teamTitle: "Founders, board & team",
-    teamIntro: "Leadership in the USA and a team on the ground in the DRC Congo, working together.",
-    whyCongoEyebrow: "Why Congo",
-    whyCongoTitle: "The DRC: Immense Need, Immense Promise",
-    whyCongoBody1:
-      "The Democratic Republic of Congo is among the world's most impoverished nations, yet it is rich in natural resources and extraordinary people — resilient, joyful, faith-filled communities hungry for opportunity and for Christ.",
-    whyCongoBody2:
-      "We believe the DRC is on the threshold of a generation-defining transformation, and we are called to be part of it — not through charity, but through partnership that restores dignity and builds lasting foundations.",
+    foundersEyebrow: "The Beginning",
+    foundersTitle: "Our Founders",
+    foundersIntro:
+      "Two lives, two continents, and one calling that grew into One By One Ministries.",
+    leadershipEyebrow: "Guiding the Mission",
+    leadershipTitle: "Leadership",
+    leadershipIntro: "Board and ministry leaders who steward vision, integrity, and growth.",
+    teamEyebrow: "On the Ground",
+    teamTitle: "Team Members",
+    teamIntro: "Partners and staff serving communities in the DRC and supporting from the USA.",
+    locationsEyebrow: "Where We Serve",
+    locationsTitle: "Our Locations",
+    locationsIntro: "Ministry roots in the Democratic Republic of Congo and a base in the United States.",
     timelineEyebrow: "The Story Behind the Mission",
     timelineTitle: "Our Founders' Journey",
     timelineIntro:
@@ -37,46 +119,14 @@ export function getDefaultAboutContent(): AboutPageContent {
       { id: "root-emmanuel", label: "Emmanuel Tshilobo", sub: "Born in Kinshasa, DRC · 1982", color: "#6E9277" },
       { id: "root-grace", label: "Grace Johnson", sub: "Born in Atlanta, USA · 1985", color: "#EAC79A" },
     ],
-    values: [
-      {
-        id: "val-christ",
-        title: "Christ-Centered",
-        desc: "Everything we do flows from the Gospel and the love of Jesus.",
-        icon: "Heart",
-      },
-      {
-        id: "val-dignity",
-        title: "Dignity",
-        desc: "We partner with communities as equals, never as saviors.",
-        icon: "Users",
-      },
-      {
-        id: "val-faithfulness",
-        title: "Faithfulness",
-        desc: "Long-term presence over short-term programs.",
-        icon: "Leaf",
-      },
-      {
-        id: "val-excellence",
-        title: "Excellence",
-        desc: "Stewardship that honors God and those we serve.",
-        icon: "Star",
-      },
-      {
-        id: "val-unity",
-        title: "Unity",
-        desc: "Bridging cultures, churches, and continents in one mission.",
-        icon: "Globe",
-      },
-    ],
-    team: [
+    founders: [
       {
         id: "emmanuel-tshilobo",
         name: "Rev. Emmanuel Tshilobo",
         role: "Executive Director & Co-Founder",
         bio: "Born in the DRC, Emmanuel has served in ministry for 20+ years with a heart for reconciling the church with its community calling.",
-        region: "DRC & USA",
         img: "",
+        socialLinks: [],
         sortOrder: 0,
       },
       {
@@ -84,18 +134,37 @@ export function getDefaultAboutContent(): AboutPageContent {
         name: "Grace Tshilobo",
         role: "Director of Programs & Co-Founder",
         bio: "Grace brings expertise in women's development, entrepreneurship education, and cross-cultural program design.",
-        region: "USA",
         img: "",
+        socialLinks: [],
         sortOrder: 1,
       },
+    ],
+    leadership: [],
+    team: [
       {
         id: "jonathan-kalala",
         name: "Jonathan Kalala",
         role: "Community Development Lead",
         bio: "A native of Kasai Province, Jonathan builds relationships with village leaders so every project is community-owned.",
-        region: "DRC",
         img: "",
-        sortOrder: 2,
+        socialLinks: [],
+        sortOrder: 0,
+      },
+    ],
+    locations: [
+      {
+        id: "loc-congo",
+        label: "Democratic Republic of Congo",
+        description: "Field ministry, schools, and community partnerships across the DRC.",
+        lat: -1.678,
+        lng: 29.228,
+      },
+      {
+        id: "loc-usa",
+        label: "United States",
+        description: "Ministry base, partnerships, and support for the work in Congo.",
+        lat: 33.749,
+        lng: -84.388,
       },
     ],
     timeline: [
@@ -183,16 +252,101 @@ export function getDefaultAboutContent(): AboutPageContent {
   };
 }
 
+type LegacyAbout = Partial<AboutPageContent> & {
+  team?: unknown;
+  founders?: unknown;
+  leadership?: unknown;
+  values?: unknown;
+  valuesEyebrow?: unknown;
+  valuesTitle?: unknown;
+  whyCongoEyebrow?: unknown;
+  whyCongoTitle?: unknown;
+  whyCongoBody1?: unknown;
+  whyCongoBody2?: unknown;
+};
+
+/**
+ * Merge stored About JSON with defaults.
+ * Migrates legacy single `team` list, strips removed Core Values / Why Congo keys.
+ */
 export function mergeAboutContent(stored: AboutPageContent | null | undefined): AboutPageContent {
   const defaults = getDefaultAboutContent();
   if (!stored || typeof stored !== "object") return defaults;
 
+  const legacy = stored as LegacyAbout;
+  const hasFounders = Array.isArray(legacy.founders);
+  const hasLeadership = Array.isArray(legacy.leadership);
+  const legacyTeam = Array.isArray(legacy.team) ? legacy.team : null;
+
+  let founders = normalizePeople(legacy.founders, defaults.founders);
+  let leadership = normalizePeople(legacy.leadership, defaults.leadership);
+  let team = normalizePeople(legacy.team, defaults.team);
+
+  // One-time shape migration: old single team[] → founders + team when new lists missing.
+  if (!hasFounders && !hasLeadership && legacyTeam) {
+    const migrated = normalizePeople(legacyTeam, []);
+    const founderLike = migrated.filter(
+      (p) => /founder/i.test(p.role) || /founder/i.test(p.name)
+    );
+    const rest = migrated.filter((p) => !founderLike.includes(p));
+    founders =
+      founderLike.length > 0
+        ? founderLike.map((p, i) => ({ ...p, sortOrder: i }))
+        : migrated.slice(0, 2).map((p, i) => ({ ...p, sortOrder: i }));
+    leadership = [];
+    team =
+      founderLike.length > 0
+        ? rest.map((p, i) => ({ ...p, sortOrder: i }))
+        : migrated.slice(2).map((p, i) => ({ ...p, sortOrder: i }));
+  }
+
   return {
-    ...defaults,
-    ...stored,
-    roots: Array.isArray(stored.roots) && stored.roots.length > 0 ? stored.roots : defaults.roots,
-    values: Array.isArray(stored.values) ? stored.values : defaults.values,
-    team: Array.isArray(stored.team) ? stored.team : defaults.team,
-    timeline: Array.isArray(stored.timeline) ? stored.timeline : defaults.timeline,
+    storyEyebrow: pickString(legacy.storyEyebrow, defaults.storyEyebrow),
+    storyTitle: pickString(legacy.storyTitle, defaults.storyTitle),
+    storyBody1: pickString(legacy.storyBody1, defaults.storyBody1),
+    storyBody2: pickString(legacy.storyBody2, defaults.storyBody2),
+    storyQuote: pickString(legacy.storyQuote, defaults.storyQuote),
+    visionText: pickString(legacy.visionText, defaults.visionText),
+    missionText: pickString(legacy.missionText, defaults.missionText),
+    foundersEyebrow: pickString(legacy.foundersEyebrow, defaults.foundersEyebrow),
+    foundersTitle: pickString(legacy.foundersTitle, defaults.foundersTitle),
+    foundersIntro: pickString(legacy.foundersIntro, defaults.foundersIntro),
+    leadershipEyebrow: pickString(legacy.leadershipEyebrow, defaults.leadershipEyebrow),
+    leadershipTitle: pickString(legacy.leadershipTitle, defaults.leadershipTitle),
+    leadershipIntro: pickString(legacy.leadershipIntro, defaults.leadershipIntro),
+    teamEyebrow: pickString(legacy.teamEyebrow, defaults.teamEyebrow),
+    teamTitle: pickString(
+      legacy.teamTitle === "Founders, board & team" ? defaults.teamTitle : legacy.teamTitle,
+      defaults.teamTitle
+    ),
+    teamIntro: pickString(legacy.teamIntro, defaults.teamIntro),
+    locationsEyebrow: pickString(legacy.locationsEyebrow, defaults.locationsEyebrow),
+    locationsTitle: pickString(legacy.locationsTitle, defaults.locationsTitle),
+    locationsIntro: pickString(legacy.locationsIntro, defaults.locationsIntro),
+    timelineEyebrow: pickString(legacy.timelineEyebrow, defaults.timelineEyebrow),
+    timelineTitle: pickString(legacy.timelineTitle, defaults.timelineTitle),
+    timelineIntro: pickString(legacy.timelineIntro, defaults.timelineIntro),
+    timelineFruitLabel: pickString(legacy.timelineFruitLabel, defaults.timelineFruitLabel),
+    timelineFruitTitle: pickString(legacy.timelineFruitTitle, defaults.timelineFruitTitle),
+    timelineFruitSub: pickString(legacy.timelineFruitSub, defaults.timelineFruitSub),
+    roots:
+      Array.isArray(legacy.roots) && legacy.roots.length > 0 ? legacy.roots : defaults.roots,
+    founders,
+    leadership,
+    team,
+    locations: normalizeLocations(legacy.locations, defaults.locations),
+    timeline:
+      Array.isArray(legacy.timeline) && legacy.timeline.length > 0
+        ? legacy.timeline
+        : defaults.timeline,
   };
+}
+
+function pickString(value: unknown, fallback: string): string {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+/** Persistable About payload with removed legacy keys never written back. */
+export function sanitizeAboutForWrite(about: AboutPageContent): AboutPageContent {
+  return mergeAboutContent(about);
 }
