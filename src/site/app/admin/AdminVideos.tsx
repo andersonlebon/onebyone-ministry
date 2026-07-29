@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Plus, Pencil, Trash2, X, Save, Play } from "lucide-react";
+import { parseYoutubeId, youtubeEmbedUrl, youtubePosterUrl } from "@/lib/youtube";
 import { useSiteStore, Video } from "@/site/lib/siteStore";
 
 const CATEGORIES = ["Education", "Entrepreneurship", "Discipleship", "Community", "Documentary", "Report"];
@@ -11,6 +12,7 @@ function VideoModal({ video, onSave, onClose }: { video?: Video; onSave: (v: Omi
   const [form, setForm] = useState<Omit<Video, "id">>(video ?? { youtubeId: "", title: "", category: "Documentary", duration: "", thumb: "" });
   const [saving, setSaving] = useState(false);
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const parsedId = useMemo(() => parseYoutubeId(form.youtubeId), [form.youtubeId]);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={onClose}>
       <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
@@ -21,9 +23,24 @@ function VideoModal({ video, onSave, onClose }: { video?: Video; onSave: (v: Omi
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">YouTube Video ID</label>
-            <input value={form.youtubeId} onChange={(e) => set("youtubeId", e.target.value)} placeholder="dQw4w9WgXcQ" className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }} />
-            <p className="text-xs text-muted-foreground mt-1">Paste the ID from the YouTube URL (after ?v=)</p>
+            <label className="block text-xs font-semibold text-foreground mb-1.5">YouTube URL or Video ID</label>
+            <input value={form.youtubeId} onChange={(e) => set("youtubeId", e.target.value)} placeholder="https://youtu.be/... or dQw4w9WgXcQ" className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }} />
+            <p className="text-xs text-muted-foreground mt-1">
+              Paste a full YouTube link or the 11-character id. Preview uses the live player (no thumbnail required).
+            </p>
+            {parsedId ? (
+              <div className="mt-3 rounded-xl overflow-hidden aspect-video bg-muted">
+                <iframe
+                  className="w-full h-full"
+                  src={youtubeEmbedUrl(parsedId)}
+                  title="YouTube preview"
+                  allow="accelerometer; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : form.youtubeId.trim() ? (
+              <p className="text-xs text-red-500 mt-2">Could not read a valid YouTube id from that value.</p>
+            ) : null}
           </div>
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1.5">Title</label>
@@ -42,19 +59,22 @@ function VideoModal({ video, onSave, onClose }: { video?: Video; onSave: (v: Omi
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-foreground mb-1.5">Thumbnail URL</label>
-            <input value={form.thumb} onChange={(e) => set("thumb", e.target.value)} placeholder="https://..." className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }} />
+            <label className="block text-xs font-semibold text-foreground mb-1.5">Thumbnail URL (optional)</label>
+            <input value={form.thumb} onChange={(e) => set("thumb", e.target.value)} placeholder="Leave blank to use YouTube’s poster" className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }} />
           </div>
-          {form.thumb && <img src={form.thumb} alt="Thumb" className="w-full h-32 object-cover rounded-xl" />}
         </div>
         <div className="px-6 py-4 border-t border-muted flex gap-3 justify-end">
           <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-foreground border border-muted hover:bg-muted">Cancel</button>
-          <motion.button whileHover={{ scale: saving ? 1 : 1.03 }} whileTap={{ scale: saving ? 1 : 0.97 }} disabled={saving}
+          <motion.button whileHover={{ scale: saving ? 1 : 1.03 }} whileTap={{ scale: saving ? 1 : 0.97 }} disabled={saving || !parsedId}
             onClick={() => {
               void (async () => {
                 setSaving(true);
                 try {
-                  await onSave(form);
+                  await onSave({
+                    ...form,
+                    youtubeId: parsedId,
+                    thumb: form.thumb.trim() || youtubePosterUrl(parsedId),
+                  });
                   onClose();
                 } finally {
                   setSaving(false);

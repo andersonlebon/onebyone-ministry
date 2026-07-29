@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { motion, type Variants } from "motion/react";
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion, type Variants } from "motion/react";
 import Link from "next/link";
-import { ArrowRight, Globe, Heart, MapPin } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Globe, Heart, MapPin } from "lucide-react";
 import { useColors } from "../../lib/themeStore";
 import {
   WaveDivider,
@@ -12,7 +13,6 @@ import {
   CrossPattern,
   DiagonalStripes,
 } from "../components/shared/SvgDecorators";
-import FoundersTree from "../components/shared/FoundersTree";
 import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import { aboutSocialIcon } from "@/site/lib/aboutSocialIcons";
@@ -51,6 +51,146 @@ const GREEN = "#6E9277";
 const GREEN_SOFT = "rgba(110,146,119,0.12)";
 const GREEN_BORDER = "rgba(110,146,119,0.28)";
 
+function PeopleCarousel({ people }: { people: AboutPerson[] }) {
+  const c = useColors();
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [people.length]);
+
+  if (people.length === 0) {
+    return (
+      <p className="text-center text-sm py-10" style={{ color: c.muted }}>
+        People will appear here once they are added.
+      </p>
+    );
+  }
+
+  const person = people[Math.min(index, people.length - 1)];
+  const go = (dir: -1 | 1) => {
+    setIndex((current) => (current + dir + people.length) % people.length);
+  };
+
+  return (
+    <div className="max-w-xl mx-auto">
+      <div className="relative flex items-center gap-3 sm:gap-5">
+        {people.length > 1 ? (
+          <button
+            type="button"
+            onClick={() => go(-1)}
+            className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md"
+            style={{ backgroundColor: GREEN }}
+            aria-label="Previous person"
+          >
+            <ChevronLeft size={20} />
+          </button>
+        ) : (
+          <div className="w-10 shrink-0" />
+        )}
+
+        <div className="flex-1 min-w-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={person.id}
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.28 }}
+              className="rounded-2xl overflow-hidden text-center mx-auto"
+              style={{
+                backgroundColor: c.white,
+                boxShadow: "0 2px 24px rgba(110,146,119,0.12)",
+                border: `1px solid ${GREEN_BORDER}`,
+              }}
+            >
+              <div className="overflow-hidden h-72" style={{ backgroundColor: GREEN_SOFT }}>
+                {person.img ? (
+                  <img
+                    src={person.img}
+                    alt={person.name}
+                    className="w-full h-full object-cover object-top"
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full flex items-center justify-center text-5xl font-semibold"
+                    style={{ color: GREEN }}
+                  >
+                    {person.name.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div className="p-6">
+                <h3 className="text-lg mb-0.5" style={{ color: c.text }}>
+                  {person.name}
+                </h3>
+                <p className="text-xs font-semibold tracking-wide mb-3" style={{ color: GREEN }}>
+                  {person.role}
+                </p>
+                <p className="text-sm leading-relaxed mb-4" style={{ color: c.muted }}>
+                  {person.bio}
+                </p>
+                {person.socialLinks?.length ? (
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {person.socialLinks.map((link) => {
+                      const Icon = aboutSocialIcon(link.platform);
+                      return (
+                        <a
+                          key={link.id}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:opacity-90"
+                          style={{ backgroundColor: GREEN }}
+                          aria-label={link.platform}
+                        >
+                          <Icon size={15} />
+                        </a>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {people.length > 1 ? (
+          <button
+            type="button"
+            onClick={() => go(1)}
+            className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-md"
+            style={{ backgroundColor: GREEN }}
+            aria-label="Next person"
+          >
+            <ChevronRight size={20} />
+          </button>
+        ) : (
+          <div className="w-10 shrink-0" />
+        )}
+      </div>
+
+      {people.length > 1 ? (
+        <div className="flex justify-center gap-2 mt-5">
+          {people.map((p, i) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => setIndex(i)}
+              className="h-2 rounded-full transition-all"
+              style={{
+                width: i === index ? 22 : 8,
+                backgroundColor: i === index ? GREEN : GREEN_BORDER,
+              }}
+              aria-label={`Show ${p.name}`}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function PeopleSection({
   list,
   eyebrow,
@@ -76,14 +216,14 @@ function PeopleSection({
         <CrossPattern color="rgba(110,146,119,0.07)" />
         <AnimatedBlob color={GREEN} opacity={0.08} size={480} className="-top-24 -right-16" />
 
-        <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
+        <div className={`max-w-3xl mx-auto px-5 sm:px-8 ${SECTION_PY} relative z-10`}>
           <motion.div
             custom={0}
             variants={fadeSlide}
             initial="hidden"
             whileInView="show"
             viewport={{ once: true }}
-            className="text-center mb-12"
+            className="text-center mb-10"
           >
             <p className="text-xs tracking-[0.22em] uppercase mb-3" style={{ color: GREEN }}>
               {eyebrow}
@@ -92,84 +232,12 @@ function PeopleSection({
               {title}
             </h2>
             <div className="w-16 h-1 rounded-full mx-auto mb-4" style={{ backgroundColor: GREEN }} />
-            <p className="text-sm max-w-2xl mx-auto" style={{ color: c.muted }}>
+            <p className="text-sm max-w-xl mx-auto" style={{ color: c.muted }}>
               {intro}
             </p>
           </motion.div>
 
-          {people.length === 0 ? (
-            <p className="text-center text-sm py-10" style={{ color: c.muted }}>
-              People will appear here once they are added.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-              {people.map((person, i) => (
-                <motion.div
-                  key={person.id}
-                  custom={i}
-                  variants={fadeSlide}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true }}
-                  whileHover={{ y: -8 }}
-                  transition={{ duration: 0.25 }}
-                  className="rounded-2xl overflow-hidden"
-                  style={{
-                    backgroundColor: c.white,
-                    boxShadow: "0 2px 24px rgba(110,146,119,0.12)",
-                    border: `1px solid ${GREEN_BORDER}`,
-                  }}
-                >
-                  <div className="overflow-hidden h-64" style={{ backgroundColor: GREEN_SOFT }}>
-                    {person.img ? (
-                      <motion.img
-                        src={person.img}
-                        alt={person.name}
-                        className="w-full h-full object-cover object-top"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.5 }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl font-semibold" style={{ color: GREEN }}>
-                        {person.name.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-base mb-0.5" style={{ color: c.text }}>
-                      {person.name}
-                    </h3>
-                    <p className="text-xs font-semibold tracking-wide mb-3" style={{ color: GREEN }}>
-                      {person.role}
-                    </p>
-                    <p className="text-sm leading-relaxed mb-4" style={{ color: c.muted }}>
-                      {person.bio}
-                    </p>
-                    {person.socialLinks?.length ? (
-                      <div className="flex flex-wrap gap-2">
-                        {person.socialLinks.map((link) => {
-                          const Icon = aboutSocialIcon(link.platform);
-                          return (
-                            <a
-                              key={link.id}
-                              href={link.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="w-9 h-9 rounded-full flex items-center justify-center text-white hover:opacity-90"
-                              style={{ backgroundColor: GREEN }}
-                              aria-label={link.platform}
-                            >
-                              <Icon size={15} />
-                            </a>
-                          );
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
+          <PeopleCarousel people={people} />
         </div>
         <WaveDivider topColor={nextWave.top} bottomColor={nextWave.bottom} />
       </section>
@@ -470,7 +538,7 @@ export default function AboutPage() {
         nextWave={{ top: c.white, bottom: GREEN }}
       />
 
-      {/* CTA above locations so journey stays last */}
+      {/* CTA before locations */}
       <section className="relative overflow-hidden" style={{ backgroundColor: GREEN }}>
         <AnimatedBlob color="#ffffff" opacity={0.06} size={400} className="-top-20 right-0" />
         <DotPattern color="rgba(255,255,255,0.1)" size={22} />
@@ -568,12 +636,9 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-          <WaveDivider topColor={GREEN_SOFT} bottomColor="rgba(110,146,119,0.1)" />
+          <WaveDivider topColor={GREEN_SOFT} bottomColor={c.footer} />
         </section>
       </InlineLocationsEditor>
-
-      {/* Journey tree last */}
-      <FoundersTree />
     </div>
   );
 }

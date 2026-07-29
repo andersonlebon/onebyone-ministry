@@ -135,7 +135,57 @@ export async function updateVideosAction(videos: Video[]): Promise<Video[]> {
   await requireAdminUser();
   await upsertSiteContentValue(SITE_CONTENT_KEYS.videos, videos);
   revalidatePublicSite();
+  revalidatePath("/videos");
   return videos;
+}
+
+async function readVideosFromDb(): Promise<Video[]> {
+  const { getSiteContentValue } = await import("@/lib/db/site-content");
+  const stored = await getSiteContentValue<Video[]>(SITE_CONTENT_KEYS.videos);
+  return Array.isArray(stored) ? stored : [];
+}
+
+/** Create or update one video by reading the latest DB list first. */
+export async function saveVideoAction(
+  input: Omit<Video, "id"> & { id?: string }
+): Promise<Video[]> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+
+  const current = await readVideosFromDb();
+  let next: Video[];
+
+  if (input.id) {
+    const exists = current.some((v) => v.id === input.id);
+    if (!exists) {
+      next = [{ ...input, id: input.id }, ...current];
+    } else {
+      next = current.map((v) => (v.id === input.id ? { ...v, ...input, id: input.id } : v));
+    }
+  } else {
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    next = [{ ...input, id }, ...current];
+  }
+
+  await upsertSiteContentValue(SITE_CONTENT_KEYS.videos, next);
+  revalidatePublicSite();
+  revalidatePath("/videos");
+  return next;
+}
+
+export async function deleteVideoAction(id: string): Promise<Video[]> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  await requireAdminUser();
+
+  const current = await readVideosFromDb();
+  const next = current.filter((v) => v.id !== id);
+  await upsertSiteContentValue(SITE_CONTENT_KEYS.videos, next);
+  revalidatePublicSite();
+  revalidatePath("/videos");
+  return next;
 }
 
 export async function updateFinanceAction(finance: FinanceDetails): Promise<FinanceDetails> {

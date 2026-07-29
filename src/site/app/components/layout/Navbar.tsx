@@ -59,14 +59,20 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-5 lg:px-8 flex items-center justify-between h-18 lg:h-22" style={{ height: "4.5rem" }}>
 
-        {/* ── Logo ── */}
+        {/* ── Logo (vertical brand mark from the former homepage hero) ── */}
         <Link href="/" className="flex-shrink-0">
           <motion.img
-            key={heroLight ? "dark" : transparent || isDark ? "white" : "dark"}
-            src={heroLight ? brandAssets.logoDark : transparent || isDark ? brandAssets.logoWhite : brandAssets.logoDark}
+            key={heroLight ? "vert-dark" : transparent || isDark ? "vert-white" : "vert-dark"}
+            src={
+              heroLight
+                ? brandAssets.logoVertical
+                : transparent || isDark
+                  ? brandAssets.logoVerticalWhite
+                  : brandAssets.logoVertical
+            }
             alt="One By One Ministries"
             className="w-auto object-contain"
-            style={{ height: "clamp(40px, 5vw, 52px)" }}
+            style={{ height: "clamp(44px, 5.5vw, 58px)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
