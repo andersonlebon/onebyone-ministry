@@ -116,7 +116,7 @@ function StatCard({ value, suffix, label, icon: Icon }: { value: number; suffix:
 export default function HomePage() {
   const c = useColors();
   const canInlineEdit = useCanInlineEdit();
-  const { brandAssets, homePillars, homePillarsHeading, websiteUseImages } = useSiteMedia();
+  const { homePillars, homePillarsHeading, websiteUseImages } = useSiteMedia();
   const heroBackground = useMediaUrl(websiteUseImages.hero);
   const { settings, projects } = useSiteContent();
   const publishedPosts = usePublishedPosts();
@@ -218,41 +218,12 @@ export default function HomePage() {
             style={{ opacity: heroOpacity }}
             className="text-center px-5 max-w-5xl mx-auto flex flex-col items-center"
           >
-          {/* Vertical brand mark — smaller here so the hero copy has room to breathe. */}
-          <motion.img
-            src={c.isDark ? brandAssets.logoVerticalWhite : brandAssets.logoVertical}
-            alt="One By One Ministries"
-            initial={{ opacity: 0, scale: 0.6, y: -40 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-7"
-            style={{
-              width: "clamp(92px, 12vw, 150px)",
-              filter: c.isDark
-                ? "drop-shadow(0 4px 32px rgba(0,0,0,0.7)) brightness(1.1)"
-                : "drop-shadow(0 4px 20px rgba(71,71,71,0.15))",
-            }}
-          />
-
-
-          {/* Main headline */}
+          {/* Main headline (logo lives in the navbar) */}
           <h1
             className="mb-7 leading-tight max-w-4xl"
             style={{ fontSize: "clamp(2.25rem, 5.8vw, 4.75rem)", color: c.isDark ? "#ffffff" : c.text }}
           >
-            <WordReveal text={heroHeadline} delay={0.7} />
-            {settings.heroHeadline.toLowerCase().includes("one by one") && (
-            <span className="block mt-2">
-              <motion.span
-                initial={{ opacity: 0, scale: 0.85 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.5, duration: 0.7, ease: "easeOut" }}
-                style={{ color: "#EAC79A", display: "inline-block" }}
-              >
-                One By One
-              </motion.span>
-            </span>
-            )}
+            <WordReveal text={heroHeadline} delay={0.35} />
           </h1>
 
           {/* Subheadline */}
@@ -392,14 +363,6 @@ export default function HomePage() {
                 className="h-px flex-1 max-w-[80px] origin-right"
                 style={{ backgroundColor: "#6E9277" }}
               />
-              <motion.div
-                initial={{ scale: 0, rotate: -90 }}
-                whileInView={{ scale: 1, rotate: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
-                <Globe size={20} style={{ color: "#6E9277" }} />
-              </motion.div>
               <motion.div
                 initial={{ scaleX: 0 }}
                 whileInView={{ scaleX: 1 }}
