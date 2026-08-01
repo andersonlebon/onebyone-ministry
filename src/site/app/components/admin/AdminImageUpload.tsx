@@ -65,7 +65,7 @@ export default function AdminImageUpload({
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
-      <p className="text-xs text-muted-foreground mt-1.5">JPEG, PNG, or WebP up to 10 MB. Stored in Supabase.</p>
+      <p className="text-xs text-muted-foreground mt-1.5">JPEG, PNG, or WebP up to 30 MB. Stored in Supabase.</p>
       {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
     </div>
   );

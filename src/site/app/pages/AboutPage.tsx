@@ -247,7 +247,7 @@ function PeopleSection({
 
 export default function AboutPage() {
   const c = useColors();
-  const { settings, about } = useSiteContent();
+  const { about } = useSiteContent();
   const { websiteUseImages, aboutStoryImages } = useSiteMedia();
   const aboutBanner = useMediaUrl(websiteUseImages.about);
 
@@ -331,7 +331,6 @@ export default function AboutPage() {
           { key: "storyTitle", label: "Title" },
           { key: "storyBody1", label: "First paragraph", multiline: true },
           { key: "storyBody2", label: "Second paragraph", multiline: true },
-          { key: "storyQuote", label: "Quote", multiline: true },
         ]}
       >
         <section className="relative overflow-hidden" style={{ backgroundColor: c.cream }}>
@@ -358,32 +357,8 @@ export default function AboutPage() {
               <p className="leading-relaxed mb-4" style={{ color: c.muted }}>
                 {about.storyBody1}
               </p>
-              <p className="leading-relaxed mb-4" style={{ color: c.muted }}>
+              <p className="leading-relaxed mb-7" style={{ color: c.muted }}>
                 {about.storyBody2}
-              </p>
-              {settings.missionStatement ? (
-                <p
-                  className="text-base leading-relaxed mb-4 border-l-4 pl-4"
-                  style={{
-                    borderColor: GREEN,
-                    color: c.text,
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontStyle: "italic",
-                  }}
-                >
-                  {settings.missionStatement}
-                </p>
-              ) : null}
-              <p
-                className="text-lg leading-relaxed mb-7 border-l-4 pl-4"
-                style={{
-                  borderColor: GREEN,
-                  color: c.text,
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontStyle: "italic",
-                }}
-              >
-                {about.storyQuote}
               </p>
               <Link href="/donate">
                 <motion.button
