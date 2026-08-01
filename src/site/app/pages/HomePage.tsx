@@ -264,13 +264,13 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: heroSubheadlineDelay + 0.3, duration: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="flex flex-col sm:flex-row gap-4 items-center justify-center"
           >
-            <Link href="/about">
+            <Link href="/about" className="w-full sm:w-auto flex justify-center">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.97 }}
-                className="px-9 py-3.5 rounded-lg font-semibold text-base transition-colors"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-9 py-3.5 rounded-lg font-semibold text-base transition-colors"
                 style={
                   c.isDark
                     ? { color: "#ffffff", border: "1px solid rgba(255,255,255,0.55)" }
@@ -280,11 +280,11 @@ export default function HomePage() {
                 Learn More
               </motion.button>
             </Link>
-            <Link href="/donate">
+            <Link href="/donate" className="w-full sm:w-auto flex justify-center">
               <motion.button
                 whileHover={{ scale: 1.06, backgroundColor: "#5a7d64" }}
                 whileTap={{ scale: 0.97 }}
-                className="px-9 py-3.5 rounded-lg font-semibold text-white text-base"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-9 py-3.5 rounded-lg font-semibold text-white text-base"
                 style={{ backgroundColor: "#6E9277" }}
               >
                 Support the Mission
@@ -728,22 +728,22 @@ export default function HomePage() {
             <p className="text-white/80 text-lg mb-10 leading-relaxed">
               Every dollar helps. Every gift goes to the field in Congo.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/donate">
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+              <Link href="/donate" className="w-full sm:w-auto flex justify-center">
                 <motion.button
                   whileHover={{ scale: 1.07, backgroundColor: "#d4a870" }}
                   whileTap={{ scale: 0.97 }}
-                  className="flex items-center gap-2 px-10 py-4 rounded-xl font-semibold text-base"
+                  className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-10 py-4 rounded-xl font-semibold text-base"
                   style={{ backgroundColor: "#EAC79A", color: c.text }}
                 >
                   <Heart size={17} /> Donate
                 </motion.button>
               </Link>
-              <Link href="/about">
+              <Link href="/about" className="w-full sm:w-auto flex justify-center">
                 <motion.button
                   whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.15)" }}
                   whileTap={{ scale: 0.97 }}
-                  className="px-10 py-4 rounded-xl font-semibold text-base text-white border border-white/40"
+                  className="inline-flex items-center justify-center w-full sm:w-auto px-10 py-4 rounded-xl font-semibold text-base text-white border border-white/40"
                 >
                   Learn About Us
                 </motion.button>

@@ -10,5 +10,5 @@
   <circle cx="740" cy="410" r="36" fill="#6E9277" opacity="0.55"/>
   <path d="M680 520 L760 450 L820 500 L900 420 L980 520 Z" fill="#6E9277" opacity="0.45"/>
   <text x="800" y="640" text-anchor="middle" fill="#EDE7DA" font-family="Georgia, serif" font-size="36" opacity="0.9">Add a photo</text>
-  <text x="800" y="690" text-anchor="middle" fill="#8fa895" font-family="system-ui, sans-serif" font-size="22">Upload in admin or Edit banner</text>
+  <text x="800" y="690" text-anchor="middle" fill="#8fa895" font-family="system-ui, sans-serif" font-size="22">Use Edit on this section</text>
 </svg>

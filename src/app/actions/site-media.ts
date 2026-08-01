@@ -110,6 +110,50 @@ export async function updateSiteMediaSlotAction(
   return next;
 }
 
+/** Update one About “Our Story” collage image (index 0–2). */
+export async function updateAboutStoryImageAction(
+  index: number,
+  url: string
+): Promise<SiteMediaBundle> {
+  if (!isDatabaseConfigured()) throw new Error("DATABASE_URL is not configured");
+  if (!Number.isInteger(index) || index < 0 || index > 2) {
+    throw new Error("Story image index must be 0, 1, or 2.");
+  }
+  if (!url?.trim()) throw new Error("Image URL is required.");
+
+  const { supabase } = await requireAdminUser();
+  const stored = await getSiteContentValue<SiteMediaBundle>(SITE_MEDIA_CONTENT_KEY);
+  const base = sanitizeMediaBundle(stored);
+
+  const images = [EMPTY_IMAGE, EMPTY_IMAGE, EMPTY_IMAGE].map((_, i) => {
+    const current = base.aboutStoryImages[i];
+    return current && current.trim() ? current : EMPTY_IMAGE;
+  });
+  const previousUrl = images[index];
+  images[index] = url.trim();
+
+  const next: SiteMediaBundle = {
+    ...base,
+    aboutStoryImages: images,
+    websiteUseImages: { ...base.websiteUseImages },
+    localImages: { ...base.localImages },
+  };
+
+  await upsertSiteContentValue(SITE_MEDIA_CONTENT_KEY, next);
+
+  if (
+    previousUrl &&
+    previousUrl !== url &&
+    previousUrl !== EMPTY_IMAGE &&
+    !isMediaUrlStillReferenced(next, previousUrl)
+  ) {
+    await deletePreviousMediaUrl(supabase, previousUrl);
+  }
+
+  revalidatePublicSite();
+  return next;
+}
+
 /** Update one homepage pillar (copy and/or image). Deletes previous image when replaced. */
 export async function saveHomePillarAction(
   input: Partial<HomePillar> & { key: string }

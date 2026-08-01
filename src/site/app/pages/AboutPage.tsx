@@ -248,18 +248,17 @@ function PeopleSection({
 export default function AboutPage() {
   const c = useColors();
   const { settings, about } = useSiteContent();
-  const { localImages, websiteUseImages, aboutStoryImages } = useSiteMedia();
+  const { websiteUseImages, aboutStoryImages } = useSiteMedia();
   const aboutBanner = useMediaUrl(websiteUseImages.about);
 
   const founders = [...about.founders].sort((a, b) => a.sortOrder - b.sortOrder);
   const leadership = [...about.leadership].sort((a, b) => a.sortOrder - b.sortOrder);
   const team = [...about.team].sort((a, b) => a.sortOrder - b.sortOrder);
 
-  const storyImages = [
-    aboutStoryImages[0] || localImages.community,
-    aboutStoryImages[1] || localImages.communityAlt,
-    aboutStoryImages[2] || localImages.leaderOne,
-  ];
+  const storyImg0 = useMediaUrl(aboutStoryImages[0] || "");
+  const storyImg1 = useMediaUrl(aboutStoryImages[1] || "");
+  const storyImg2 = useMediaUrl(aboutStoryImages[2] || "");
+  const storyImages = [storyImg0, storyImg1, storyImg2];
 
   return (
     <div className="overflow-x-hidden">
@@ -326,6 +325,7 @@ export default function AboutPage() {
       {/* Our Story */}
       <AboutContentEditor
         title="Our story"
+        storyImages
         fields={[
           { key: "storyEyebrow", label: "Eyebrow" },
           { key: "storyTitle", label: "Title" },
@@ -545,17 +545,17 @@ export default function AboutPage() {
         <div className={`max-w-3xl mx-auto px-5 text-center ${SECTION_PY} relative z-10`}>
           <h2 className="text-3xl lg:text-4xl text-white mb-4">Pray with us. Partner with us.</h2>
           <p className="text-white/85 mb-8">Every gift and every prayer helps the work in Congo.</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
             <Link
               href="/donate"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 rounded-xl font-semibold"
               style={{ backgroundColor: "#EAC79A", color: "#474747" }}
             >
               Give here <ArrowRight size={16} />
             </Link>
             <Link
               href="/contact"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 rounded-xl font-semibold text-white border border-white/40"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-8 py-3 rounded-xl font-semibold text-white border border-white/40"
             >
               Contact us
             </Link>

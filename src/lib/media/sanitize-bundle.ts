@@ -119,11 +119,11 @@ export function sanitizeMediaBundle(stored: SiteMediaBundle | null | undefined):
 
   const listReserved = new Set([...reserved, ...seenPillarImgs]);
 
+  const rawAboutStory = stored.aboutStoryImages?.length
+    ? stored.aboutStoryImages
+    : defaults.aboutStoryImages;
   const aboutStoryImages = dedupeImageList(
-    (stored.aboutStoryImages?.length
-      ? stored.aboutStoryImages
-      : defaults.aboutStoryImages
-    ).map(sanitizeUrl),
+    [0, 1, 2].map((i) => sanitizeUrl(rawAboutStory[i] ?? EMPTY_IMAGE)),
     listReserved
   );
 
