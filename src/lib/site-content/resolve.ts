@@ -6,6 +6,11 @@ import { getSiteContentValue } from "@/lib/db/site-content";
 import { mergeAboutContent } from "./about-defaults";
 import { getDefaultSiteContentBundle } from "./defaults";
 import { SITE_CONTENT_KEYS } from "./keys";
+import {
+  getHeroHeadlineLines,
+  normalizeHeroHeadlineLines,
+  syncHeroHeadlineFromLines,
+} from "./hero-headline";
 import { normalizePosts } from "./posts";
 import {
   EMPTY_FINANCE,
@@ -19,7 +24,14 @@ import {
 } from "./types";
 
 function mergeSettings(stored: SiteSettings | null): SiteSettings {
-  return { ...defaultSiteSettings, ...(stored ?? {}) };
+  const merged = { ...defaultSiteSettings, ...(stored ?? {}) } as SiteSettings;
+  const lines = normalizeHeroHeadlineLines(merged.heroHeadlineLines);
+  const resolved = lines.length > 0 ? lines : getHeroHeadlineLines(merged);
+  return {
+    ...merged,
+    heroHeadlineLines: resolved,
+    heroHeadline: syncHeroHeadlineFromLines(resolved) || merged.heroHeadline,
+  };
 }
 
 export async function getSiteContentBundle(): Promise<SiteContentBundle> {

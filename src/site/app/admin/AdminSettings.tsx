@@ -11,8 +11,14 @@ import { useSiteMedia } from "@/site/lib/mediaContext";
 import AdminMediaSlotField from "@/site/app/components/admin/AdminMediaSlotField";
 import AdminSettingsPreview, { SECTION_LABELS, type SettingsPreviewSection } from "@/site/app/admin/AdminSettingsPreview";
 import { defaultSiteSettings } from "@/content/site-defaults";
+import {
+  getHeroHeadlineLines,
+  normalizeHeroHeadlineLines,
+  syncHeroHeadlineFromLines,
+} from "@/lib/site-content/hero-headline";
 import { useSiteStore, SiteSettings } from "@/site/lib/siteStore";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
+import { HeroHeadlineLinesFields } from "@/site/app/components/admin-edit/HeroHeadlineLinesFields";
 
 type MediaSlotConfig = {
   id: string;
@@ -172,7 +178,13 @@ export default function AdminSettings() {
   const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
-    setForm({ ...defaultSiteSettings, ...settings });
+    const merged = { ...defaultSiteSettings, ...settings } as SiteSettings;
+    const lines = getHeroHeadlineLines(merged);
+    setForm({
+      ...merged,
+      heroHeadlineLines: lines,
+      heroHeadline: syncHeroHeadlineFromLines(lines) || merged.heroHeadline,
+    });
   }, [settings]);
 
   useEffect(() => {
@@ -204,7 +216,12 @@ export default function AdminSettings() {
     setSaveError("");
     setSaving(true);
     try {
-      await updateSettings(form);
+      const lines = normalizeHeroHeadlineLines(form.heroHeadlineLines);
+      await updateSettings({
+        ...form,
+        heroHeadlineLines: lines,
+        heroHeadline: syncHeroHeadlineFromLines(lines),
+      });
       setSaved(true);
       setLiveSiteUrl(`/?v=${Date.now()}`);
       router.refresh();
@@ -314,8 +331,30 @@ export default function AdminSettings() {
       <div className="space-y-6 max-w-4xl">
           <SectionCard title="Homepage Content" section="homepage" activeSection={activeSection} onActivate={setActiveSection}>
             <div className="space-y-4">
-              <Field label="Hero Headline" value={form.heroHeadline} onChange={(v) => set("heroHeadline", v)}
-                hint="Main heading on the home page hero." />
+              <HeroHeadlineLinesFields
+                lines={form.heroHeadlineLines?.length ? form.heroHeadlineLines : getHeroHeadlineLines(form)}
+                onChange={(lines) =>
+                  setForm((f) => ({
+                    ...f,
+                    heroHeadlineLines: lines,
+                    heroHeadline: syncHeroHeadlineFromLines(normalizeHeroHeadlineLines(lines)),
+                  }))
+                }
+                styles={{
+                  label: { color: "inherit" },
+                  help: { color: "var(--muted-foreground, #7a7068)" },
+                  input: {
+                    backgroundColor: "var(--card, #fff)",
+                    color: "inherit",
+                    borderColor: "rgba(110,146,119,0.3)",
+                  },
+                  border: "rgba(110,146,119,0.28)",
+                  text: "inherit",
+                  muted: "#7a7068",
+                  green: "#6E9277",
+                  cardBg: "rgba(110,146,119,0.04)",
+                }}
+              />
               <Field label="Hero Subheadline" value={form.heroSubheadline} onChange={(v) => set("heroSubheadline", v)} multiline
                 hint="Supporting text below the headline." />
             </div>

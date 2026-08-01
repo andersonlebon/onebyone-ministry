@@ -11,11 +11,19 @@ import { updateSiteMediaSlotAction, type SiteMediaSlotPath } from "@/app/actions
 import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import type { SiteMediaBundle } from "@/lib/media/types";
+import {
+  getHeroHeadlineLines,
+  normalizeHeroHeadlineLines,
+  syncHeroHeadlineFromLines,
+  type HeroHeadlineLine,
+} from "@/lib/site-content/hero-headline";
 import type { SiteSettings } from "@/lib/site-content/types";
+import { HeroHeadlineLinesFields } from "./HeroHeadlineLinesFields";
 import { InlineEditDrawer, useInlineFieldStyles } from "./InlineEditDrawer";
 
 type Field =
   | { kind: "text"; key: keyof SiteSettings; label: string; multiline?: boolean }
+  | { kind: "heroLines"; label?: string }
   | { kind: "image"; path: SiteMediaSlotPath; label: string; help?: string };
 
 function getMediaSlotUrl(media: SiteMediaBundle, path: SiteMediaSlotPath): string {
@@ -85,6 +93,7 @@ export function SectionEditor({
   const styles = useInlineFieldStyles();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Partial<SiteSettings>>({});
+  const [heroLinesDraft, setHeroLinesDraft] = useState<HeroHeadlineLine[]>([]);
   /** Local overrides so a just-uploaded image shows in the preview before refresh. */
   const [imageOverrides, setImageOverrides] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -105,10 +114,16 @@ export function SectionEditor({
 
   const openEditor = () => {
     const next: Partial<SiteSettings> = {};
+    let nextHeroLines: HeroHeadlineLine[] = [];
     for (const f of fields) {
-      if (f.kind === "text") next[f.key] = settings[f.key] ?? "";
+      if (f.kind === "text") {
+        const value = settings[f.key];
+        (next as Record<string, unknown>)[f.key] = typeof value === "string" ? value : "";
+      }
+      if (f.kind === "heroLines") nextHeroLines = getHeroHeadlineLines(settings);
     }
     setDraft(next);
+    setHeroLinesDraft(nextHeroLines);
     setImageOverrides({});
     setError("");
     setSaved(false);
@@ -119,7 +134,21 @@ export function SectionEditor({
     setSaving(true);
     setError("");
     try {
-      await updateSettingsAction({ ...settings, ...draft } as SiteSettings);
+      const hasHeroLines = fields.some((f) => f.kind === "heroLines");
+      const normalizedLines = hasHeroLines
+        ? normalizeHeroHeadlineLines(heroLinesDraft)
+        : settings.heroHeadlineLines;
+      const payload = {
+        ...settings,
+        ...draft,
+        ...(hasHeroLines
+          ? {
+              heroHeadlineLines: normalizedLines,
+              heroHeadline: syncHeroHeadlineFromLines(normalizedLines),
+            }
+          : {}),
+      } as SiteSettings;
+      await updateSettingsAction(payload);
       setSaved(true);
       setOpen(false);
       router.refresh();
@@ -157,7 +186,8 @@ export function SectionEditor({
     }
   };
 
-  const hasText = fields.some((f) => f.kind === "text");
+  const hasSavableFields =
+    fields.some((f) => f.kind === "text") || fields.some((f) => f.kind === "heroLines");
 
   return (
     <div className="relative group/section">
@@ -199,6 +229,17 @@ export function SectionEditor({
                     />
                   )}
                 </label>
+              );
+            }
+
+            if (field.kind === "heroLines") {
+              return (
+                <HeroHeadlineLinesFields
+                  key="hero-lines"
+                  lines={heroLinesDraft}
+                  onChange={setHeroLinesDraft}
+                  styles={styles}
+                />
               );
             }
 
@@ -248,7 +289,7 @@ export function SectionEditor({
             </p>
           ) : null}
 
-          {hasText ? (
+          {hasSavableFields ? (
             <button
               type="button"
               disabled={saving}

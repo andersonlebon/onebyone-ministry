@@ -1,7 +1,13 @@
 import type { financeDetails } from "@/content/finance";
+import type { HeroHeadlineLine } from "./hero-headline";
+
+export type { HeroHeadlineColor, HeroHeadlineLine } from "./hero-headline";
 
 export type SiteSettings = {
+  /** Legacy single-string headline (kept in sync with heroHeadlineLines). */
   heroHeadline: string;
+  /** Up to 4 sentence lines for the homepage hero, each with an optional brand color. */
+  heroHeadlineLines: HeroHeadlineLine[];
   heroSubheadline: string;
   missionStatement: string;
   donatePageHeadline: string;

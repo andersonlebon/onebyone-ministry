@@ -2,6 +2,10 @@
 
 import { Facebook, Instagram, Mail, Phone, X, Youtube } from "lucide-react";
 import type { SiteMediaBundle } from "@/lib/media/types";
+import {
+  getHeroHeadlineLines,
+  HERO_HEADLINE_COLOR_SWATCHES,
+} from "@/lib/site-content/hero-headline";
 import type { SiteSettings } from "@/site/lib/siteStore";
 import { useMediaUrl } from "@/site/lib/mediaContext";
 
@@ -108,9 +112,25 @@ export default function AdminSettingsPreview({
                 <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-50" />
               ) : null}
               <div className="relative z-10 p-4 md:p-6 h-full flex flex-col justify-end">
-                <p className={`text-white font-semibold leading-tight ${fullScreen ? "text-2xl md:text-3xl" : "text-lg"}`}>
-                  {form.heroHeadline || "Hero headline"}
-                </p>
+                <div className={`font-semibold leading-tight space-y-0.5 ${fullScreen ? "text-2xl md:text-3xl" : "text-lg"}`}>
+                  {getHeroHeadlineLines(form).length > 0 ? (
+                    getHeroHeadlineLines(form).map((line, i) => (
+                      <p
+                        key={`${i}-${line.text}`}
+                        style={{
+                          color:
+                            line.color === "default"
+                              ? "#ffffff"
+                              : HERO_HEADLINE_COLOR_SWATCHES[line.color],
+                        }}
+                      >
+                        {line.text}
+                      </p>
+                    ))
+                  ) : (
+                    <p className="text-white">{form.heroHeadline || "Hero headline"}</p>
+                  )}
+                </div>
                 <p className={`text-white/85 mt-2 ${fullScreen ? "text-sm md:text-base line-clamp-4" : "text-xs line-clamp-3"}`}>
                   {form.heroSubheadline || "Hero subheadline"}
                 </p>

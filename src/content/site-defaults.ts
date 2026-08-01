@@ -1,5 +1,11 @@
-export const defaultSiteSettings = {
-  heroHeadline: "Bringing Hope, Education, and the Love of Christ One By One",
+import type { SiteSettings } from "@/lib/site-content/types";
+
+export const defaultSiteSettings: SiteSettings = {
+  heroHeadline: "Bringing Hope, Education, and the Love of Christ",
+  heroHeadlineLines: [
+    { text: "Bringing Hope, Education,", color: "default" },
+    { text: "and the Love of Christ", color: "default" },
+  ],
   heroSubheadline:
     "Transforming communities in the Democratic Republic of Congo through Education, Entrepreneurship, and Spiritual Discipleship — one person at a time.",
   missionStatement:
@@ -24,7 +30,7 @@ export const defaultSiteSettings = {
   verseReference: "Ephesians 3:19–20",
   usaAddress: "",
   congoAddress: "",
-} as const;
+};
 
 /** Runtime no longer seeds demo content — client adds these. */
 export const defaultPosts = [] as const;

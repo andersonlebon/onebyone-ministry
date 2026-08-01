@@ -21,6 +21,11 @@ import { InlinePillarsEditor } from "../components/admin-edit/InlinePillarsEdito
 import { InlineProjectsEditor } from "../components/admin-edit/InlineProjectsEditor";
 import { useCanInlineEdit } from "@/site/lib/adminEditContext";
 import { pillarIcon } from "@/site/lib/pillarIcons";
+import {
+  getHeroHeadlineLines,
+  resolveHeroHeadlineColor,
+  type HeroHeadlineLine,
+} from "@/lib/site-content/hero-headline";
 
 /* ───── Animated Counter ───── */
 function useAnimatedCounter(target: number, duration = 2400) {
@@ -55,20 +60,31 @@ function parseStat(value: string): { n: number; suffix: string } {
   return { n: Number(match[1]), suffix: match[2] ?? "" };
 }
 
-/* ───── Word-by-word reveal ───── */
-function WordReveal({ text, className = "", delay = 0 }: { text: string; className?: string; delay?: number }) {
-  const words = text.split(" ");
+/* ───── Sentence-line reveal (up to 4 lines, each with its own color) ───── */
+function SentenceReveal({
+  lines,
+  delay = 0,
+}: {
+  lines: HeroHeadlineLine[];
+  delay?: number;
+}) {
+  const c = useColors();
   return (
-    <span className={className}>
-      {words.map((w, i) => (
+    <span className="flex flex-col items-center gap-[0.12em]">
+      {lines.map((line, lineIndex) => (
         <motion.span
-          key={i}
-          initial={{ opacity: 0, y: 22, filter: "blur(4px)" }}
+          key={`${lineIndex}-${line.text}`}
+          initial={{ opacity: 0, y: 28, filter: "blur(5px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ delay: delay + i * 0.075, duration: 0.55, ease: "easeOut" }}
-          className="inline-block mr-[0.26em]"
+          transition={{
+            delay: delay + lineIndex * 0.28,
+            duration: 0.65,
+            ease: "easeOut",
+          }}
+          className="block"
+          style={{ color: resolveHeroHeadlineColor(line.color, c) }}
         >
-          {w}
+          {line.text}
         </motion.span>
       ))}
     </span>
@@ -143,7 +159,9 @@ export default function HomePage() {
     excerpt: post.excerpt,
   }));
 
-  const heroHeadline = settings.heroHeadline.replace(/\s*One By One\s*$/i, "").trim() || settings.heroHeadline;
+  const heroLines = getHeroHeadlineLines(settings);
+  const heroLineCount = Math.max(heroLines.length, 1);
+  const heroSubheadlineDelay = 0.55 + heroLineCount * 0.28 + 0.35;
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const parallaxY = useTransform(scrollYProgress, [0, 1], [0, 120]);
@@ -165,7 +183,7 @@ export default function HomePage() {
             label: "Background photo",
             help: "Large photo behind the homepage headline. Upload a clear, bright image.",
           },
-          { kind: "text", key: "heroHeadline", label: "Headline", multiline: true },
+          { kind: "heroLines" },
           { kind: "text", key: "heroSubheadline", label: "Supporting line", multiline: true },
         ]}
       >
@@ -218,19 +236,23 @@ export default function HomePage() {
             style={{ opacity: heroOpacity }}
             className="text-center px-5 max-w-5xl mx-auto flex flex-col items-center"
           >
-          {/* Main headline (logo lives in the navbar) */}
+          {/* Main headline: up to 4 colored sentence lines (logo lives in the navbar) */}
           <h1
-            className="mb-7 leading-tight max-w-4xl"
+            className="mb-7 leading-[1.12] max-w-4xl"
             style={{ fontSize: "clamp(2.25rem, 5.8vw, 4.75rem)", color: c.isDark ? "#ffffff" : c.text }}
           >
-            <WordReveal text={heroHeadline} delay={0.35} />
+            {heroLines.length > 0 ? (
+              <SentenceReveal lines={heroLines} delay={0.35} />
+            ) : (
+              <span style={{ color: c.isDark ? "#ffffff" : c.text }}>Bringing Hope</span>
+            )}
           </h1>
 
           {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.8, duration: 0.7 }}
+            transition={{ delay: heroSubheadlineDelay, duration: 0.7 }}
             className="text-lg sm:text-xl mb-12 max-w-3xl leading-relaxed"
             style={{ color: c.isDark ? "rgba(255,255,255,0.8)" : c.muted }}
           >
@@ -241,7 +263,7 @@ export default function HomePage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.1, duration: 0.6 }}
+            transition={{ delay: heroSubheadlineDelay + 0.3, duration: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link href="/about">
