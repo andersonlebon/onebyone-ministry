@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import {
   createDonationAction,
   deleteDonationAction,
+  listDonationsAction,
   updateDonationAction,
 } from "@/app/actions/donations";
 import {
@@ -75,6 +76,7 @@ type StoreCtx = {
   addDonation: (d: Omit<Donation, "id">) => void;
   updateDonation: (id: string, d: Partial<Donation>) => void;
   deleteDonation: (id: string) => void;
+  refreshDonations: () => Promise<void>;
   addAdmin: (a: Omit<AdminUser, "id">) => void;
   updateAdmin: (id: string, a: Partial<AdminUser>) => void;
   deleteAdmin: (id: string) => void;
@@ -104,7 +106,8 @@ function clearStaleContentStorage() {
 }
 
 function useLocalDemoStore() {
-  return isDemoContentEnabled() && !useServerActionsForContent();
+  const serverActionsEnabled = useServerActionsForContent();
+  return isDemoContentEnabled() && !serverActionsEnabled;
 }
 
 const uid = () =>
@@ -331,6 +334,11 @@ export function SiteStoreProvider({
     setDonations((prev) => prev.filter((x) => x.id !== id));
   }, [persistToServer]);
 
+  const refreshDonations = useCallback(async () => {
+    if (!persistToServer) return;
+    setDonations(await listDonationsAction());
+  }, [persistToServer]);
+
   const addAdmin = useCallback((a: Omit<AdminUser, "id">) => {
     setAdmins((prev) => [...prev, { ...a, id: uid() }]);
   }, []);
@@ -371,6 +379,7 @@ export function SiteStoreProvider({
         addDonation,
         updateDonation,
         deleteDonation,
+        refreshDonations,
         addAdmin,
         updateAdmin,
         deleteAdmin,

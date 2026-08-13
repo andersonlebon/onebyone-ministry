@@ -7,17 +7,16 @@ import { useColors } from "../../lib/themeStore";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import {
   Heart, Shield,
-  CreditCard, Smartphone, Building2, Copy, Wallet,
+  CreditCard, Smartphone, Building2,
 } from "lucide-react";
-import { WaveDivider, AnimatedBlob, DotPattern, Sparkles } from "../components/shared/SvgDecorators";
+import { AnimatedBlob, DotPattern, Sparkles } from "../components/shared/SvgDecorators";
 import PageHero from "../components/shared/PageHero";
 import { useMediaUrl, useSiteMedia } from "@/site/lib/mediaContext";
 import { useSiteContent } from "@/site/lib/siteContentContext";
 import {
   BankPanel,
+  DonationCancelledBanner,
   DonationSuccessBanner,
-  MobilePayPanel,
-  OtherPanel,
   StripeCheckoutForm,
   VenmoPanel,
 } from "@/site/app/components/donate/payment-panels";
@@ -26,10 +25,10 @@ import { SECTION_PY } from "../../lib/pageLayout";
 const PAYMENT_TABS = [
   { id: "card", label: "Credit / Debit Card", icon: CreditCard },
   { id: "venmo", label: "Venmo", icon: Smartphone },
-  { id: "mobile", label: "Cash App / Zelle", icon: Wallet },
   { id: "bank", label: "Bank Transfer", icon: Building2 },
-  { id: "other", label: "Other Methods", icon: Copy },
-];
+] as const;
+
+type PaymentTab = (typeof PAYMENT_TABS)[number]["id"];
 
 const PRESET_AMOUNTS = ["25", "50", "100", "250", "500"];
 
@@ -47,10 +46,11 @@ function DonatePageContent() {
   const [frequency, setFrequency] = useState<"one-time" | "monthly">("one-time");
   const [selectedAmount, setSelectedAmount] = useState("100");
   const [customAmount, setCustomAmount] = useState("");
-  const [activeTab, setActiveTab] = useState("card");
+  const [activeTab, setActiveTab] = useState<PaymentTab>("card");
 
   const displayAmount = customAmount || selectedAmount;
   const showSuccess = searchParams.get("status") === "success";
+  const showCancelled = searchParams.get("status") === "cancelled";
 
   return (
     <div className="overflow-x-hidden">
@@ -92,20 +92,23 @@ function DonatePageContent() {
 
         <div className={`max-w-7xl mx-auto px-5 sm:px-8 lg:px-10 ${SECTION_PY} relative z-10`}>
           {showSuccess && <DonationSuccessBanner />}
+          {showCancelled && <DonationCancelledBanner />}
 
           <div className="grid lg:grid-cols-5 gap-10 lg:gap-14 items-start">
             <motion.div custom={0} variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="lg:col-span-3 rounded-2xl p-8 shadow-sm" style={{ backgroundColor: c.white }}>
               <h3 className="text-2xl mb-6" style={{ color: c.text }}>Make a Donation</h3>
 
-              <div className="flex rounded-xl overflow-hidden mb-6" style={{ border: `1px solid ${c.borderLight}` }}>
-                {(["one-time", "monthly"] as const).map((freq) => (
-                  <motion.button key={freq} onClick={() => setFrequency(freq)}
-                    className="flex-1 py-3 text-sm font-semibold transition-all"
-                    animate={{ backgroundColor: frequency === freq ? "#6E9277" : c.white, color: frequency === freq ? "#ffffff" : c.text }}>
-                    {freq === "one-time" ? "One-Time" : "Monthly Recurring"}
-                  </motion.button>
-                ))}
-              </div>
+              {activeTab === "card" ? (
+                <div className="flex rounded-xl overflow-hidden mb-6" style={{ border: `1px solid ${c.borderLight}` }}>
+                  {(["one-time", "monthly"] as const).map((freq) => (
+                    <motion.button key={freq} onClick={() => setFrequency(freq)}
+                      className="flex-1 py-3 text-sm font-semibold transition-all"
+                      animate={{ backgroundColor: frequency === freq ? "#6E9277" : c.white, color: frequency === freq ? "#ffffff" : c.text }}>
+                      {freq === "one-time" ? "One-Time" : "Monthly Recurring"}
+                    </motion.button>
+                  ))}
+                </div>
+              ) : null}
 
               <div className="mb-6">
                 <label className="block text-xs font-semibold mb-3" style={{ color: c.text }}>Amount</label>
@@ -121,7 +124,7 @@ function DonatePageContent() {
                 </div>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: c.muted }}>$</span>
-                  <input type="number" min={1} placeholder="Custom amount" value={customAmount}
+                  <input type="number" min={1} step="0.01" placeholder="Custom amount" value={customAmount}
                     onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(""); }}
                     className="w-full pl-7 pr-4 py-2.5 rounded-xl border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]"
                     style={{ color: c.text, backgroundColor: c.cream, borderColor: "rgba(110,146,119,0.3)" }} />
@@ -134,7 +137,10 @@ function DonatePageContent() {
                   {PAYMENT_TABS.map((tab) => {
                     const Icon = tab.icon;
                     return (
-                      <motion.button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                      <motion.button key={tab.id} onClick={() => {
+                        setActiveTab(tab.id);
+                        if (tab.id !== "card") setFrequency("one-time");
+                      }}
                         whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
                         animate={{ backgroundColor: activeTab === tab.id ? "#6E9277" : c.cream, color: activeTab === tab.id ? "#ffffff" : c.text }}>
@@ -153,10 +159,8 @@ function DonatePageContent() {
                     transition={{ duration: 0.25 }}
                   >
                     {activeTab === "card" && <StripeCheckoutForm amount={displayAmount} frequency={frequency} />}
-                    {activeTab === "venmo" && <VenmoPanel amount={displayAmount} frequency={frequency} finance={finance} />}
-                    {activeTab === "mobile" && <MobilePayPanel amount={displayAmount} finance={finance} />}
+                    {activeTab === "venmo" && <VenmoPanel amount={displayAmount} frequency="one-time" finance={finance} />}
                     {activeTab === "bank" && <BankPanel amount={displayAmount} finance={finance} />}
-                    {activeTab === "other" && <OtherPanel amount={displayAmount} finance={finance} />}
                   </motion.div>
                 </AnimatePresence>
               </div>

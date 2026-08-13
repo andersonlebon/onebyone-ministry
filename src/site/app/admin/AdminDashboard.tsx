@@ -183,7 +183,7 @@ export default function AdminDashboard() {
         <div className="px-6 py-4 border-t border-muted bg-muted/30">
           <p className="text-xs text-muted-foreground leading-relaxed">
             These are reminders, not blockers. Click <strong className="text-foreground">Fix</strong> to open the right admin page.
-            Card donations (Stripe) are configured separately and are still being reviewed.
+            Public giving supports Card (Stripe), Venmo, and Bank Transfer.
           </p>
         </div>
       </div>

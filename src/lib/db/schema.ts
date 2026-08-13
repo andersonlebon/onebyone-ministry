@@ -1,4 +1,14 @@
-import { integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 export const mediaFolders = ["photos", "projects", "posts", "videos", "brand", "general"] as const;
 export type MediaFolder = (typeof mediaFolders)[number];
@@ -101,7 +111,7 @@ export const donations = pgTable("donations", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull(),
-  amount: integer("amount").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2, mode: "number" }).notNull(),
   currency: text("currency").notNull().default("USD"),
   method: text("method").notNull(),
   status: text("status").notNull(),
@@ -109,8 +119,54 @@ export const donations = pgTable("donations", {
   date: text("date").notNull(),
   notes: text("notes").notNull().default(""),
   transactionId: text("transaction_id"),
+  providerEventId: text("provider_event_id"),
+  stripeTransactionId: text("stripe_transaction_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  receiptPath: text("receipt_path"),
+  receiptOriginalName: text("receipt_original_name"),
+  receiptContentType: text("receipt_content_type"),
+  receiptSize: integer("receipt_size"),
+  transferDate: text("transfer_date"),
+  transferReference: text("transfer_reference"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => [
+  uniqueIndex("donations_provider_event_id_unique").on(table.providerEventId),
+  uniqueIndex("donations_stripe_transaction_id_unique").on(table.stripeTransactionId),
+  uniqueIndex("donations_receipt_path_unique").on(table.receiptPath),
+  index("donations_stripe_subscription_id_idx").on(table.stripeSubscriptionId),
+]);
 
 export type DonationRow = typeof donations.$inferSelect;
 export type NewDonationRow = typeof donations.$inferInsert;
+
+/** Short-lived intent for an anonymous donor's direct upload to private storage. */
+export const donationReceiptUploads = pgTable("donation_receipt_uploads", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  path: text("path").notNull().unique(),
+  emailHash: text("email_hash").notNull(),
+  ipHash: text("ip_hash").notNull(),
+  originalName: text("original_name").notNull(),
+  contentType: text("content_type").notNull(),
+  size: integer("size").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("donation_receipt_uploads_ip_created_idx").on(table.ipHash, table.createdAt),
+  index("donation_receipt_uploads_email_created_idx").on(table.emailHash, table.createdAt),
+]).enableRLS();
+
+export type DonationReceiptUpload = typeof donationReceiptUploads.$inferSelect;
+export type NewDonationReceiptUpload = typeof donationReceiptUploads.$inferInsert;
+
+/** Durable abuse guard for public donation endpoints. Stores only keyed hashes. */
+export const donationRequestLog = pgTable("donation_request_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  kind: text("kind").notNull(),
+  ipHash: text("ip_hash").notNull(),
+  emailHash: text("email_hash"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+}, (table) => [
+  index("donation_request_log_ip_created_idx").on(table.kind, table.ipHash, table.createdAt),
+  index("donation_request_log_email_created_idx").on(table.kind, table.emailHash, table.createdAt),
+]).enableRLS();

@@ -5,17 +5,23 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { useForm } from "react-hook-form";
 import {
-  Heart,
   Shield,
   CreditCard,
   Copy,
   Check,
   CheckCircle2,
   ExternalLink,
+  Loader2,
   Mail,
+  Upload,
 } from "lucide-react";
 
 import { parseDonationAmount } from "@/lib/donate/amount";
+import {
+  DONATION_RECEIPTS_BUCKET,
+  DONATION_RECEIPT_TYPES,
+  MAX_DONATION_RECEIPT_BYTES,
+} from "@/lib/donate/receipt-types";
 import {
   bankDetailsText,
   cashAppPayUrl,
@@ -29,6 +35,7 @@ import {
   zelleReceiptMailto,
 } from "@/lib/donate/payment-links";
 import type { FinanceDetails } from "@/lib/site-content/types";
+import { createClient } from "@/lib/supabase/client";
 import { useColors } from "@/site/lib/themeStore";
 
 function useDonationColors() {
@@ -36,7 +43,6 @@ function useDonationColors() {
 }
 
 function AmountError({ amount }: { amount: string }) {
-  const c = useDonationColors();
   if (parseDonationAmount(amount)) return null;
   return (
     <p className="text-sm text-red-600 mb-3">Enter a valid donation amount of at least $1 above.</p>
@@ -122,7 +128,7 @@ export function StripeCheckoutForm({ amount, frequency }: { amount: string; freq
       });
       const json = await res.json().catch(() => ({}));
       if (json.url) {
-        window.location.href = json.url;
+        window.location.assign(json.url);
         return;
       }
       setCheckoutError(json.error ?? "Card checkout is not available right now. Try Venmo or another method.");
@@ -271,6 +277,155 @@ export function MobilePayPanel({ amount, finance }: { amount: string; finance: F
   );
 }
 
+function BankReceiptForm({ amount }: { amount: string }) {
+  const c = useDonationColors();
+  const validAmount = parseDonationAmount(amount);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [transferDate, setTransferDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [reference, setReference] = useState("");
+  const [notes, setNotes] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [company, setCompany] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!validAmount || !file) {
+      setError("Enter a valid amount and choose a receipt file.");
+      return;
+    }
+    if (
+      !(DONATION_RECEIPT_TYPES as readonly string[]).includes(file.type) ||
+      file.size > MAX_DONATION_RECEIPT_BYTES
+    ) {
+      setError("Choose a JPEG, PNG, or PDF receipt no larger than 10 MB.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const uploadResponse = await fetch("/api/donate/bank-receipt/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          fileName: file.name,
+          contentType: file.type,
+          size: file.size,
+          company,
+        }),
+      });
+      const upload = await uploadResponse.json().catch(() => ({}));
+      if (!uploadResponse.ok || !upload.intentId || !upload.path || !upload.token) {
+        throw new Error(upload.error ?? "Could not prepare the receipt upload.");
+      }
+
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from(DONATION_RECEIPTS_BUCKET)
+        .uploadToSignedUrl(upload.path, upload.token, file, {
+          contentType: file.type,
+        });
+      if (uploadError) throw uploadError;
+
+      const finalizeResponse = await fetch("/api/donate/bank-receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          intentId: upload.intentId,
+          name,
+          email,
+          amount: validAmount,
+          transferDate,
+          reference,
+          notes,
+          company,
+        }),
+      });
+      const result = await finalizeResponse.json().catch(() => ({}));
+      if (!finalizeResponse.ok) {
+        throw new Error(result.error ?? "Could not submit receipt proof.");
+      }
+      setSubmitted(true);
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Could not submit receipt proof.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="rounded-xl p-5 flex items-start gap-3" style={{ backgroundColor: "#6E927715", color: c.text }}>
+        <CheckCircle2 size={20} style={{ color: "#6E9277" }} className="mt-0.5 flex-shrink-0" />
+        <div>
+          <p className="text-sm font-semibold">We received your transfer proof.</p>
+          <p className="text-xs mt-1" style={{ color: c.muted }}>
+            Finance will verify the transfer and send a receipt to {email}.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const inputClass = "w-full px-3 py-2.5 rounded-lg border text-sm placeholder-[#a09890] focus:outline-none focus:border-[#6E9277]";
+  return (
+    <form onSubmit={submit} className="space-y-4 pt-3 border-t" style={{ borderColor: c.borderLight }}>
+      <div>
+        <h4 className="text-sm font-semibold" style={{ color: c.text }}>Upload transfer proof</h4>
+        <p className="text-xs mt-1" style={{ color: c.muted }}>
+          After sending the transfer, submit a screenshot or PDF. This is a one-time gift and will remain pending until finance verifies it.
+        </p>
+      </div>
+      <AmountError amount={amount} />
+      <div className="grid sm:grid-cols-2 gap-3">
+        <input required value={name} onChange={(event) => setName(event.target.value)} placeholder="Full name" className={inputClass} style={{ borderColor: c.borderLight }} />
+        <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email for receipt" className={inputClass} style={{ borderColor: c.borderLight }} />
+      </div>
+      <div className="grid sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>Transfer date</label>
+          <input required type="date" value={transferDate} max={new Date().toISOString().slice(0, 10)} onChange={(event) => setTransferDate(event.target.value)} className={inputClass} style={{ borderColor: c.borderLight }} />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold mb-1.5" style={{ color: c.text }}>Reference (optional)</label>
+          <input value={reference} maxLength={120} onChange={(event) => setReference(event.target.value)} placeholder="Wire or transfer reference" className={inputClass} style={{ borderColor: c.borderLight }} />
+        </div>
+      </div>
+      <textarea value={notes} maxLength={1000} onChange={(event) => setNotes(event.target.value)} placeholder="Note for finance (optional)" rows={2} className={`${inputClass} resize-none`} style={{ borderColor: c.borderLight }} />
+      <label className="block rounded-xl border border-dashed p-4 cursor-pointer text-center" style={{ borderColor: c.borderLight }}>
+        <Upload size={18} className="mx-auto mb-2" style={{ color: "#6E9277" }} />
+        <span className="text-xs font-semibold" style={{ color: c.text }}>
+          {file ? file.name : "Choose receipt (JPEG, PNG, or PDF)"}
+        </span>
+        <span className="block text-[11px] mt-1" style={{ color: c.muted }}>Maximum 10 MB. Stored privately.</span>
+        <input
+          required
+          type="file"
+          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+          className="sr-only"
+          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+        />
+      </label>
+      <input tabIndex={-1} autoComplete="off" value={company} onChange={(event) => setCompany(event.target.value)} className="hidden" aria-hidden="true" />
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      <button
+        type="submit"
+        disabled={submitting || !validAmount}
+        className="w-full py-3.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50"
+        style={{ backgroundColor: "#6E9277" }}
+      >
+        {submitting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+        {submitting ? "Submitting securely..." : "Submit Transfer Proof"}
+      </button>
+    </form>
+  );
+}
+
 export function BankPanel({ amount, finance }: { amount: string; finance: FinanceDetails }) {
   const c = useDonationColors();
   const [copiedAll, setCopiedAll] = useState(false);
@@ -303,8 +458,9 @@ export function BankPanel({ amount, finance }: { amount: string; finance: Financ
         {copiedAll ? "All bank details copied" : "Copy all bank details"}
       </button>
       <p className="text-xs leading-relaxed" style={{ color: c.muted }}>
-        Use memo &quot;Donation&quot; on your transfer. Email {finance.financeEmail || "our finance team"} with confirmation for your tax receipt.
+        Use memo &quot;Donation&quot; on your transfer, then upload proof below for finance verification.
       </p>
+      <BankReceiptForm amount={amount} />
     </div>
   );
 }
@@ -369,7 +525,6 @@ export function OtherPanel({ amount, finance }: { amount: string; finance: Finan
 }
 
 export function DonationSuccessBanner() {
-  const c = useDonationColors();
   return (
     <motion.div
       initial={{ opacity: 0, y: -12 }}
@@ -379,9 +534,24 @@ export function DonationSuccessBanner() {
     >
       <CheckCircle2 size={22} className="flex-shrink-0 mt-0.5" />
       <div>
-        <p className="font-semibold text-sm">Thank you for your gift!</p>
-        <p className="text-sm text-white/85 mt-1">Your donation helps change lives in Congo. A receipt will be emailed when applicable.</p>
+        <p className="font-semibold text-sm">Thank you for completing Checkout.</p>
+        <p className="text-sm text-white/85 mt-1">Stripe is confirming your payment. A receipt will be emailed when applicable.</p>
       </div>
+    </motion.div>
+  );
+}
+
+export function DonationCancelledBanner() {
+  const c = useDonationColors();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-3xl mx-auto mb-6 rounded-2xl p-5"
+      style={{ backgroundColor: c.white, border: `1px solid ${c.borderLight}`, color: c.text }}
+    >
+      <p className="font-semibold text-sm">Checkout was cancelled.</p>
+      <p className="text-sm mt-1" style={{ color: c.muted }}>No card payment was completed. You can try again below.</p>
     </motion.div>
   );
 }

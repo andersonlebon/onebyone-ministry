@@ -92,7 +92,7 @@ export default function AdminFinance() {
         <div>
           <h1 className="text-2xl text-foreground">Finance Details</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Venmo, Zelle, bank, check, and other giving details. These appear publicly on the Donate page.
+            Venmo and bank details appear publicly on the Donate page. Legacy giving fields remain available here for historical records but are not shown publicly.
           </p>
           <p className="text-xs text-muted-foreground mt-2 max-w-2xl leading-relaxed">
             Only enter information you are comfortable sharing with donors (account and routing numbers for incoming gifts, not online banking passwords or PINs).

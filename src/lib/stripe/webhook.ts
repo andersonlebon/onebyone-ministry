@@ -1,22 +1,29 @@
-import crypto from "node:crypto";
+import type Stripe from "stripe";
 
-export function verifyStripeWebhookSignature(payload: string, signatureHeader: string, secret: string) {
-  const parts = signatureHeader.split(",").reduce<Record<string, string>>((acc, part) => {
-    const [key, value] = part.split("=");
-    if (key && value) acc[key] = value;
-    return acc;
-  }, {});
-
-  const timestamp = parts.t;
-  const signature = parts.v1;
-  if (!timestamp || !signature) return false;
-
-  const signedPayload = `${timestamp}.${payload}`;
-  const expected = crypto.createHmac("sha256", secret).update(signedPayload, "utf8").digest("hex");
-
-  try {
-    return crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"));
-  } catch {
-    return false;
+/** Verify a Stripe webhook with timestamp tolerance and secret rotation support. */
+export function constructStripeWebhookEvent(
+  stripe: Stripe,
+  payload: string,
+  signature: string,
+  webhookSecrets: string,
+  toleranceSeconds = 300
+) {
+  const secrets = webhookSecrets
+    .split(",")
+    .map((secret) => secret.trim())
+    .filter(Boolean);
+  let lastError: unknown;
+  for (const secret of secrets) {
+    try {
+      return stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        secret,
+        toleranceSeconds
+      );
+    } catch (error) {
+      lastError = error;
+    }
   }
+  throw lastError ?? new Error("No Stripe webhook secret configured.");
 }

@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { CheckCircle2, XCircle, Clock, Plus, Trash2, X, Save, DollarSign, Search, Filter } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Plus, Trash2, X, Save, DollarSign, Search, Filter, Eye, RefreshCw, type LucideIcon } from "lucide-react";
+import { getDonationReceiptUrlAction } from "@/app/actions/donations";
+import { monthlyRecurringTotal, totalRaised } from "@/lib/donate/admin-totals";
 import { useSiteStore, Donation } from "@/site/lib/siteStore";
 
 const METHOD_LABELS: Record<Donation["method"], string> = {
@@ -10,7 +12,7 @@ const METHOD_LABELS: Record<Donation["method"], string> = {
   venmo: "Venmo", zelle: "Zelle", check: "Check", crypto: "Crypto", daf: "DAF", other: "Other",
 };
 
-const STATUS_CONFIG: Record<Donation["status"], { label: string; color: string; bg: string; icon: any }> = {
+const STATUS_CONFIG: Record<Donation["status"], { label: string; color: string; bg: string; icon: LucideIcon }> = {
   completed: { label: "Completed", color: "#6E9277", bg: "#6E9277" + "15", icon: CheckCircle2 },
   approved:  { label: "Approved",  color: "#5a7d64", bg: "#5a7d64" + "15", icon: CheckCircle2 },
   pending:   { label: "Pending",   color: "#d97706", bg: "#d97706" + "15", icon: Clock },
@@ -22,7 +24,8 @@ function AddDonationModal({ onSave, onClose }: { onSave: (d: Omit<Donation, "id"
     name: "", email: "", amount: 0, currency: "USD", method: "bank",
     status: "pending", frequency: "one-time", date: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }), notes: "", transactionId: "",
   });
-  const set = (k: keyof typeof form, v: any) => setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
+    setForm((current) => ({ ...current, [key]: value }));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }} onClick={onClose}>
@@ -53,7 +56,7 @@ function AddDonationModal({ onSave, onClose }: { onSave: (d: Omit<Donation, "id"
             </div>
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">Frequency</label>
-              <select value={form.frequency} onChange={(e) => set("frequency", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm bg-card focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }}>
+              <select value={form.frequency} onChange={(e) => set("frequency", e.target.value as Donation["frequency"])} className="w-full px-3 py-2.5 rounded-xl border text-sm bg-card focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }}>
                 <option value="one-time">One-Time</option>
                 <option value="monthly">Monthly</option>
               </select>
@@ -62,13 +65,13 @@ function AddDonationModal({ onSave, onClose }: { onSave: (d: Omit<Donation, "id"
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">Payment Method</label>
-              <select value={form.method} onChange={(e) => set("method", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm bg-card focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }}>
+              <select value={form.method} onChange={(e) => set("method", e.target.value as Donation["method"])} className="w-full px-3 py-2.5 rounded-xl border text-sm bg-card focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }}>
                 {Object.entries(METHOD_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-foreground mb-1.5">Status</label>
-              <select value={form.status} onChange={(e) => set("status", e.target.value)} className="w-full px-3 py-2.5 rounded-xl border text-sm bg-card focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }}>
+              <select value={form.status} onChange={(e) => set("status", e.target.value as Donation["status"])} className="w-full px-3 py-2.5 rounded-xl border text-sm bg-card focus:outline-none focus:border-[#6E9277]" style={{ borderColor: "rgba(110,146,119,0.3)" }}>
                 <option value="pending">Pending Approval</option>
                 <option value="approved">Approved</option>
                 <option value="completed">Completed</option>
@@ -99,10 +102,37 @@ function AddDonationModal({ onSave, onClose }: { onSave: (d: Omit<Donation, "id"
 }
 
 export default function AdminDonations() {
-  const { donations, updateDonation, deleteDonation, addDonation } = useSiteStore();
+  const { donations, updateDonation, deleteDonation, addDonation, refreshDonations } = useSiteStore();
   const [statusFilter, setStatusFilter] = useState<Donation["status"] | "all">("all");
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [proofLoading, setProofLoading] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const openProof = async (id: string) => {
+    const proofWindow = window.open("about:blank", "_blank");
+    if (proofWindow) proofWindow.opener = null;
+    setProofLoading(id);
+    try {
+      const url = await getDonationReceiptUrlAction(id);
+      if (proofWindow) proofWindow.location.href = url;
+      else window.open(url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      proofWindow?.close();
+      alert(error instanceof Error ? error.message : "Could not open receipt proof.");
+    } finally {
+      setProofLoading(null);
+    }
+  };
+
+  const refresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshDonations();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const filtered = donations.filter((d) => {
     const matchStatus = statusFilter === "all" || d.status === statusFilter;
@@ -112,9 +142,9 @@ export default function AdminDonations() {
     return matchStatus && matchSearch;
   });
 
-  const total = donations.filter(d => d.status !== "rejected").reduce((s, d) => s + d.amount, 0);
+  const total = totalRaised(donations);
   const pending = donations.filter(d => d.status === "pending");
-  const monthly = donations.filter(d => d.frequency === "monthly" && d.status !== "rejected").reduce((s, d) => s + d.amount, 0);
+  const monthly = monthlyRecurringTotal(donations);
 
   return (
     <div>
@@ -123,10 +153,16 @@ export default function AdminDonations() {
           <h1 className="text-2xl text-foreground">Donations</h1>
           <p className="text-sm text-muted-foreground">{donations.length} records · {pending.length} pending approval</p>
         </div>
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: "#6E9277" }}>
-          <Plus size={15} /> Record Donation
-        </motion.button>
+        <div className="flex gap-2">
+          <button onClick={() => void refresh()} disabled={refreshing}
+            className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold border border-muted text-foreground disabled:opacity-50">
+            <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} /> Refresh
+          </button>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ backgroundColor: "#6E9277" }}>
+            <Plus size={15} /> Record Donation
+          </motion.button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -158,6 +194,12 @@ export default function AdminDonations() {
                   <p className="text-xs text-muted-foreground">{d.notes || d.date}</p>
                 </div>
                 <div className="flex gap-2">
+                  {d.receiptPath && (
+                    <button onClick={() => void openProof(d.id)} disabled={proofLoading === d.id}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-muted text-foreground disabled:opacity-50">
+                      <Eye size={12} /> {proofLoading === d.id ? "Opening..." : "View proof"}
+                    </button>
+                  )}
                   <motion.button whileHover={{ scale: 1.07 }} whileTap={{ scale: 0.95 }}
                     onClick={() => updateDonation(d.id, { status: "approved" })}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: "#6E9277" }}>
@@ -197,7 +239,7 @@ export default function AdminDonations() {
 
       {/* Donations table */}
       <div className="bg-card rounded-2xl border border-muted overflow-hidden">
-        <div className="grid grid-cols-[1fr_100px_120px_100px_110px_100px] gap-0 px-5 py-3 border-b border-muted text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+        <div className="grid grid-cols-[1fr_100px_120px_100px_110px_130px] gap-0 px-5 py-3 border-b border-muted text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           <span>Donor</span><span>Amount</span><span>Method</span><span>Type</span><span>Status</span><span>Actions</span>
         </div>
         <div className="divide-y divide-muted">
@@ -208,11 +250,12 @@ export default function AdminDonations() {
               return (
                 <motion.div key={d.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}
                   transition={{ delay: i * 0.03 }}
-                  className="grid grid-cols-[1fr_100px_120px_100px_110px_100px] gap-0 px-5 py-3.5 items-center hover:bg-muted">
+                  className="grid grid-cols-[1fr_100px_120px_100px_110px_130px] gap-0 px-5 py-3.5 items-center hover:bg-muted">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{d.name}</p>
                     <p className="text-xs text-muted-foreground">{d.email} · {d.date}</p>
                     {d.transactionId && <p className="text-xs text-muted-foreground/70 font-mono">{d.transactionId}</p>}
+                    {d.transferDate && <p className="text-xs text-muted-foreground">Transfer date: {d.transferDate}</p>}
                   </div>
                   <p className="text-sm font-bold" style={{ color: "#6E9277" }}>${d.amount.toLocaleString()}</p>
                   <p className="text-xs text-foreground">{METHOD_LABELS[d.method]}</p>
@@ -221,6 +264,12 @@ export default function AdminDonations() {
                     <StatusIcon size={11} /> {sc.label}
                   </span>
                   <div className="flex gap-1">
+                    {d.receiptPath && (
+                      <button onClick={() => void openProof(d.id)} disabled={proofLoading === d.id}
+                        className="p-1.5 rounded-lg hover:bg-muted text-foreground disabled:opacity-50" title="View private proof">
+                        <Eye size={14} />
+                      </button>
+                    )}
                     {d.status === "pending" && (
                       <motion.button whileHover={{ scale: 1.12 }} onClick={() => updateDonation(d.id, { status: "approved" })}
                         className="p-1.5 rounded-lg hover:bg-green-50 text-[#6E9277]" title="Approve">

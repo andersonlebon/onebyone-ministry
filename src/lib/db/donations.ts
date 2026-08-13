@@ -18,6 +18,39 @@ function rowToDonation(row: DonationRow): Donation {
     date: row.date,
     notes: row.notes,
     transactionId: row.transactionId ?? undefined,
+    providerEventId: row.providerEventId ?? undefined,
+    stripeTransactionId: row.stripeTransactionId ?? undefined,
+    stripeSubscriptionId: row.stripeSubscriptionId ?? undefined,
+    receiptPath: row.receiptPath ?? undefined,
+    receiptOriginalName: row.receiptOriginalName ?? undefined,
+    receiptContentType: row.receiptContentType ?? undefined,
+    receiptSize: row.receiptSize ?? undefined,
+    transferDate: row.transferDate ?? undefined,
+    transferReference: row.transferReference ?? undefined,
+  };
+}
+
+function donationValues(input: Omit<Donation, "id">) {
+  return {
+    name: input.name,
+    email: input.email,
+    amount: input.amount,
+    currency: input.currency,
+    method: input.method,
+    status: input.status,
+    frequency: input.frequency,
+    date: input.date,
+    notes: input.notes,
+    transactionId: input.transactionId ?? null,
+    providerEventId: input.providerEventId ?? null,
+    stripeTransactionId: input.stripeTransactionId ?? null,
+    stripeSubscriptionId: input.stripeSubscriptionId ?? null,
+    receiptPath: input.receiptPath ?? null,
+    receiptOriginalName: input.receiptOriginalName ?? null,
+    receiptContentType: input.receiptContentType ?? null,
+    receiptSize: input.receiptSize ?? null,
+    transferDate: input.transferDate ?? null,
+    transferReference: input.transferReference ?? null,
   };
 }
 
@@ -31,22 +64,30 @@ export async function createDonation(input: Omit<Donation, "id">): Promise<Donat
   const db = getDb();
   const [row] = await db
     .insert(donations)
-    .values({
-      name: input.name,
-      email: input.email,
-      amount: input.amount,
-      currency: input.currency,
-      method: input.method,
-      status: input.status,
-      frequency: input.frequency,
-      date: input.date,
-      notes: input.notes,
-      transactionId: input.transactionId ?? null,
-    })
+    .values(donationValues(input))
     .returning();
 
   if (!row) throw new Error("Failed to create donation");
   return rowToDonation(row);
+}
+
+/** Stripe retries webhook events. A provider event id may create at most one row. */
+export async function createDonationIdempotent(
+  input: Omit<Donation, "id"> & { providerEventId: string }
+): Promise<Donation | null> {
+  const db = getDb();
+  const [row] = await db
+    .insert(donations)
+    .values(donationValues(input))
+    .onConflictDoNothing()
+    .returning();
+  return row ? rowToDonation(row) : null;
+}
+
+export async function getDonationById(id: string): Promise<Donation | null> {
+  const db = getDb();
+  const [row] = await db.select().from(donations).where(eq(donations.id, id)).limit(1);
+  return row ? rowToDonation(row) : null;
 }
 
 export async function updateDonationRow(id: string, input: Partial<Omit<Donation, "id">>): Promise<Donation> {
@@ -63,6 +104,15 @@ export async function updateDonationRow(id: string, input: Partial<Omit<Donation
       ...(input.date !== undefined ? { date: input.date } : {}),
       ...(input.notes !== undefined ? { notes: input.notes } : {}),
       ...(input.transactionId !== undefined ? { transactionId: input.transactionId ?? null } : {}),
+      ...(input.providerEventId !== undefined ? { providerEventId: input.providerEventId ?? null } : {}),
+      ...(input.stripeTransactionId !== undefined ? { stripeTransactionId: input.stripeTransactionId ?? null } : {}),
+      ...(input.stripeSubscriptionId !== undefined ? { stripeSubscriptionId: input.stripeSubscriptionId ?? null } : {}),
+      ...(input.receiptPath !== undefined ? { receiptPath: input.receiptPath ?? null } : {}),
+      ...(input.receiptOriginalName !== undefined ? { receiptOriginalName: input.receiptOriginalName ?? null } : {}),
+      ...(input.receiptContentType !== undefined ? { receiptContentType: input.receiptContentType ?? null } : {}),
+      ...(input.receiptSize !== undefined ? { receiptSize: input.receiptSize ?? null } : {}),
+      ...(input.transferDate !== undefined ? { transferDate: input.transferDate ?? null } : {}),
+      ...(input.transferReference !== undefined ? { transferReference: input.transferReference ?? null } : {}),
     })
     .where(eq(donations.id, id))
     .returning();
@@ -74,6 +124,19 @@ export async function updateDonationRow(id: string, input: Partial<Omit<Donation
 export async function deleteDonationRow(id: string): Promise<void> {
   const db = getDb();
   await db.delete(donations).where(eq(donations.id, id));
+}
+
+export async function clearDonationReceiptMetadata(id: string): Promise<void> {
+  const db = getDb();
+  await db
+    .update(donations)
+    .set({
+      receiptPath: null,
+      receiptOriginalName: null,
+      receiptContentType: null,
+      receiptSize: null,
+    })
+    .where(eq(donations.id, id));
 }
 
 export async function replaceAllDonations(items: Donation[]): Promise<Donation[]> {
@@ -97,6 +160,15 @@ export async function replaceAllDonations(items: Donation[]): Promise<Donation[]
         date: item.date,
         notes: item.notes,
         transactionId: item.transactionId ?? null,
+        providerEventId: item.providerEventId ?? null,
+        stripeTransactionId: item.stripeTransactionId ?? null,
+        stripeSubscriptionId: item.stripeSubscriptionId ?? null,
+        receiptPath: item.receiptPath ?? null,
+        receiptOriginalName: item.receiptOriginalName ?? null,
+        receiptContentType: item.receiptContentType ?? null,
+        receiptSize: item.receiptSize ?? null,
+        transferDate: item.transferDate ?? null,
+        transferReference: item.transferReference ?? null,
       }))
     )
     .returning();

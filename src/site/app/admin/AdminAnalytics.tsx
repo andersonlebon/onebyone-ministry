@@ -1,9 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { motion } from "motion/react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from "recharts";
-import { TrendingUp, DollarSign, Users, Heart, Download } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid } from "recharts";
+import { TrendingUp, DollarSign, Users, Heart, Download, type LucideIcon } from "lucide-react";
 import { useSiteStore, type Donation } from "@/site/lib/siteStore";
+import { monthlyRecurringTotal, totalRaised as calculateTotalRaised } from "@/lib/donate/admin-totals";
 import { useTheme } from "@/site/lib/themeStore";
 import { isDemoContentEnabled } from "@/lib/runtime-env";
 import { DEMO_MONTHLY_ANALYTICS } from "@/site/lib/store-defaults";
@@ -38,7 +40,13 @@ function buildMonthlyTrendFromDonations(donations: Donation[]) {
     }));
 }
 
-function StatCard({ icon: Icon, label, value, sub, color }: any) {
+function StatCard({ icon: Icon, label, value, sub, color }: {
+  icon: LucideIcon;
+  label: string;
+  value: ReactNode;
+  sub: string;
+  color: string;
+}) {
   return (
     <motion.div whileHover={{ y: -4 }} className="bg-card rounded-2xl border border-muted p-5">
       <div className="flex items-center justify-between mb-3">
@@ -68,9 +76,9 @@ export default function AdminAnalytics() {
     color: isDark ? "#EDE7DA" : "#474747",
   };
 
-  const validDonations = donations.filter(d => d.status !== "rejected");
-  const totalRaised = validDonations.reduce((s, d) => s + d.amount, 0);
-  const monthlyRecurring = donations.filter(d => d.frequency === "monthly" && d.status !== "rejected").reduce((s, d) => s + d.amount, 0);
+  const validDonations = donations.filter(d => d.status === "approved" || d.status === "completed");
+  const totalRaised = calculateTotalRaised(donations);
+  const monthlyRecurring = monthlyRecurringTotal(donations);
   const uniqueDonors = new Set(donations.map(d => d.email)).size;
   const avgGift = validDonations.length > 0 ? Math.round(totalRaised / validDonations.length) : 0;
 

@@ -55,7 +55,7 @@ const GUIDE_ITEMS = [
     href: "/admin/finance",
     icon: Landmark,
     title: "Finance Details",
-    edits: "Donate page info: Venmo, Zelle, bank, check, crypto, etc.",
+    edits: "Donate page info: card readiness, Venmo, and bank transfer details.",
     showsOn: "Donate page (/donate)",
     color: "#6E9277",
   },

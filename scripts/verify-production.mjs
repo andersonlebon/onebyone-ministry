@@ -51,7 +51,7 @@ async function gotoWithRetry(page, url) {
 }
 
 async function verifyLogin(adminPage) {
-  console.log("\n[1/3] Admin login");
+  console.log("\n[1/4] Admin login");
   await gotoWithRetry(adminPage, `${BASE}/admin/login`);
   await adminPage.waitForSelector('button[type="submit"]:not([disabled])', { timeout: 30_000 });
   await adminPage.fill('input[type="email"]', EMAIL);
@@ -69,7 +69,7 @@ async function verifyLogin(adminPage) {
 }
 
 async function verifySettingsTextSync(adminPage, publicPage) {
-  console.log("\n[2/3] Settings text sync");
+  console.log("\n[2/4] Settings text sync");
   await gotoWithRetry(adminPage, `${BASE}/admin/settings`);
   await adminPage.locator("h1", { hasText: "Site Settings" }).waitFor({ timeout: 30_000 });
 
@@ -101,7 +101,7 @@ async function verifySettingsTextSync(adminPage, publicPage) {
 }
 
 async function verifyHomepageBannerImage(adminPage, publicPage) {
-  console.log("\n[3/3] Homepage banner image sync");
+  console.log("\n[3/4] Homepage banner image sync");
   await gotoWithRetry(adminPage, `${BASE}/admin/settings`);
 
   const heroSlot = adminPage.locator("p", { hasText: "Homepage hero" }).locator("xpath=ancestor::div[1]");
@@ -141,6 +141,31 @@ async function verifyHomepageBannerImage(adminPage, publicPage) {
   console.log("PASS: Homepage banner image matches admin after refresh");
 }
 
+async function verifyDonateMethods(publicPage) {
+  console.log("\n[4/4] Donate methods (no payment submitted)");
+  await gotoWithRetry(publicPage, `${BASE}/donate?v=${Date.now()}`);
+
+  for (const label of ["Credit / Debit Card", "Venmo", "Bank Transfer"]) {
+    await publicPage.getByRole("button", { name: label, exact: true }).waitFor({ timeout: 15_000 });
+  }
+  for (const hiddenLabel of ["Cash App / Zelle", "Other Methods"]) {
+    if (await publicPage.getByRole("button", { name: hiddenLabel, exact: true }).count()) {
+      throw new Error(`${hiddenLabel} is still visible on the public Donate page`);
+    }
+  }
+
+  await publicPage.getByRole("button", { name: "Venmo", exact: true }).click();
+  if (await publicPage.getByRole("button", { name: "Monthly Recurring", exact: true }).count()) {
+    throw new Error("Monthly frequency is visible for Venmo");
+  }
+  await publicPage.getByRole("button", { name: "Bank Transfer", exact: true }).click();
+  if (await publicPage.getByRole("button", { name: "Monthly Recurring", exact: true }).count()) {
+    throw new Error("Monthly frequency is visible for Bank Transfer");
+  }
+
+  console.log("PASS: Only Card, Venmo, and Bank Transfer are visible");
+}
+
 async function main() {
   const browser = await firefox.launch({ headless: true });
   const failures = [];
@@ -165,6 +190,13 @@ async function main() {
         await verifyHomepageBannerImage(adminPage, publicPage);
       } catch (err) {
         failures.push(`Banner image: ${err instanceof Error ? err.message : err}`);
+      }
+    }
+    if (failures.length === 0) {
+      try {
+        await verifyDonateMethods(publicPage);
+      } catch (err) {
+        failures.push(`Donate methods: ${err instanceof Error ? err.message : err}`);
       }
     }
     await publicPage.close();

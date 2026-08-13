@@ -49,6 +49,29 @@ for (const key of required) {
   console.log(`OK       ${key}`);
 }
 
+const donationRequired = [
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET",
+  "DONATION_RATE_LIMIT_SECRET",
+] as const;
+const donationConfigured = donationRequired.some((key) => process.env[key]?.trim());
+if (donationConfigured) {
+  for (const key of donationRequired) {
+    if (!process.env[key]?.trim()) {
+      console.error(`MISSING  ${key} (required when card donations are enabled)`);
+      ok = false;
+    } else {
+      console.log(`OK       ${key}`);
+    }
+  }
+} else {
+  console.warn("INFO     Stripe card donations are not configured in this environment.");
+}
+
+if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim()) {
+  console.warn("INFO     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is optional for hosted Checkout.");
+}
+
 if (process.env.NEXT_PUBLIC_SITE_URL?.includes("localhost")) {
   console.warn("WARN     NEXT_PUBLIC_SITE_URL is localhost (fine for dev, not for Vercel production).");
 }

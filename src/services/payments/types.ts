@@ -1,5 +1,5 @@
 export interface DonationParams {
-  /** Whole-dollar amount (USD). */
+  /** USD amount with at most two decimal places. */
   amount: number;
   frequency: "one-time" | "monthly";
   successUrl: string;

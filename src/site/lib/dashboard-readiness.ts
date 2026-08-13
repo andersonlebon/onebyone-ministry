@@ -1,8 +1,7 @@
 import type { FinanceDetails, Post, Project, SiteSettings } from "@/lib/site-content/types";
 import {
-  hasAlternativeGivingDetails,
   hasBankDetails,
-  hasMobileGivingDetails,
+  getMobileGivingValue,
 } from "@/lib/donate/payment-links";
 import type { PaymentEnvStatus } from "@/lib/donate/payment-env-types";
 
@@ -20,8 +19,7 @@ function hasFinanceConfigured(finance: FinanceDetails) {
     finance.financeEmail.trim() ||
       finance.taxStatus.ein.trim() ||
       hasBankDetails(finance) ||
-      hasMobileGivingDetails(finance) ||
-      hasAlternativeGivingDetails(finance)
+      getMobileGivingValue(finance, "Venmo")
   );
 }
 
@@ -79,8 +77,8 @@ export function buildDashboardReadiness(input: {
       id: "finance",
       label: "Finance & giving details",
       detail: hasFinanceConfigured(finance)
-        ? "Bank, mobile, check, crypto, or DAF info saved for the donate page."
-        : "Add EIN, bank, Venmo/Cash App/Zelle, and other giving instructions in Finance.",
+        ? "Finance email, Venmo, or bank information is saved for the donate page."
+        : "Add the finance email, Venmo handle, and bank transfer details in Finance.",
       done: hasFinanceConfigured(finance),
       href: "/admin/finance",
       priority: "critical",
@@ -90,18 +88,18 @@ export function buildDashboardReadiness(input: {
       label: "Finance receipt email",
       detail: finance.financeEmail.trim()
         ? finance.financeEmail
-        : "Set a finance email so donors can request tax receipts from Venmo, Zelle, and other methods.",
+        : "Set a finance email so donors can request Venmo receipts and receive bank-transfer follow-up.",
       done: Boolean(finance.financeEmail.trim()),
       href: "/admin/finance",
       priority: "important",
     },
     {
       id: "mobile-giving",
-      label: "Mobile giving (Venmo / Cash App / Zelle)",
-      detail: hasMobileGivingDetails(finance)
-        ? "At least one mobile giving handle is set for the donate page."
-        : "Add Venmo, Cash App, or Zelle details in Finance for mobile donors.",
-      done: hasMobileGivingDetails(finance),
+      label: "Venmo giving",
+      detail: getMobileGivingValue(finance, "Venmo")
+        ? "The Venmo handle is set for the donate page."
+        : "Add the ministry Venmo handle in Finance.",
+      done: Boolean(getMobileGivingValue(finance, "Venmo")),
       href: "/admin/finance",
       priority: "important",
     },
@@ -181,9 +179,9 @@ export function buildDashboardReadiness(input: {
       label: "Online giving (Stripe)",
       detail: paymentEnv?.stripeKeys
         ? paymentEnv.stripeWebhook
-          ? "Stripe keys and webhook secret are set for card checkout and donation logging."
-          : "Stripe keys are set. Add STRIPE_WEBHOOK_SECRET so completed card gifts sync to Donations."
-        : "Set STRIPE_SECRET_KEY and NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY on Vercel for card checkout.",
+          ? "Stripe secret key and webhook secret are set for card checkout and donation logging."
+          : "STRIPE_SECRET_KEY is set. Add STRIPE_WEBHOOK_SECRET so completed card gifts sync to Donations."
+        : "Set STRIPE_SECRET_KEY on Vercel for hosted card checkout.",
       done: Boolean(paymentEnv?.stripeKeys && paymentEnv?.stripeWebhook),
       href: "/admin/donations",
       priority: "optional",

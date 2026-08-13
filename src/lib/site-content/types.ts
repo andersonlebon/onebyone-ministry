@@ -101,6 +101,15 @@ export type Donation = {
   date: string;
   notes: string;
   transactionId?: string;
+  providerEventId?: string;
+  stripeTransactionId?: string;
+  stripeSubscriptionId?: string;
+  receiptPath?: string;
+  receiptOriginalName?: string;
+  receiptContentType?: string;
+  receiptSize?: number;
+  transferDate?: string;
+  transferReference?: string;
 };
 
 export type AdminUser = {
