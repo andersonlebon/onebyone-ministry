@@ -15,7 +15,8 @@
     "db:reset": "tsx scripts/db-reset.ts",
     "db:reset:all": "tsx scripts/db-reset.ts --auth",
     "check:env": "tsx scripts/check-env.ts",
-    "test:donations": "tsx scripts/verify-donation-logic.ts"
+    "test:donations": "tsx scripts/verify-donation-logic.ts",
+    "test:seo": "tsx scripts/verify-seo.ts"
   },
   "repository": {
     "type": "git",

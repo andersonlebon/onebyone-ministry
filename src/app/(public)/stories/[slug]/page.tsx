@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import {
+  articleJsonLd,
+  breadcrumbJsonLd,
+  createMetadata,
+  JsonLd,
+  parseContentDate,
+} from "@/lib/seo";
 import { getSiteContentBundle } from "@/lib/site-content/resolve";
 import { getPostBySlug } from "@/lib/site-content/posts";
-import { createMetadata } from "@/lib/seo";
 import StoryPostPage from "@/site/app/pages/StoryPostPage";
 
 export const dynamic = "force-dynamic";
@@ -23,14 +29,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: "Story Not Found",
       description: "This story could not be found.",
       path: `/stories/${slug}`,
+      index: false,
     });
   }
+
+  const published = parseContentDate(post.date);
 
   return createMetadata({
     title: post.title,
     description: post.excerpt,
     path: `/stories/${post.slug}`,
-    image: post.img || "/opengraph-image",
+    image: `/og/stories/${post.slug}`,
+    imageAlt: post.title,
+    type: "article",
+    publishedTime: published?.toISOString(),
+    authors: post.author ? [post.author] : undefined,
   });
 }
 
@@ -43,5 +56,17 @@ export default async function Page({ params }: Props) {
     notFound();
   }
 
-  return <StoryPostPage post={post} />;
+  return (
+    <>
+      <JsonLd data={articleJsonLd(post)} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Stories", path: "/stories" },
+          { name: post.title, path: `/stories/${post.slug}` },
+        ])}
+      />
+      <StoryPostPage post={post} />
+    </>
+  );
 }

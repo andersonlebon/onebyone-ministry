@@ -28,6 +28,8 @@ function loadEnvFile(path: string) {
 loadEnvFile(resolve(process.cwd(), ".env"));
 loadEnvFile(resolve(process.cwd(), ".env.local"));
 
+const { getCanonicalSiteUrl, isProductionCanonicalHost } = await import("../src/lib/site-url");
+
 const required = [
   "NEXT_PUBLIC_SITE_URL",
   "NEXT_PUBLIC_SUPABASE_URL",
@@ -72,8 +74,29 @@ if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.trim()) {
   console.warn("INFO     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is optional for hosted Checkout.");
 }
 
-if (process.env.NEXT_PUBLIC_SITE_URL?.includes("localhost")) {
-  console.warn("WARN     NEXT_PUBLIC_SITE_URL is localhost (fine for dev, not for Vercel production).");
+try {
+  const canonical = new URL(getCanonicalSiteUrl());
+  const productionCheck =
+    process.env.VERCEL_ENV === "production" || process.env.CHECK_PRODUCTION_SEO === "1";
+  if (productionCheck && !isProductionCanonicalHost(canonical.hostname)) {
+    console.error(
+      `INVALID  NEXT_PUBLIC_SITE_URL resolved to ${canonical.origin}; production must use https://www.onebyoneministries.org`
+    );
+    ok = false;
+  } else if (
+    canonical.hostname.includes("localhost") ||
+    canonical.hostname.endsWith(".vercel.app") ||
+    canonical.hostname === "onebyoneministries.org"
+  ) {
+    console.warn(
+      `WARN     NEXT_PUBLIC_SITE_URL is ${canonical.origin} (fine for local/preview, not for Vercel production).`
+    );
+  } else {
+    console.log(`OK       canonical origin ${canonical.origin}`);
+  }
+} catch {
+  console.error("INVALID  NEXT_PUBLIC_SITE_URL could not be parsed");
+  ok = false;
 }
 
 if (process.env.DATABASE_URL?.includes(":5432/")) {

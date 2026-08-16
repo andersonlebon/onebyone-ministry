@@ -1,17 +1,19 @@
+import { getCanonicalSiteUrl } from "@/lib/site-url";
+
 export const siteConfig = {
   name: "One By One Ministries",
   shortName: "OBOM",
   tagline: "Restoring hope, building faith, and serving people one life at a time.",
   description:
     "One By One Ministries is a ministry website sharing mission, projects, stories, galleries, and opportunities to get involved.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.onebyoneministries.org",
+  url: getCanonicalSiteUrl(),
   email: "contact@onebyoneministries.org",
   phone: "",
   location: "United States & Democratic Republic of Congo",
   /** Main logo (dark on light backgrounds). Used for favicon and structured data. */
   logo: "/assets/brand-transparent/6-web.png",
-  /** Fallback OG art when no hero has been uploaded yet (neutral placeholder). */
-  ogImage: "/assets/placeholders/empty.svg",
+  /** Fallback OG art when no hero has been uploaded yet. */
+  ogImage: "/opengraph-image",
   socialLinks: [
     { label: "Facebook", href: "https://facebook.com" },
     { label: "Instagram", href: "https://instagram.com" },

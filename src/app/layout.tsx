@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { Providers } from "@/site/providers";
-import { createMetadata, organizationJsonLd } from "@/lib/seo";
+import { createMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
 import "./globals.css";
 
@@ -48,11 +48,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className="antialiased">
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <script
-          type="application/ld+json"
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd()) }}
-        />
         <Providers>{children}</Providers>
       </body>
     </html>

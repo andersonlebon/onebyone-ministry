@@ -7,6 +7,7 @@ import { getSiteContentBundle } from "@/lib/site-content/resolve";
 import { getDefaultSiteContentBundle } from "@/lib/site-content/defaults";
 import { withTimeout } from "@/lib/server/with-timeout";
 import type { SiteContentBundle } from "@/lib/site-content/types";
+import { JsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { AdminEditProvider } from "@/site/lib/adminEditContext";
 import { MediaProvider } from "@/site/lib/mediaContext";
 import { SiteContentProvider } from "@/site/lib/siteContentContext";
@@ -61,6 +62,8 @@ export default async function PublicLayout({ children }: { children: React.React
     <MediaProvider media={media} version={version} albums={albums}>
       <SiteContentProvider content={content}>
         <AdminEditProvider canEdit={canEdit}>
+          <JsonLd data={organizationJsonLd(content.settings)} />
+          <JsonLd data={websiteJsonLd()} />
           <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
             <Navbar />
             {canEdit ? (

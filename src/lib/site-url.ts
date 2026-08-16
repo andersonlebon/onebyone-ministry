@@ -1,23 +1,38 @@
 const DEFAULT_SITE_URL = "https://www.onebyoneministries.org";
+const PRODUCTION_HOST = "www.onebyoneministries.org";
 
-/** Canonical public site origin (always prefer www in production). */
+function normalizeOrigin(value: string) {
+  const url = new URL(value);
+  if (url.hostname === "onebyoneministries.org") {
+    url.hostname = PRODUCTION_HOST;
+  }
+  return url.origin;
+}
+
+/** Canonical public site origin (always prefer www for the production domain). */
 export function getCanonicalSiteUrl(fallbackOrigin?: string) {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (fromEnv) return fromEnv;
+  if (fromEnv) {
+    try {
+      return normalizeOrigin(fromEnv);
+    } catch {
+      /* fall through */
+    }
+  }
 
   if (fallbackOrigin) {
     try {
-      const url = new URL(fallbackOrigin);
-      if (url.hostname === "onebyoneministries.org") {
-        url.hostname = "www.onebyoneministries.org";
-      }
-      return url.origin;
+      return normalizeOrigin(fallbackOrigin);
     } catch {
       /* fall through */
     }
   }
 
   return DEFAULT_SITE_URL;
+}
+
+export function isProductionCanonicalHost(hostname: string) {
+  return hostname === PRODUCTION_HOST;
 }
 
 export function adminDashboardPath() {
