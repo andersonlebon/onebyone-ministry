@@ -16,7 +16,8 @@
     "db:reset:all": "tsx scripts/db-reset.ts --auth",
     "check:env": "tsx scripts/check-env.ts",
     "test:donations": "tsx scripts/verify-donation-logic.ts",
-    "test:seo": "tsx scripts/verify-seo.ts"
+    "test:seo": "tsx scripts/verify-seo.ts",
+    "stripe:listen": "bash scripts/stripe-dev-listen.sh"
   },
   "repository": {
     "type": "git",

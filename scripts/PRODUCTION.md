@@ -40,7 +40,7 @@ npm run db:reset -- --force-production
 
 1. Back up the database, then apply `src/lib/db/schema.ts` with `npm run db:push`.
 2. Apply `supabase/migrations/20260813100000_private_donation_receipts.sql`; confirm `donation-receipts` is private and limited to 10 MB.
-3. Set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `DONATION_RATE_LIMIT_SECRET`, and the canonical `NEXT_PUBLIC_SITE_URL` on Vercel. The publishable Stripe key is optional for hosted Checkout.
+3. Set `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `DONATION_RATE_LIMIT_SECRET`, and the canonical `NEXT_PUBLIC_SITE_URL` on Vercel. The publishable Stripe key is optional for hosted Checkout. See `scripts/STRIPE.md` for webhook setup and smoke tests.
 4. Register `/api/stripe/webhook` for `checkout.session.completed` and `invoice.payment_succeeded`.
 5. Enter the real Venmo handle, finance email, and bank transfer details in Admin → Finance.
 6. Test with Stripe test keys first. Before live activation, verify one-time success/cancel, a later monthly renewal, duplicate webhook delivery, private bank proof upload/admin access, and rejection/deletion cleanup.
