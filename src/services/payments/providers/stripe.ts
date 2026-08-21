@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 
+import { stripeCheckoutBranding } from "@/lib/stripe/checkout-branding";
 import type { DonationParams, DonationSession, PaymentProvider } from "../types";
 
 let stripeClient: Stripe | null = null;
@@ -10,6 +11,15 @@ export function getStripeClient() {
   if (!stripeClient) stripeClient = new Stripe(secret);
   return stripeClient;
 }
+
+type CheckoutSessionCreateParams = Stripe.Checkout.SessionCreateParams & {
+  branding_settings?: {
+    background_color?: string;
+    button_color?: string;
+    border_style?: "rounded" | "rectangular" | "pill";
+    display_name?: string;
+  };
+};
 
 /** Official Stripe SDK adapter for hosted Checkout. */
 export function createStripeProvider(secretKey: string): PaymentProvider {
@@ -24,6 +34,7 @@ export function createStripeProvider(secretKey: string): PaymentProvider {
         donor_name: params.name ?? "",
         donor_email: params.email,
       };
+      const branding = stripeCheckoutBranding();
 
       try {
         const stripe = new Stripe(secretKey);
@@ -34,19 +45,25 @@ export function createStripeProvider(secretKey: string): PaymentProvider {
           customer_email: params.email,
           metadata,
           submit_type: recurring ? "auto" : "donate",
+          branding_settings: branding.brandingSettings,
+          custom_text: branding.customText,
           line_items: [{
             quantity: 1,
             price_data: {
               currency: "usd",
               unit_amount: Math.round(params.amount * 100),
-              product_data: { name: "Donation to One By One Ministries" },
+              product_data: {
+                name: branding.product.name,
+                description: branding.product.description,
+                images: branding.product.images,
+              },
               ...(recurring ? { recurring: { interval: "month" as const } } : {}),
             },
           }],
           ...(recurring
             ? { subscription_data: { metadata } }
             : { payment_intent_data: { receipt_email: params.email, metadata } }),
-        });
+        } satisfies CheckoutSessionCreateParams);
         return session.url
           ? { ok: true, url: session.url }
           : { ok: false, error: "Stripe did not return a Checkout URL." };

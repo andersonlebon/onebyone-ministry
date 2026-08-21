@@ -45,6 +45,9 @@ After creating the endpoint, copy the **signing secret** (`whsec_...`) into Verc
 ## Smoke test checklist
 
 - [ ] One-time card gift completes and appears in admin
+- [ ] Donor receives branded thank-you email from `noreply@onebyoneministries.org` (via Brevo)
+- [ ] Admin/finance inbox receives `[Donation]` alert email
+- [ ] Stripe Checkout shows ministry colors, logo, and custom message
 - [ ] Cancelled checkout returns to `/donate?status=cancelled`
 - [ ] Monthly gift creates a subscription; renewal fires `invoice.payment_succeeded`
 - [ ] Duplicate webhook delivery does not duplicate donations (idempotent)

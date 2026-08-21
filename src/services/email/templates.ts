@@ -39,10 +39,11 @@ function ctaButton(href: string, label: string) {
   </table>`;
 }
 
-function emailShell(title: string, body: string) {
+function emailShell(title: string, body: string, headerSubtitle = "Admin Portal") {
   const siteUrl = getPublicSiteUrl();
   const siteHost = getPublicSiteHost();
   const logoUrl = `${siteUrl}/assets/brand-transparent/8-web.png`;
+  const safeSubtitle = escapeHtml(headerSubtitle);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -59,7 +60,7 @@ function emailShell(title: string, body: string) {
           <td style="background:${BRAND_GREEN};padding:24px 28px;text-align:center;">
             <img src="${escapeHtml(logoUrl)}" alt="One By One Ministries" width="160" style="display:block;margin:0 auto 12px;height:auto;max-width:160px;border:0;" />
             <p style="margin:0;color:#ffffff;font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:bold;letter-spacing:0.02em;">One By One Ministries</p>
-            <p style="margin:6px 0 0;color:rgba(255,255,255,0.82);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;">Admin Portal</p>
+            <p style="margin:6px 0 0;color:rgba(255,255,255,0.82);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;">${safeSubtitle}</p>
           </td>
         </tr>
         <tr><td style="padding:28px;color:${BRAND_CHARCOAL};font-size:15px;line-height:1.65;">
@@ -73,6 +74,10 @@ function emailShell(title: string, body: string) {
   </table>
 </body>
 </html>`;
+}
+
+function formatGiftAmount(amount: number) {
+  return amount % 1 === 0 ? `$${amount}` : `$${amount.toFixed(2)}`;
 }
 
 export function contactConfirmationEmail(name: string) {
@@ -195,6 +200,101 @@ ${siteUrl}`;
 
   return {
     subject: "You're invited to the One By One Ministries admin portal",
+    html,
+    text,
+  };
+}
+
+export function donationThankYouEmail(input: {
+  name: string;
+  amount: number;
+  frequency: string;
+  siteUrl: string;
+}) {
+  const { name, amount, frequency, siteUrl } = input;
+  const safeName = escapeHtml(name.trim() || "Friend");
+  const giftLabel = formatGiftAmount(amount);
+  const recurring = frequency === "monthly";
+  const amountLine = recurring ? `${giftLabel} / month` : giftLabel;
+
+  const html = emailShell(
+    "Thank you for your gift",
+    `<p style="margin-top:0;">Dear ${safeName},</p>
+     <p>Thank you for partnering with <strong>One By One Ministries</strong>. Your ${recurring ? "monthly " : ""}gift of <strong>${escapeHtml(amountLine)}</strong> helps rebuild communities in the Democratic Republic of Congo through education, entrepreneurship, and discipleship.</p>
+     <p style="margin:20px 0;padding:18px 20px;background:#FAF7F2;border-radius:12px;border:1px solid ${BRAND_BORDER};text-align:center;">
+       <span style="display:block;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND_MUTED};margin-bottom:6px;">Your gift</span>
+       <span style="font-family:Georgia,'Times New Roman',serif;font-size:28px;color:${BRAND_GREEN};font-weight:bold;">${escapeHtml(amountLine)}</span>
+     </p>
+     <p>Because of partners like you, families receive hope, children access education, and leaders are equipped to serve their communities in the love of Christ.</p>
+     ${ctaButton(`${escapeHtml(siteUrl)}/donate`, "Partner again")}
+     <p style="margin:24px 0 0;font-size:13px;color:${BRAND_MUTED};">This message was sent from a no-reply address. For questions about your gift or a receipt, email <a href="mailto:contact@onebyoneministries.org" style="color:${BRAND_GREEN};">contact@onebyoneministries.org</a>.</p>`,
+    "Partner With Us"
+  );
+
+  const text = `Dear ${name.trim() || "Friend"},
+
+Thank you for partnering with One By One Ministries. Your ${recurring ? "monthly " : ""}gift of ${amountLine} helps rebuild communities in the Democratic Republic of Congo through education, entrepreneurship, and discipleship.
+
+Partner again: ${siteUrl}/donate
+
+This message was sent from a no-reply address. For questions about your gift or a receipt, email contact@onebyoneministries.org.`;
+
+  return {
+    subject: recurring
+      ? "Thank you for your monthly gift — One By One Ministries"
+      : "Thank you for your gift — One By One Ministries",
+    html,
+    text,
+  };
+}
+
+export function donationStaffNotificationEmail(input: {
+  donation: {
+    name: string;
+    email: string;
+    amount: number;
+    frequency: string;
+    method: string;
+    date: string;
+    notes?: string;
+  };
+  adminUrl: string;
+}) {
+  const { donation, adminUrl } = input;
+  const recurring = donation.frequency === "monthly";
+  const amountLine = recurring
+    ? `${formatGiftAmount(donation.amount)} / month`
+    : formatGiftAmount(donation.amount);
+
+  const html = emailShell(
+    "New donation received",
+    `<p style="margin-top:0;"><strong>New ${recurring ? "monthly " : ""}card gift received</strong></p>
+     <p style="margin:20px 0;padding:18px 20px;background:#FAF7F2;border-radius:12px;border:1px solid ${BRAND_BORDER};">
+       <strong>Amount:</strong> ${escapeHtml(amountLine)}<br />
+       <strong>Donor:</strong> ${escapeHtml(donation.name)}<br />
+       <strong>Email:</strong> ${escapeHtml(donation.email)}<br />
+       <strong>Method:</strong> ${escapeHtml(donation.method)}<br />
+       <strong>Frequency:</strong> ${escapeHtml(donation.frequency)}<br />
+       <strong>Date:</strong> ${escapeHtml(donation.date)}
+     </p>
+     ${donation.notes ? `<p style="font-size:13px;color:${BRAND_MUTED};">${escapeHtml(donation.notes)}</p>` : ""}
+     ${ctaButton(adminUrl, "Open admin dashboard")}
+     <p style="margin:0;font-size:13px;color:${BRAND_MUTED};">Reply to reach the donor at ${escapeHtml(donation.email)}.</p>`
+  );
+
+  const text = `New ${recurring ? "monthly " : ""}card gift received
+
+Amount: ${amountLine}
+Donor: ${donation.name}
+Email: ${donation.email}
+Method: ${donation.method}
+Frequency: ${donation.frequency}
+Date: ${donation.date}
+${donation.notes ? `\n${donation.notes}\n` : ""}
+Admin: ${adminUrl}`;
+
+  return {
+    subject: `[Donation] ${amountLine} from ${donation.name}`,
     html,
     text,
   };

@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 
+import { sendDonationNotifications } from "@/lib/donate/notifications";
 import { isDatabaseConfigured } from "@/lib/db/config";
 import { createDonationIdempotent } from "@/lib/db/donations";
 import { constructStripeWebhookEvent } from "@/lib/stripe/webhook";
@@ -29,7 +30,7 @@ async function recordCheckoutSession(event: Stripe.Event) {
     session.amount_total <= 0 ||
     session.metadata?.source !== "onebyone-donation"
   ) {
-    return;
+    return null;
   }
 
   const email =
@@ -41,14 +42,14 @@ async function recordCheckoutSession(event: Stripe.Event) {
       eventId: event.id,
       sessionId: session.id,
     });
-    return;
+    return null;
   }
   const stripeTransactionId =
     stripeId(session.payment_intent) ??
     stripeId(session.subscription) ??
     session.id;
 
-  await createDonationIdempotent({
+  return createDonationIdempotent({
     name:
       session.metadata?.donor_name ||
       session.customer_details?.name ||
@@ -75,7 +76,7 @@ async function recordRenewalInvoice(event: Stripe.Event) {
     invoice.status !== "paid" ||
     invoice.amount_paid <= 0
   ) {
-    return;
+    return null;
   }
 
   const invoiceLinks = invoice as unknown as {
@@ -89,10 +90,10 @@ async function recordRenewalInvoice(event: Stripe.Event) {
   const subscriptionId =
     stripeId(invoiceLinks.parent?.subscription_details?.subscription) ??
     stripeId(invoiceLinks.subscription);
-  if (!subscriptionId) return;
+  if (!subscriptionId) return null;
 
   const subscription = await getStripeClient().subscriptions.retrieve(subscriptionId);
-  if (subscription.metadata.source !== "onebyone-donation") return;
+  if (subscription.metadata.source !== "onebyone-donation") return null;
 
   const email = invoice.customer_email ?? subscription.metadata.donor_email;
   if (!email) {
@@ -100,10 +101,10 @@ async function recordRenewalInvoice(event: Stripe.Event) {
       eventId: event.id,
       invoiceId: invoice.id,
     });
-    return;
+    return null;
   }
 
-  await createDonationIdempotent({
+  return createDonationIdempotent({
     name:
       subscription.metadata.donor_name ||
       invoice.customer_name ||
@@ -153,11 +154,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  let createdDonation = null;
   try {
     if (event.type === "checkout.session.completed") {
-      await recordCheckoutSession(event);
+      createdDonation = await recordCheckoutSession(event);
     } else if (event.type === "invoice.payment_succeeded") {
-      await recordRenewalInvoice(event);
+      createdDonation = await recordRenewalInvoice(event);
     }
   } catch (error) {
     console.error("[stripe-webhook] Valid event could not be persisted", {
@@ -166,6 +168,18 @@ export async function POST(request: Request) {
       error: error instanceof Error ? error.message : "Unknown persistence error",
     });
     return NextResponse.json({ error: "Webhook persistence failed" }, { status: 500 });
+  }
+
+  if (createdDonation) {
+    try {
+      await sendDonationNotifications(createdDonation);
+    } catch (error) {
+      console.error("[stripe-webhook] Donation saved but notifications failed", {
+        eventId: event.id,
+        donationId: createdDonation.id,
+        error: error instanceof Error ? error.message : "Unknown notification error",
+      });
+    }
   }
 
   revalidatePath("/admin/donations");

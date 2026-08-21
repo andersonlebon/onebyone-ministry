@@ -143,6 +143,37 @@ const oldSignature = stripe.webhooks.generateTestHeaderString({
 assert.throws(() =>
   constructStripeWebhookEvent(stripe, payload, oldSignature, webhookSecret)
 );
+
+import {
+  donationStaffNotificationEmail,
+  donationThankYouEmail,
+} from "@/services/email/templates";
+
+const thankYou = donationThankYouEmail({
+  name: "Grace",
+  amount: 50,
+  frequency: "one-time",
+  siteUrl: "https://www.onebyoneministries.org",
+});
+assert.match(thankYou.subject, /Thank you for your gift/);
+assert.match(thankYou.html, /Grace/);
+assert.match(thankYou.html, /\$50/);
+
+const staff = donationStaffNotificationEmail({
+  donation: {
+    name: "Grace",
+    email: "grace@example.org",
+    amount: 50,
+    frequency: "one-time",
+    method: "card",
+    date: "August 21, 2026",
+    notes: "Stripe Checkout",
+  },
+  adminUrl: "https://www.onebyoneministries.org/admin/dashboard",
+});
+assert.match(staff.subject, /\[Donation\]/);
+assert.match(staff.html, /grace@example.org/);
+
 const staffUser = (role: string) =>
   ({ app_metadata: { role } }) as unknown as User;
 assert.equal(isAdminUser(staffUser("viewer")), false);

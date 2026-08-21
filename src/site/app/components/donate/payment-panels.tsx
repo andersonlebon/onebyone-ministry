@@ -525,17 +525,27 @@ export function OtherPanel({ amount, finance }: { amount: string; finance: Finan
 }
 
 export function DonationSuccessBanner() {
+  const c = useDonationColors();
   return (
     <motion.div
       initial={{ opacity: 0, y: -12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-3xl mx-auto mb-6 rounded-2xl p-5 flex items-start gap-3"
-      style={{ backgroundColor: "#6E9277", color: "#fff" }}
+      className="max-w-3xl mx-auto mb-6 rounded-2xl overflow-hidden"
+      style={{ border: `1px solid ${c.borderLight}`, backgroundColor: c.white }}
     >
-      <CheckCircle2 size={22} className="flex-shrink-0 mt-0.5" />
-      <div>
-        <p className="font-semibold text-sm">Thank you for completing Checkout.</p>
-        <p className="text-sm text-white/85 mt-1">Stripe is confirming your payment. A receipt will be emailed when applicable.</p>
+      <div className="px-5 py-4 flex items-start gap-3" style={{ backgroundColor: "#6E9277", color: "#fff" }}>
+        <CheckCircle2 size={22} className="flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="font-semibold text-sm" style={{ fontFamily: "'Francois One', sans-serif" }}>
+            Thank you for your gift
+          </p>
+          <p className="text-sm text-white/90 mt-1">
+            Your payment was received. A thank-you email from One By One Ministries is on its way, and our team has been notified.
+          </p>
+        </div>
+      </div>
+      <div className="px-5 py-4 text-sm" style={{ color: c.muted }}>
+        Your support helps rebuild communities in the DRC through education, entrepreneurship, and discipleship.
       </div>
     </motion.div>
   );
